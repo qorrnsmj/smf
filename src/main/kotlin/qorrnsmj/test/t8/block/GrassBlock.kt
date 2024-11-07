@@ -1,17 +1,20 @@
-package qorrnsmj.test.t8
+package qorrnsmj.test.t8.block
 
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector4f
+import qorrnsmj.test.t8.render.Renderer
+import qorrnsmj.test.t8.render.Texture
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Cube(
+class GrassBlock(
     var x: Float = 0.0f,
     var y: Float = 0.0f,
     var z: Float = 0.0f,
     var scale: Float = 1.0f,
     var angle: Float = 0.0f
 ) {
+    private val texture = Texture("../../test/test8_grass.png")
     private val vertices = arrayOf(
         // front
         floatArrayOf(-scale + x, scale + y, scale + z),
@@ -32,10 +35,14 @@ class Cube(
         for (i in 0 until 6 * 2) { // 三角形2つの1面が6つ
             for (j in 0 until 3) { // 三角形は3頂点
                 val index = indices[i][j]
-                data += vertices[index] + colors[i / 2]
+                data += vertices[index]
+                data += colors[i / 2]
+                data += uv[i * 3 + j]
             }
         }
 
+        //glActiveTexture(GL_TEXTURE0)
+        texture.bind()
         Renderer.draw(data)
     }
 
@@ -70,12 +77,38 @@ class Cube(
         )
 
         private val colors = arrayOf(
-            floatArrayOf(1.0f, 0.0f, 0.0f, 1.0f), // front (red)
-            floatArrayOf(0.0f, 1.0f, 1.0f, 1.0f), // right (cyan)
-            floatArrayOf(0.0f, 1.0f, 0.0f, 1.0f), // back (green)
-            floatArrayOf(1.0f, 0.0f, 1.0f, 1.0f), // left (magenta)
-            floatArrayOf(1.0f, 1.0f, 0.0f, 1.0f), // bottom (yellow)
-            floatArrayOf(0.0f, 0.0f, 1.0f, 1.0f)  // top (blue)
+            floatArrayOf(1.0f, 1.0f, 1.0f, 1.0f), // front
+            floatArrayOf(1.0f, 1.0f, 1.0f, 1.0f), // right
+            floatArrayOf(1.0f, 1.0f, 1.0f, 1.0f), // back
+            floatArrayOf(1.0f, 1.0f, 1.0f, 1.0f), // left
+            floatArrayOf(1.0f, 1.0f, 1.0f, 1.0f), // bottom
+            floatArrayOf(0.7f, 1.0f, 0.3f, 1.0f)  // top (黄緑)
+        )
+
+        private val uv = arrayOf(
+            // front
+            floatArrayOf(0.5f, 0.5f), floatArrayOf(1.0f, 0.5f), floatArrayOf(0.5f, 1.0f),
+            floatArrayOf(0.5f, 1.0f), floatArrayOf(1.0f, 0.5f), floatArrayOf(1.0f, 1.0f),
+
+            // right
+            floatArrayOf(0.5f, 0.5f), floatArrayOf(1.0f, 0.5f), floatArrayOf(0.5f, 1.0f),
+            floatArrayOf(0.5f, 1.0f), floatArrayOf(1.0f, 0.5f), floatArrayOf(1.0f, 1.0f),
+
+            // back
+            floatArrayOf(0.5f, 0.5f), floatArrayOf(1.0f, 0.5f), floatArrayOf(0.5f, 1.0f),
+            floatArrayOf(0.5f, 1.0f), floatArrayOf(1.0f, 0.5f), floatArrayOf(1.0f, 1.0f),
+
+            // left
+            floatArrayOf(0.5f, 0.5f), floatArrayOf(1.0f, 0.5f), floatArrayOf(0.5f, 1.0f),
+            floatArrayOf(0.5f, 1.0f), floatArrayOf(1.0f, 0.5f), floatArrayOf(1.0f, 1.0f),
+
+            // bottom
+            floatArrayOf(0.0f, 0.0f), floatArrayOf(0.5f, 0.0f), floatArrayOf(0.0f, 0.5f),
+            floatArrayOf(0.0f, 0.5f), floatArrayOf(0.5f, 0.0f), floatArrayOf(0.5f, 0.5f),
+
+            // top
+            floatArrayOf(0.0f, 0.5f), floatArrayOf(0.5f, 0.5f), floatArrayOf(0.0f, 1.0f),
+            floatArrayOf(0.0f, 1.0f), floatArrayOf(0.5f, 0.5f), floatArrayOf(0.5f, 1.0f)
         )
     }
 }

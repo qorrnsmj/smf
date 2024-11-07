@@ -1,4 +1,4 @@
-package qorrnsmj.test.t8
+package qorrnsmj.test.t8.render
 
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil
@@ -33,19 +33,19 @@ object Renderer {
         vao = VertexArrayObject().bind()
         vbo = VertexBufferObject().bind(GL_ARRAY_BUFFER)
         program = ShaderProgram().apply {
-            attachShader(Shader(GL_VERTEX_SHADER, "../../test/test7.vert"))
-            attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/test7.frag"))
-            //attachShader(Shader(GL_VERTEX_SHADER, "default.vert"))
-            //attachShader(Shader(GL_FRAGMENT_SHADER, "default.frag"))
+            attachShader(Shader(GL_VERTEX_SHADER, "../../test/test8.vert"))
+            attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/test8.frag"))
             link()
             use()
         }
         vertices = MemoryUtil.memAllocFloat(1024)
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 7 * Float.SIZE_BYTES, 0)
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 9 * Float.SIZE_BYTES, 0)
         glEnableVertexAttribArray(0)
-        glVertexAttribPointer(1, 4, GL_FLOAT, false, 7 * Float.SIZE_BYTES, (3 * Float.SIZE_BYTES).toLong())
+        glVertexAttribPointer(1, 4, GL_FLOAT, false, 9 * Float.SIZE_BYTES, (3 * Float.SIZE_BYTES).toLong())
         glEnableVertexAttribArray(1)
+        glVertexAttribPointer(2, 2, GL_FLOAT, false, 9 * Float.SIZE_BYTES, (7 * Float.SIZE_BYTES).toLong())
+        glEnableVertexAttribArray(2)
 
         setProjection(Projection.getPerspectiveMatrix(1600f / 1600f))
         setView(View.getMatrix(
@@ -81,18 +81,15 @@ object Renderer {
     }
 
     fun draw(vertices: FloatArray) {
-        // Uniform変数が更新されたら呼び出せばいい
-        //setUniforms()
-
         // 空き容量があるか確認。無かったらflush
-        if (this.vertices.remaining() < vertices.size) {
+        if (Renderer.vertices.remaining() < vertices.size) {
             Logger.debug("[Renderer] No remaining!")
             flush()
         }
 
         // Renderer.verticesに追加
         for (i in vertices.indices) {
-            this.vertices.put(vertices[i])
+            Renderer.vertices.put(vertices[i])
         }
         verticesCount += vertices.size / 7
     }
@@ -104,12 +101,10 @@ object Renderer {
 
             // vboは外部からも渡せるようにする？
             vbo.bind(GL_ARRAY_BUFFER)
-            //vbo.uploadData(GL_ARRAY_BUFFER, array, GL_STATIC_DRAW) // OK
-            vbo.uploadData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW) // OK
+            vbo.uploadData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
             // 描画
-            //glDrawArrays(GL_TRIANGLES, 0, 3) // OK
-            glDrawArrays(GL_TRIANGLES, 0, verticesCount) // OK
+            glDrawArrays(GL_TRIANGLES, 0, verticesCount)
 
             // 頂点データをクリア
             vertices.clear()
