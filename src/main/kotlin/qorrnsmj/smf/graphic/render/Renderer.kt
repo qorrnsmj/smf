@@ -14,15 +14,15 @@ import java.nio.FloatBuffer
 // vao, shaderprogramは単一で
 // https://www.reddit.com/r/opengl/comments/deqzl1/what_should_be_sharing_a_vaovbo/
 // https://stackoverflow.com/questions/66001948/should-shader-programs-be-shared-in-opengl
-class Renderer {
-    private var vao: VertexArrayObject
-    private var vbo: VertexBufferObject
-    private var program: ShaderProgram
-    private var vertices: FloatBuffer
+object Renderer {
+    private lateinit var vao: VertexArrayObject
+    private lateinit var vbo: VertexBufferObject
+    private lateinit var program: ShaderProgram
+    private lateinit var vertices: FloatBuffer
     private var verticesCount = 0
     private var drawing = false
 
-    init {
+    fun init() {
         Logger.debug("[Renderer] init")
 
         glEnable(GL_BLEND)

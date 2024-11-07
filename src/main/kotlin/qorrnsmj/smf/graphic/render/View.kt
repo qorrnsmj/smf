@@ -4,7 +4,7 @@ import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
 
-// Cameraにする？それともCameraは別で作る？
+// TODO: Cameraにする？それともCameraは別で作る？
 object View {
     fun getMatrix(eye: Vector3f, center: Vector3f, up: Vector3f): Matrix4f {
         // カメラの向いてる方向のベクトルと、上方向のベクトルを正規化したもの

@@ -32,7 +32,7 @@ abstract class Game {
         // Create window, timer and renderer
         window = Window(800, 800, "SMF", true)
         timer = Timer()
-        renderer = Renderer()
+        renderer = Renderer.apply { init() }
 
         // Set state machine
         stateMachine = StateMachine()
