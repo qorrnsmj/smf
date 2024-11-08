@@ -15,6 +15,7 @@ dependencies {
     val nativeTarget = "natives-windows"
 
     implementation(kotlin("stdlib-jdk8"))
+    implementation("dev.romainguy:kotlin-math:1.5.3")
     implementation("org.tinylog:tinylog-api-kotlin:2.7.0")
     implementation("org.tinylog:tinylog-impl:2.7.0")
 
