@@ -5,7 +5,6 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33.*
 import qorrnsmj.smf.core.window.Window
 import qorrnsmj.test.t8.block.GrassBlock
-import qorrnsmj.test.t8.block.StoneBlock
 import qorrnsmj.test.t8.render.Renderer
 
 /** テクスチャをはりつける
@@ -26,9 +25,7 @@ object Test8_3 {
         while (!window.shouldClose()) {
             // render
             Renderer.clear()
-            Renderer.begin()
             grassBlock.draw()
-            Renderer.end()
 
             // update
             grassBlock.updateAngle(grassBlock.angle + 0.01f)

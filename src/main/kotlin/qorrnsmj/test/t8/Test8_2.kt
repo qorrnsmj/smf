@@ -26,9 +26,7 @@ object Test8_2 {
         while (!window.shouldClose()) {
             // render
             Renderer.clear()
-            Renderer.begin()
             stoneBlock.draw()
-            Renderer.end()
 
             // update
             stoneBlock.updateAngle(stoneBlock.angle + 0.01f)

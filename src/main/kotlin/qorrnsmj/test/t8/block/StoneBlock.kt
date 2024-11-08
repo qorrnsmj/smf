@@ -41,9 +41,11 @@ class StoneBlock(
             }
         }
 
-        //glActiveTexture(GL_TEXTURE0)
         texture.bind()
+        Renderer.begin()
         Renderer.draw(data)
+        Renderer.end()
+        texture.unbind()
     }
 
     fun updateAngle(angle: Float) {

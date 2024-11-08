@@ -14,7 +14,9 @@ class GrassBlock(
     var scale: Float = 1.0f,
     var angle: Float = 0.0f
 ) {
+    private var modelMatrix = Matrix4f().apply { setIdentity() }
     private val texture = Texture("../../test/test8_grass.png")
+    // TODO: scale, rotate translate それぞれ行列の変数にまとめる
     private val vertices = arrayOf(
         // front
         floatArrayOf(-scale + x, scale + y, scale + z),
@@ -35,35 +37,39 @@ class GrassBlock(
         for (i in 0 until 6 * 2) { // 三角形2つの1面が6つ
             for (j in 0 until 3) { // 三角形は3頂点
                 val index = indices[i][j]
-                data += vertices[index]
+                val transformed = modelMatrix
+                    .multiply(Vector4f(vertices[index][0], vertices[index][1], vertices[index][2], 1.0f))
+
+                data += floatArrayOf(transformed.x, transformed.y, transformed.z)
                 data += colors[i / 2]
                 data += uv[i * 3 + j]
             }
         }
 
-        //glActiveTexture(GL_TEXTURE0)
+        // TODO: テクスチャが違うと、同じbegin, endの間に描画できない
+        //  -> アトラス使う？
         texture.bind()
+        Renderer.begin()
         Renderer.draw(data)
+        Renderer.end()
+        texture.unbind()
     }
 
+    // TODO: scale, rotate translate それぞれ行列の変数にまとめる
     fun updateAngle(angle: Float) {
         this.angle = angle
 
-        val model = Matrix4f( // z軸回転の回転行列
+        modelMatrix = Matrix4f( // z軸回転の回転行列
             Vector4f(cos(angle), -sin(angle), 0.0f, 0.0f),
             Vector4f(sin(angle),  cos(angle), 0.0f, 0.0f),
             Vector4f(0.0f, 0.0f, 1.0f, 0.0f),
             Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
-        ).multiply(
-            Matrix4f( // x軸回転の回転行列
-                Vector4f(1.0f, 0.0f, 0.0f, 0.0f),
-                Vector4f(0.0f, cos(angle), -sin(angle), 0.0f),
-                Vector4f(0.0f, sin(angle),  cos(angle), 0.0f),
-                Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
-            )
-        )
-
-        Renderer.setModel(model)
+        ).multiply(Matrix4f( // x軸回転の回転行列
+            Vector4f(1.0f, 0.0f, 0.0f, 0.0f),
+            Vector4f(0.0f, cos(angle), -sin(angle), 0.0f),
+            Vector4f(0.0f, sin(angle),  cos(angle), 0.0f),
+            Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
+        ))
     }
 
     companion object {
