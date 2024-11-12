@@ -30,7 +30,6 @@ object Test10_5 {
         moon = Moon()
 
         // Uniforms for Lightning
-        Renderer.setUniform("lightDir", Vector3f(-1.0f, 0.0f, 0.0f))
         Renderer.setUniform("ambientColor", Vector3f(0.1f, 0.1f, 0.1f))
         Renderer.setUniform("specularStrength", 0.5f) // 反射光の強さ
         Renderer.setUniform("shininess", 32.0f) // 反射光の鋭さ
