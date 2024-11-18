@@ -1,4 +1,4 @@
-package qorrnsmj.test.t10.content
+package qorrnsmj.test.t10.game
 
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.math.Matrix4f

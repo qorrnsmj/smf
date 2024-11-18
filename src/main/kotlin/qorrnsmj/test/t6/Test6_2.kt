@@ -3,8 +3,8 @@ package qorrnsmj.test.t6
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33.*
-import qorrnsmj.smf.graphic.render.Projection
-import qorrnsmj.smf.graphic.render.View
+import qorrnsmj.smf.graphic.render.ProjectionMatrix
+import qorrnsmj.smf.graphic.render.ViewMatrix
 import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
 import qorrnsmj.smf.graphic.shader.VertexArrayObject
@@ -73,7 +73,7 @@ object Test6_2 {
         )
 
         program.setUniform("uView",
-            View.getMatrix( // OpenGLは右手系座標
+            ViewMatrix.getMatrix( // OpenGLは右手系座標
                 Vector3f(0f, 3f, 2f), // Camera position
                 Vector3f(0f, 0f, 0f), // Look at point
                 Vector3f(0f, 1f, 0f)  // Up vector
@@ -82,7 +82,7 @@ object Test6_2 {
 
         val aspect = window.getWidth() / window.getHeight().toFloat()
         program.setUniform("uProj", // 透視投影
-            Projection.getPerspectiveMatrix(aspect)
+            ProjectionMatrix.getPerspectiveMatrix(aspect)
         )
     }
 

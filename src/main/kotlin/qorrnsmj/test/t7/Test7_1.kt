@@ -4,8 +4,8 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33.*
 import qorrnsmj.smf.core.window.Window
-import qorrnsmj.smf.graphic.render.Projection
-import qorrnsmj.smf.graphic.render.View
+import qorrnsmj.smf.graphic.render.ProjectionMatrix
+import qorrnsmj.smf.graphic.render.ViewMatrix
 import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
 import qorrnsmj.smf.graphic.shader.VertexArrayObject
@@ -49,8 +49,8 @@ object Test7_1 {
             glEnableVertexAttribArray(1)
 
             // uniform変数の設定
-            setUniform("projection", Projection.getPerspectiveMatrix(1600f / 1600f))
-            setUniform("view", View.getMatrix(
+            setUniform("projection", ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f))
+            setUniform("view", ViewMatrix.getMatrix(
                 eye = Vector3f(0f, 0f, 7f),
                 center = Vector3f(0f, 0f, 0f),
                 up = Vector3f(0f, 1f, 0f)
@@ -87,8 +87,8 @@ object Test7_1 {
     }
 
     private fun setUniforms() {
-        program.setUniform("projection", Projection.getPerspectiveMatrix(1600f / 1600f))
-        program.setUniform("view", View.getMatrix(
+        program.setUniform("projection", ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f))
+        program.setUniform("view", ViewMatrix.getMatrix(
             eye = Vector3f(0f, 0f, 7f),
             center = Vector3f(0f, 0f, 0f),
             up = Vector3f(0f, 1f, 0f)

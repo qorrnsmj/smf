@@ -3,10 +3,10 @@ package qorrnsmj.test.t9
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import qorrnsmj.smf.core.window.Window
-import qorrnsmj.smf.graphic.render.View
-import qorrnsmj.test.t9.content.GrassBlock
+import qorrnsmj.smf.graphic.render.ViewMatrix
+import qorrnsmj.test.t9.game.GrassBlock
 import qorrnsmj.test.t9.render.Renderer
-import qorrnsmj.test.t9.content.Ground
+import qorrnsmj.test.t9.game.Ground
 
 /** Camera.classを作って、自由に移動させる */
 object Test9_1 {
@@ -27,7 +27,7 @@ object Test9_1 {
             // camera input and update
             camera.processKeyboardInput(window)
             camera.processMouseMovement(window)
-            Renderer.setView(View.getMatrix(
+            Renderer.setView(ViewMatrix.getMatrix(
                 eye = camera.position,
                 center = camera.position.add(camera.front),
                 up = camera.up

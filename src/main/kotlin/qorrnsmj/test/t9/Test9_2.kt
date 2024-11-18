@@ -4,11 +4,11 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33
 import qorrnsmj.smf.core.window.Window
-import qorrnsmj.smf.graphic.render.Projection
-import qorrnsmj.smf.graphic.render.View
+import qorrnsmj.smf.graphic.render.ProjectionMatrix
+import qorrnsmj.smf.graphic.render.ViewMatrix
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.test.t9.content.GrassBlock
-import qorrnsmj.test.t9.content.Ground
+import qorrnsmj.test.t9.game.GrassBlock
+import qorrnsmj.test.t9.game.Ground
 import qorrnsmj.test.t9.render.Renderer
 
 /** 画面の解像度を変えたときの処理を追加
@@ -32,7 +32,7 @@ object Test9_2 {
 
         GLFW.glfwSetFramebufferSizeCallback(window.id) { _, width, height ->
             GL33.glViewport(0, 0, width, height)
-            Renderer.setProjection(Projection.getPerspectiveMatrix(
+            Renderer.setProjection(ProjectionMatrix.getPerspectiveMatrix(
                 width.toFloat() / height.toFloat()
             ))
         }
@@ -43,7 +43,7 @@ object Test9_2 {
             // camera input and update
             camera.processKeyboardInput(window)
             camera.processMouseMovement(window)
-            Renderer.setView(View.getMatrix(
+            Renderer.setView(ViewMatrix.getMatrix(
                 eye = camera.position,
                 center = camera.position.add(camera.front),
                 up = camera.up

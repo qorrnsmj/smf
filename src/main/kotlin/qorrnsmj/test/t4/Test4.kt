@@ -7,8 +7,8 @@ import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
-import qorrnsmj.smf.graphic.render.View
-import qorrnsmj.smf.graphic.render.Projection
+import qorrnsmj.smf.graphic.render.ViewMatrix
+import qorrnsmj.smf.graphic.render.ProjectionMatrix
 import qorrnsmj.smf.math.Vector3f
 
 /** Test3をsmfのクラスで再現できてるか確認 -> 成功！！ */
@@ -131,7 +131,7 @@ object Test4 {
     private fun gluPerspective(fovY: Double, aspect: Double, zNear: Double, zFar: Double) {
         MemoryStack.stackPush().use { stack ->
             val buffer = stack.mallocFloat(4 * 4)
-            val m = Projection.getPerspectiveMatrix(aspect.toFloat())
+            val m = ProjectionMatrix.getPerspectiveMatrix(aspect.toFloat())
 
             m.toBuffer(buffer)
             glMultMatrixf(buffer)
@@ -141,7 +141,7 @@ object Test4 {
     private fun gluLookAt(eye: Vector3f, center: Vector3f, up: Vector3f) {
         MemoryStack.stackPush().use { stack ->
             val buffer = stack.mallocFloat(4 * 4)
-            val m = View.getMatrix(eye, center, up)
+            val m = ViewMatrix.getMatrix(eye, center, up)
 
             m.toBuffer(buffer)
             glMultMatrixf(buffer)

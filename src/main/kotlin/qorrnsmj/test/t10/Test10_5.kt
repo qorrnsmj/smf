@@ -4,10 +4,10 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33
 import qorrnsmj.smf.core.window.Window
-import qorrnsmj.smf.graphic.render.Projection
-import qorrnsmj.smf.graphic.render.View
+import qorrnsmj.smf.graphic.render.ProjectionMatrix
+import qorrnsmj.smf.graphic.render.ViewMatrix
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.test.t10.content.Moon
+import qorrnsmj.test.t10.game.Moon
 import qorrnsmj.test.t10.render.Renderer
 
 /** 頂点法線を使ったライティングの実装
@@ -21,7 +21,7 @@ object Test10_5 {
         Renderer.init("test10_4")
         GLFW.glfwSetFramebufferSizeCallback(window.id) { _, width, height ->
             GL33.glViewport(0, 0, width, height)
-            Renderer.setUniform("projection", Projection.getPerspectiveMatrix(
+            Renderer.setUniform("projection", ProjectionMatrix.getPerspectiveMatrix(
                 width.toFloat() / height.toFloat()
             ))
         }
@@ -53,7 +53,7 @@ object Test10_5 {
             // camera input and update
             camera.processKeyboardInput(window)
             camera.processMouseMovement(window)
-            Renderer.setUniform("view", View.getMatrix(
+            Renderer.setUniform("view", ViewMatrix.getMatrix(
                 eye = camera.position,
                 center = camera.position.add(camera.front),
                 up = camera.up

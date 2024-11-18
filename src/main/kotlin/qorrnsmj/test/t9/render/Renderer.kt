@@ -3,8 +3,8 @@ package qorrnsmj.test.t9.render
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.graphic.render.Projection
-import qorrnsmj.smf.graphic.render.View
+import qorrnsmj.smf.graphic.render.ProjectionMatrix
+import qorrnsmj.smf.graphic.render.ViewMatrix
 import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
 import qorrnsmj.smf.graphic.shader.VertexArrayObject
@@ -49,8 +49,8 @@ object Renderer {
         glVertexAttribPointer(2, 2, GL_FLOAT, false, 9 * Float.SIZE_BYTES, (7 * Float.SIZE_BYTES).toLong())
         glEnableVertexAttribArray(2)
 
-        setProjection(Projection.getPerspectiveMatrix(1600f / 1600f))
-        setView(View.getMatrix(
+        setProjection(ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f))
+        setView(ViewMatrix.getMatrix(
             eye = Vector3f(0f, 0f, 10f),
             center = Vector3f(0f, 0f, 0f),
             up = Vector3f(0f, 1f, 0f)

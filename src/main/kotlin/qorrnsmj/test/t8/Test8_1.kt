@@ -6,8 +6,8 @@ import org.lwjgl.opengl.GL33.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import qorrnsmj.smf.core.window.Window
-import qorrnsmj.smf.graphic.render.Projection
-import qorrnsmj.smf.graphic.render.View
+import qorrnsmj.smf.graphic.render.ProjectionMatrix
+import qorrnsmj.smf.graphic.render.ViewMatrix
 import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
 import qorrnsmj.smf.graphic.shader.VertexArrayObject
@@ -69,9 +69,9 @@ object Test8_1 {
 
         // Uniform変数の設定
         program.apply {
-            setUniform("projection", Projection.getPerspectiveMatrix(1600f / 1600f))
+            setUniform("projection", ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f))
             setUniform("view",
-                View.getMatrix(
+                ViewMatrix.getMatrix(
                     eye = Vector3f(0f, 0f, 7f),
                     center = Vector3f(0f, 0f, 0f),
                     up = Vector3f(0f, 1f, 0f)

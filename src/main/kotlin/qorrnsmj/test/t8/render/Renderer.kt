@@ -3,8 +3,8 @@ package qorrnsmj.test.t8.render
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.graphic.render.Projection
-import qorrnsmj.smf.graphic.render.View
+import qorrnsmj.smf.graphic.render.ProjectionMatrix
+import qorrnsmj.smf.graphic.render.ViewMatrix
 import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
 import qorrnsmj.smf.graphic.shader.VertexArrayObject
@@ -29,6 +29,8 @@ object Renderer {
         glEnable(GL_DEPTH_TEST)
         glCullFace(GL_BACK)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+        // TEST: glClearColorここでOK?
 
         vao = VertexArrayObject().bind()
         vbo = VertexBufferObject().bind(GL_ARRAY_BUFFER)
@@ -47,8 +49,8 @@ object Renderer {
         glVertexAttribPointer(2, 2, GL_FLOAT, false, 9 * Float.SIZE_BYTES, (7 * Float.SIZE_BYTES).toLong())
         glEnableVertexAttribArray(2)
 
-        setProjection(Projection.getPerspectiveMatrix(1600f / 1600f))
-        setView(View.getMatrix(
+        setProjection(ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f))
+        setView(ViewMatrix.getMatrix(
             eye = Vector3f(0f, 0f, 10f),
             center = Vector3f(0f, 0f, 0f),
             up = Vector3f(0f, 1f, 0f)
@@ -94,7 +96,7 @@ object Renderer {
         verticesCount += vertices.size / 7
     }
 
-    private fun flush() {
+   private fun flush() {
         if (verticesCount > 0) {
             // positionを0にする
             vertices.flip()

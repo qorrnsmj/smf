@@ -13,7 +13,8 @@ import qorrnsmj.smf.math.Vector4f
 import kotlin.math.tan
 
 /** Perspective projectionのテスト (OpenGLは右手系) (このテストは画面比率変更に対応してない)
- * https://yttm-work.jp/gmpg/gmpg_0003.html
+ * - [link](https://yttm-work.jp/gmpg/gmpg_0003.html)
+ * - [link](https://marina.sys.wakayama-u.ac.jp/~tokoi/?date=20090829)
  * */
 object Test3 {
     private val errorCallback = GLFWErrorCallback.createPrint(System.err)

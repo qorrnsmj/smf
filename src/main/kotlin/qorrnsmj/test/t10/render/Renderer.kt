@@ -3,8 +3,8 @@ package qorrnsmj.test.t10.render
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.graphic.render.Projection
-import qorrnsmj.smf.graphic.render.View
+import qorrnsmj.smf.graphic.render.ProjectionMatrix
+import qorrnsmj.smf.graphic.render.ViewMatrix
 import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
 import qorrnsmj.smf.graphic.shader.VertexArrayObject
@@ -42,8 +42,8 @@ object Renderer {
             use()
 
             // MVP
-            setUniform("projection", Projection.getPerspectiveMatrix(1600f / 1600f))
-            setUniform("view", View.getMatrix(
+            setUniform("projection", ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f))
+            setUniform("view", ViewMatrix.getMatrix(
                 eye = Vector3f(0f, 0f, 10f),
                 center = Vector3f(0f, 0f, 0f),
                 up = Vector3f(0f, 1f, 0f)
