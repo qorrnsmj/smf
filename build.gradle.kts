@@ -35,11 +35,11 @@ dependencies {
 
 tasks {
     shadowJar {
-        archiveBaseName.set("Test11_1")
+        archiveBaseName.set("SMF")
         archiveVersion.set("${rootProject.version}")
         archiveClassifier.set("")
         manifest {
-            attributes["Main-Class"] = "qorrnsmj.test.t11.Test11_1"
+            attributes["Main-Class"] = "qorrnsmj.smf.SMF"
         }
     }
 }
