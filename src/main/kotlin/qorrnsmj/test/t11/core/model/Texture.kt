@@ -3,7 +3,8 @@ package qorrnsmj.test.t11.core.model
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
-import java.nio.file.Paths
+import qorrnsmj.smf.util.ResourceUtils
+import java.nio.file.Path
 
 class Texture(imageFile: String) {
     val id = glGenTextures()
@@ -25,7 +26,7 @@ class Texture(imageFile: String) {
             val height = stack.mallocInt(1)
             val channels = stack.mallocInt(1)
 
-            val path = Paths.get("src/main/resources/assets/texture/$imageFile")
+            var path = Path.of("") //= ResourceUtils.loadTexture(imageFile)
             STBImage.stbi_set_flip_vertically_on_load(true)
             val image = STBImage.stbi_load(path.toString(), width, height, channels, 4)
                 ?: throw RuntimeException("Failed to load texture: $path")

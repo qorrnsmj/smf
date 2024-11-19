@@ -5,15 +5,8 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
-import qorrnsmj.smf.core.window.Window
-import qorrnsmj.smf.graphic.render.ProjectionMatrix
-import qorrnsmj.smf.graphic.render.ViewMatrix
-import qorrnsmj.smf.graphic.shader.Shader
+import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.graphic.shader.ShaderProgram
-import qorrnsmj.smf.graphic.shader.VertexArrayObject
-import qorrnsmj.smf.graphic.shader.VertexBufferObject
-import qorrnsmj.smf.math.Matrix4f
-import qorrnsmj.smf.math.Vector3f
 
 /** テクスチャをはりつける
  * - まずはRendererを使わずに
@@ -21,18 +14,18 @@ import qorrnsmj.smf.math.Vector3f
 object Test8_1 {
     private lateinit var window: Window
     private lateinit var program: ShaderProgram
-    private lateinit var vao: VertexArrayObject
-    private lateinit var vbo: VertexBufferObject
+//    private lateinit var vao: VertexArrayObject
+//    private lateinit var vbo: VertexBufferObject
     private var textureID = 0
 
     private fun setShader() {
         // シェーダープログラムの作成
-        program = ShaderProgram().apply {
-            attachShader(Shader(GL_VERTEX_SHADER, "../../test/test8.vert"))
-            attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/test8.frag"))
-            link()
-            use()
-        }
+//        program = ShaderProgram().apply {
+//            attachShader(Shader(GL_VERTEX_SHADER, "../../test/test8.vert"))
+//            attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/test8.frag"))
+//            link()
+//            use()
+//        }
 
         // テクスチャ読み込み
         textureID = loadTexture("src/main/resources/test/test8_test.png")
@@ -49,10 +42,10 @@ object Test8_1 {
         )
 
         // VAO, VBOのバインド
-        vao = VertexArrayObject()
-        vbo = VertexBufferObject()
-        vao.bind()
-        vbo.bind(GL_ARRAY_BUFFER)
+//        vao = VertexArrayObject()
+//        vbo = VertexBufferObject()
+//        vao.bind()
+//        vbo.bind(GL_ARRAY_BUFFER)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
         // location = 0 (座標)
@@ -69,15 +62,15 @@ object Test8_1 {
 
         // Uniform変数の設定
         program.apply {
-            setUniform("projection", ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f))
-            setUniform("view",
-                ViewMatrix.getMatrix(
-                    eye = Vector3f(0f, 0f, 7f),
-                    center = Vector3f(0f, 0f, 0f),
-                    up = Vector3f(0f, 1f, 0f)
-                )
-            )
-            setUniform("model", Matrix4f())
+//            setUniform("projection", ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f))
+//            setUniform("view",
+//                ViewMatrix.getMatrix(
+//                    eye = Vector3f(0f, 0f, 7f),
+//                    center = Vector3f(0f, 0f, 0f),
+//                    up = Vector3f(0f, 1f, 0f)
+//                )
+//            )
+//            setUniform("model", Matrix4f())
         }
     }
 
@@ -138,9 +131,9 @@ object Test8_1 {
         loop()
 
         program.delete()
-        vao.delete()
-        vbo.delete()
-        window.destroy()
+//        vao.delete()
+//        vbo.delete()
+        window.cleanup()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()
     }

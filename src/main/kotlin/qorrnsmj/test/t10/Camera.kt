@@ -2,7 +2,7 @@ package qorrnsmj.test.t10
 
 import dev.romainguy.kotlin.math.radians
 import org.lwjgl.glfw.GLFW
-import qorrnsmj.smf.core.window.Window
+import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.math.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin

@@ -3,11 +3,8 @@ package qorrnsmj.test.t6
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33.*
-import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
-import qorrnsmj.smf.graphic.shader.VertexArrayObject
-import qorrnsmj.smf.graphic.shader.VertexBufferObject
-import qorrnsmj.smf.core.window.Window
+import qorrnsmj.smf.window.Window
 
 /** Test2, Test4をsmfのWindowクラス(GL33)で実装する
  * - GL32以降は、primitive-draw-callsは使えない
@@ -17,33 +14,33 @@ import qorrnsmj.smf.core.window.Window
 object Test6_1 {
     private lateinit var window: Window
     private lateinit var program: ShaderProgram
-    private lateinit var vao: VertexArrayObject
-    private lateinit var vbo: VertexBufferObject
+//    private lateinit var vao: VertexArrayObject
+//    private lateinit var vbo: VertexBufferObject
 
     private fun setShader() {
-        program = ShaderProgram().apply {
-            attachShader(Shader(GL_VERTEX_SHADER, "../../test/test6_1.vert"))
-            attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/test6_1.frag"))
-            link()
-            use()
-        }
-
-        // とりあえず三角形
-        val vertices = floatArrayOf(
-            // x, y, z, r, g, b, a
-            -0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f, 1.0f,
-             0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,
-             0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f, 1.0f
-            // glEnable(GL_BLEND) しないとalpha値が効かないかも
-            // -> そもそも背景設定してないから分かんないや
-        )
-
-        // VAO, VBOのバインド
-        vao = VertexArrayObject()
-        vbo = VertexBufferObject()
-        vao.bind()
-        vbo.bind(GL_ARRAY_BUFFER)
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+//        program = ShaderProgram().apply {
+//            attachShader(Shader(GL_VERTEX_SHADER, "../../test/test6_1.vert"))
+//            attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/test6_1.frag"))
+//            link()
+//            use()
+//        }
+//
+//        // とりあえず三角形
+//        val vertices = floatArrayOf(
+//            // x, y, z, r, g, b, a
+//            -0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f, 1.0f,
+//             0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,
+//             0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f, 1.0f
+//            // glEnable(GL_BLEND) しないとalpha値が効かないかも
+//            // -> そもそも背景設定してないから分かんないや
+//        )
+//
+//        // VAO, VBOのバインド
+//        vao = VertexArrayObject()
+//        vbo = VertexBufferObject()
+//        vao.bind()
+//        vbo.bind(GL_ARRAY_BUFFER)
+//        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
         // 頂点 (location = 0)
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 7 * Float.SIZE_BYTES, 0)
@@ -76,9 +73,9 @@ object Test6_1 {
         loop()
 
         program.delete()
-        vao.delete()
-        vbo.delete()
-        window.destroy()
+//        vao.delete()
+//        vbo.delete()
+        window.cleanup()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()
     }

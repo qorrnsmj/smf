@@ -2,7 +2,7 @@ package qorrnsmj.test.t7
 
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
-import qorrnsmj.smf.core.window.Window
+import qorrnsmj.smf.window.Window
 
 /** indexed triangle listで立方体を作る
  * - ついでにRendererの実装
@@ -40,7 +40,7 @@ object Test7_2 {
         Renderer.init()
         loop()
 
-        window.destroy()
+        window.cleanup()
         Renderer.dispose()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()

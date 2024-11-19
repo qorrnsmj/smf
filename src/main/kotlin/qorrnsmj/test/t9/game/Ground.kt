@@ -1,4 +1,4 @@
-package qorrnsmj.test.t9.content
+package qorrnsmj.test.t9.game
 
 import qorrnsmj.test.t9.render.Renderer
 import qorrnsmj.test.t9.render.Texture

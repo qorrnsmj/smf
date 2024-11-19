@@ -3,13 +3,12 @@ package qorrnsmj.test.t11
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33.*
-import qorrnsmj.smf.core.window.Window
+import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.test.t11.core.render.Camera
 import qorrnsmj.test.t11.core.render.MVP
 import qorrnsmj.test.t11.core.render.MasterRenderer
-import qorrnsmj.test.t11.game.entity.Entity
 import qorrnsmj.test.t11.game.entity.custom.Ship1
 import qorrnsmj.test.t11.game.entity.custom.Ship3
 import qorrnsmj.test.t11.game.entity.custom.Tree
@@ -73,7 +72,7 @@ object Test11_1 {
         GLFWErrorCallback.createPrint().set()
         check(GLFW.glfwInit()) { "Failed to initialize GLFW" }
         window = Window(1600, 1600, "Test11_1", true)
-        window.setKeyCallback(KeyCallback(window))
+        KeyCallback(window).set(window.id)
         window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
         window.show()
 
@@ -81,7 +80,7 @@ object Test11_1 {
         renderer = MasterRenderer.apply {
             updateModelMatrix(Matrix4f())
             updateViewMatrix(Matrix4f())
-            updateProjectionMatrix(MVP.getPerspectiveMatrix(window.getWidth() / window.getHeight().toFloat()))
+            updateProjectionMatrix(MVP.getPerspectiveMatrix(window.getBufferedWidth() / window.getBufferedHeight().toFloat()))
         }
         GLFW.glfwSetFramebufferSizeCallback(window.id) { _, width, height ->
             glViewport(0, 0, width, height)
@@ -92,7 +91,7 @@ object Test11_1 {
         init()
         loop()
 
-        window.destroy()
+        window.cleanup()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()
     }

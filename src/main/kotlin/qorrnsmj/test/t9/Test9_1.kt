@@ -2,8 +2,8 @@ package qorrnsmj.test.t9
 
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
-import qorrnsmj.smf.core.window.Window
-import qorrnsmj.smf.graphic.render.ViewMatrix
+import qorrnsmj.smf.window.Window
+//import qorrnsmj.smf.graphic.render.ViewMatrix
 import qorrnsmj.test.t9.game.GrassBlock
 import qorrnsmj.test.t9.render.Renderer
 import qorrnsmj.test.t9.game.Ground
@@ -27,11 +27,11 @@ object Test9_1 {
             // camera input and update
             camera.processKeyboardInput(window)
             camera.processMouseMovement(window)
-            Renderer.setView(ViewMatrix.getMatrix(
-                eye = camera.position,
-                center = camera.position.add(camera.front),
-                up = camera.up
-            ))
+//            Renderer.setView(ViewMatrix.getMatrix(
+//                eye = camera.position,
+//                center = camera.position.add(camera.front),
+//                up = camera.up
+//            ))
 
             // render
             Renderer.clear()
@@ -55,7 +55,7 @@ object Test9_1 {
         init()
         loop()
 
-        window.destroy()
+        window.cleanup()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()
     }

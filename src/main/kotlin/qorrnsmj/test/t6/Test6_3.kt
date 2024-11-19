@@ -3,7 +3,7 @@ package qorrnsmj.test.t6
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33.*
-import qorrnsmj.smf.core.window.Window
+import qorrnsmj.smf.window.Window
 import kotlin.math.abs
 import kotlin.math.sin
 
@@ -39,7 +39,7 @@ object Test6_3 {
 
         loop()
 
-        window.destroy()
+        window.cleanup()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()
     }

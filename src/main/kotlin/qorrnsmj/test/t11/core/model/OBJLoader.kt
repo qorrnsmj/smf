@@ -1,6 +1,7 @@
 package qorrnsmj.test.t11.core.model
 
 import org.tinylog.kotlin.Logger
+import qorrnsmj.smf.game.entity.model.component.Mesh
 import java.io.File
 
 object OBJLoader {

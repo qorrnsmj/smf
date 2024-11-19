@@ -1,4 +1,4 @@
-package qorrnsmj.test.t9.content
+package qorrnsmj.test.t9.game
 
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector4f

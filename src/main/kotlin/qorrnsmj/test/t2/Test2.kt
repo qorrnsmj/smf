@@ -8,8 +8,6 @@ import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil
 import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
-import qorrnsmj.smf.graphic.shader.VertexArrayObject
-import qorrnsmj.smf.graphic.shader.VertexBufferObject
 
 /**
  * ShaderProgramのテスト
@@ -40,14 +38,14 @@ object Test2 {
     // vaoを1回unbindして、再びbindするのには理由がある
     // https://www.gamedev.net/forums/topic/685340-opengl-why-unbind-vao/
     private fun loop() {
-        ShaderProgram().apply {
-            attachShader(Shader(GL_VERTEX_SHADER, "../../test/test2.vert"))
-            attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/test2.frag"))
-            link()
-            use()
-        }
-        val vao = VertexArrayObject()
-        val vbo = VertexBufferObject()
+//        ShaderProgram().apply {
+//            attachShader(Shader(GL_VERTEX_SHADER, "../../test/test2.vert"))
+//            attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/test2.frag"))
+//            link()
+//            use()
+//        }
+//        val vao = VertexArrayObject()
+//        val vbo = VertexBufferObject()
         val vertices = floatArrayOf(
             -0.5f, -0.5f, 0.0f,
             0.5f, -0.5f, 0.0f,
@@ -55,9 +53,9 @@ object Test2 {
         )
 
         // VAO, VBOを生成
-        vao.bind() // vaoを現在のコンテキストにバインド。以降の操作は、このバインドされたVAOに対して行われる
-        vbo.bind(GL_ARRAY_BUFFER) // vboをGL_ARRAY_BUFFER用に現在のコンテキストにバインド
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW) // 現在バインドされているバッファに対してデータを格納する
+//        vao.bind() // vaoを現在のコンテキストにバインド。以降の操作は、このバインドされたVAOに対して行われる
+//        vbo.bind(GL_ARRAY_BUFFER) // vboをGL_ARRAY_BUFFER用に現在のコンテキストにバインド
+//        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW) // 現在バインドされているバッファに対してデータを格納する
 
         // 頂点属性ポインタを設定 (どのように頂点バッファ内のデータをシェーダーに渡すかを設定)
         // 0        : layout (location = 0)のようにシェーダー内で指定した位置に対応
@@ -66,8 +64,8 @@ object Test2 {
         // false    : 正規化するかどうか
         // 3 * 4    : 1頂点あたりのバイト数 (ストライド)
         // 0        : バッファの先頭からのオフセット
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * 4, 0)
-        glEnableVertexAttribArray(0) // 有効化
+//        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * 4, 0)
+//        glEnableVertexAttribArray(0) // 有効化
 
         // vaoをloop前に1回unbindするのは無駄っぽい?
         // https://www.gamedev.net/forums/topic/685340-opengl-why-unbind-vao/
@@ -85,8 +83,8 @@ object Test2 {
             GLFW.glfwPollEvents()
         }
 
-        vao.delete()
-        vbo.delete()
+//        vao.delete()
+//        vbo.delete()
     }
 
     @JvmStatic

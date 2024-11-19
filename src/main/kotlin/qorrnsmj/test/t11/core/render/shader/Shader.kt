@@ -1,16 +1,15 @@
 package qorrnsmj.test.t11.core.render.shader
 
 import org.lwjgl.opengl.GL33C.*
-import java.nio.file.Files
-import java.nio.file.Paths
+import qorrnsmj.smf.util.ResourceUtils
 
 class Shader(type: Int, file: String) {
     val id = glCreateShader(type)
 
     init {
         // compile shader from file
-        val path = Paths.get("src/main/resources/assets/shader/$file")
-        glShaderSource(id, String(Files.readAllBytes(path)))
+        //val path = ResourceUtils.loadTexture(file)
+        //glShaderSource(id, String(Files.readAllBytes(path)))
         glCompileShader(id)
 
         // check if compilation was successful

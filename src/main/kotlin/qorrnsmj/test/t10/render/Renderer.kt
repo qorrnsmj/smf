@@ -3,19 +3,15 @@ package qorrnsmj.test.t10.render
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.graphic.render.ProjectionMatrix
-import qorrnsmj.smf.graphic.render.ViewMatrix
 import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
-import qorrnsmj.smf.graphic.shader.VertexArrayObject
-import qorrnsmj.smf.graphic.shader.VertexBufferObject
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import java.nio.FloatBuffer
 
 object Renderer {
-    private lateinit var vao: VertexArrayObject
-    private lateinit var vbo: VertexBufferObject
+//    private lateinit var vao: VertexArrayObject
+//    private lateinit var vbo: VertexBufferObject
     private lateinit var program: ShaderProgram
     private lateinit var vertices: FloatBuffer
     private var stride = 0
@@ -33,23 +29,23 @@ object Renderer {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
         // TEST: glClearColorここでOK?
 
-        vao = VertexArrayObject().bind()
-        vbo = VertexBufferObject().bind(GL_ARRAY_BUFFER)
-        program = ShaderProgram().apply {
-            attachShader(Shader(GL_VERTEX_SHADER, "../../test/$shaderId.vert"))
-            attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/$shaderId.frag"))
-            link()
-            use()
-
-            // MVP
-            setUniform("projection", ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f))
-            setUniform("view", ViewMatrix.getMatrix(
-                eye = Vector3f(0f, 0f, 10f),
-                center = Vector3f(0f, 0f, 0f),
-                up = Vector3f(0f, 1f, 0f)
-            ))
-            setUniform("model", Matrix4f())
-        }
+//        vao = VertexArrayObject().bind()
+//        vbo = VertexBufferObject().bind(GL_ARRAY_BUFFER)
+//        program = ShaderProgram().apply {
+//            attachShader(Shader(GL_VERTEX_SHADER, "../../test/$shaderId.vert"))
+//            attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/$shaderId.frag"))
+//            link()
+//            use()
+//
+//            // MVP
+//            setUniform("projection", ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f))
+//            setUniform("view", ViewMatrix.getMatrix(
+//                eye = Vector3f(0f, 0f, 10f),
+//                center = Vector3f(0f, 0f, 0f),
+//                up = Vector3f(0f, 1f, 0f)
+//            ))
+//            setUniform("model", Matrix4f())
+//        }
         vertices = MemoryUtil.memAllocFloat(4096 * 1000)
         stride = (3 + 4 + 2 + 3)
 
@@ -86,8 +82,8 @@ object Renderer {
     }
 
     fun dispose() {
-        vao.delete()
-        vbo.delete()
+//        vao.delete()
+//        vbo.delete()
         program.delete()
     }
 
@@ -111,8 +107,8 @@ object Renderer {
             vertices.flip()
 
             // vboは外部からも渡せるようにする？
-            vbo.bind(GL_ARRAY_BUFFER)
-            vbo.uploadData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+//            vbo.bind(GL_ARRAY_BUFFER)
+//            vbo.uploadData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
             // 描画
             glDrawArrays(GL_TRIANGLES, 0, verticesCount)
@@ -130,14 +126,14 @@ object Renderer {
     }
 
     fun setUniform(id: String, value: Float) {
-        program.setUniform(id, value)
+//        program.setUniform(id, value)
     }
 
     fun setUniform(id: String, value: Vector3f) {
-        program.setUniform(id, value)
+//        program.setUniform(id, value)
     }
 
     fun setUniform(id: String, value: Matrix4f) {
-        program.setUniform(id, value)
+//        program.setUniform(id, value)
     }
 }

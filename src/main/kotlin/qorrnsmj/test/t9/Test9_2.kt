@@ -3,10 +3,10 @@ package qorrnsmj.test.t9
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33
-import qorrnsmj.smf.core.window.Window
-import qorrnsmj.smf.graphic.render.ProjectionMatrix
-import qorrnsmj.smf.graphic.render.ViewMatrix
+import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.test.t10.KeyCallback
+import qorrnsmj.test.t10.Test10_1
 import qorrnsmj.test.t9.game.GrassBlock
 import qorrnsmj.test.t9.game.Ground
 import qorrnsmj.test.t9.render.Renderer
@@ -32,9 +32,9 @@ object Test9_2 {
 
         GLFW.glfwSetFramebufferSizeCallback(window.id) { _, width, height ->
             GL33.glViewport(0, 0, width, height)
-            Renderer.setProjection(ProjectionMatrix.getPerspectiveMatrix(
-                width.toFloat() / height.toFloat()
-            ))
+//            Renderer.setProjection(ProjectionMatrix.getPerspectiveMatrix(
+//                width.toFloat() / height.toFloat()
+//            ))
         }
     }
 
@@ -43,11 +43,11 @@ object Test9_2 {
             // camera input and update
             camera.processKeyboardInput(window)
             camera.processMouseMovement(window)
-            Renderer.setView(ViewMatrix.getMatrix(
-                eye = camera.position,
-                center = camera.position.add(camera.front),
-                up = camera.up
-            ))
+//            Renderer.setView(ViewMatrix.getMatrix(
+//                eye = camera.position,
+//                center = camera.position.add(camera.front),
+//                up = camera.up
+//            ))
 
             // render
             Renderer.clear()
@@ -65,14 +65,14 @@ object Test9_2 {
         GLFWErrorCallback.createPrint().set()
         check(GLFW.glfwInit()) { "Failed to initialize GLFW" }
         window = Window(1600, 1600, "Test9_2", true)
-        window.setKeyCallback(KeyCallback())
+        KeyCallback(window).set(window.id)
         window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
         window.show()
 
         init()
         loop()
 
-        window.destroy()
+        window.cleanup()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()
     }

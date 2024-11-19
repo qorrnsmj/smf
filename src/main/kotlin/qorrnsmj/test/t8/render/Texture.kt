@@ -3,12 +3,11 @@ package qorrnsmj.test.t8.render
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
-import java.nio.file.Paths
+import qorrnsmj.smf.util.ResourceUtils
 
 class Texture(file: String) {
     private val id = glGenTextures()
-    private val path = Paths.get("src/main/resources/assets/texture/$file")
-
+private lateinit var path: String
     init {
         bind()
 

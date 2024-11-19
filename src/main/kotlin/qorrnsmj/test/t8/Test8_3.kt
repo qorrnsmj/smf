@@ -3,7 +3,7 @@ package qorrnsmj.test.t8
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33.*
-import qorrnsmj.smf.core.window.Window
+import qorrnsmj.smf.window.Window
 import qorrnsmj.test.t8.block.GrassBlock
 import qorrnsmj.test.t8.render.Renderer
 
@@ -43,7 +43,7 @@ object Test8_3 {
         init()
         loop()
 
-        window.destroy()
+        window.cleanup()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()
     }

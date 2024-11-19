@@ -3,10 +3,9 @@ package qorrnsmj.test.t10
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33
-import qorrnsmj.smf.core.window.Window
-import qorrnsmj.smf.graphic.render.ProjectionMatrix
-import qorrnsmj.smf.graphic.render.ViewMatrix
+import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.graphic.MVP
 import qorrnsmj.test.t10.game.Moon
 import qorrnsmj.test.t10.render.Renderer
 
@@ -21,7 +20,7 @@ object Test10_5 {
         Renderer.init("test10_4")
         GLFW.glfwSetFramebufferSizeCallback(window.id) { _, width, height ->
             GL33.glViewport(0, 0, width, height)
-            Renderer.setUniform("projection", ProjectionMatrix.getPerspectiveMatrix(
+            Renderer.setUniform("projection", MVP.getPerspectiveMatrix(
                 width.toFloat() / height.toFloat()
             ))
         }
@@ -53,7 +52,7 @@ object Test10_5 {
             // camera input and update
             camera.processKeyboardInput(window)
             camera.processMouseMovement(window)
-            Renderer.setUniform("view", ViewMatrix.getMatrix(
+            Renderer.setUniform("view", MVP.getViewMatrix(
                 eye = camera.position,
                 center = camera.position.add(camera.front),
                 up = camera.up
@@ -79,14 +78,14 @@ object Test10_5 {
         GLFWErrorCallback.createPrint().set()
         check(GLFW.glfwInit()) { "Failed to initialize GLFW" }
         window = Window(1600, 1600, "Test10_5", true)
-        window.setKeyCallback(KeyCallback(window))
+        KeyCallback(window).set(window.id)
         window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
         window.show()
 
         init()
         loop()
 
-        window.destroy()
+        window.cleanup()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()
     }

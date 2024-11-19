@@ -4,12 +4,8 @@ import org.lwjgl.opengl.GL11.GL_FLOAT
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL20.glVertexAttribPointer
 import org.lwjgl.opengl.GL33.*
-import qorrnsmj.smf.graphic.render.Projection
-import qorrnsmj.smf.graphic.render.View
 import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
-import qorrnsmj.smf.graphic.shader.VertexArrayObject
-import qorrnsmj.smf.graphic.shader.VertexBufferObject
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
@@ -24,13 +20,13 @@ class Cube(
     var angle: Float = 0.0f,
     var scale: Float = 1.0f
 ) {
-    private val vao = VertexArrayObject()
-    private val vbo = VertexBufferObject()
-    private val program = ShaderProgram().apply {
-        attachShader(Shader(GL_VERTEX_SHADER, "../../test/test6_2.vert"))
-        attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/test6_2.frag"))
-        link()
-    }
+//    private val vao = VertexArrayObject()
+//    private val vbo = VertexBufferObject()
+//    private val program = ShaderProgram().apply {
+//        attachShader(Shader(GL_VERTEX_SHADER, "../../test/test6_2.vert"))
+//        attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/test6_2.frag"))
+//        link()
+//    }
 
     fun draw() {
         setShader()
@@ -62,16 +58,16 @@ class Cube(
                 data += vertices[index] + colors[i]
             }
         }
-        vbo.uploadData(GL_ARRAY_BUFFER, data, GL_STATIC_DRAW)
+//        vbo.uploadData(GL_ARRAY_BUFFER, data, GL_STATIC_DRAW)
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4 * 6) // 4頂点 * 6面
 
         unsetShader()
     }
 
     private fun setShader() {
-        vao.bind()
-        vbo.bind(GL_ARRAY_BUFFER)
-        program.use()
+//        vao.bind()
+//        vbo.bind(GL_ARRAY_BUFFER)
+//        program.use()
 
         // 頂点 (location = 0) aPos
         glVertexAttribPointer(0, 4, GL_FLOAT, false, 7 * Float.SIZE_BYTES, 0)
@@ -83,46 +79,44 @@ class Cube(
     }
 
     private fun unsetShader() {
-        vao.unbind()
-        vbo.unbind()
-        program.unuse()
+//        program.unuse()
     }
 
     private fun setUniforms() {
-        program.setUniform("uModel",
-            Matrix4f( // z軸回転の回転行列
-                Vector4f(cos(angle), -sin(angle), 0.0f, 0.0f),
-                Vector4f(sin(angle),  cos(angle), 0.0f, 0.0f),
-                Vector4f(0.0f, 0.0f, 1.0f, 0.0f),
-                Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
-            ).multiply(
-                Matrix4f( // x軸回転の回転行列
-                    Vector4f(1.0f, 0.0f, 0.0f, 0.0f),
-                    Vector4f(0.0f, cos(angle), -sin(angle), 0.0f),
-                    Vector4f(0.0f, sin(angle),  cos(angle), 0.0f),
-                    Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
-                )
-            ).multiply(
-                Matrix4f( // y軸回転の回転行列
-                    Vector4f( cos(angle), 0.0f, sin(angle), 0.0f),
-                    Vector4f(0.0f, 1.0f, 0.0f, 0.0f),
-                    Vector4f(-sin(angle), 0.0f, cos(angle), 0.0f),
-                    Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
-                )
-            )
-        )
+//        program.setUniform("uModel",
+//            Matrix4f( // z軸回転の回転行列
+//                Vector4f(cos(angle), -sin(angle), 0.0f, 0.0f),
+//                Vector4f(sin(angle),  cos(angle), 0.0f, 0.0f),
+//                Vector4f(0.0f, 0.0f, 1.0f, 0.0f),
+//                Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
+//            ).multiply(
+//                Matrix4f( // x軸回転の回転行列
+//                    Vector4f(1.0f, 0.0f, 0.0f, 0.0f),
+//                    Vector4f(0.0f, cos(angle), -sin(angle), 0.0f),
+//                    Vector4f(0.0f, sin(angle),  cos(angle), 0.0f),
+//                    Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
+//                )
+//            ).multiply(
+//                Matrix4f( // y軸回転の回転行列
+//                    Vector4f( cos(angle), 0.0f, sin(angle), 0.0f),
+//                    Vector4f(0.0f, 1.0f, 0.0f, 0.0f),
+//                    Vector4f(-sin(angle), 0.0f, cos(angle), 0.0f),
+//                    Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
+//                )
+//            )
+//        )
 
-        program.setUniform("uView",
-            View.getMatrix( // OpenGLは右手系座標
-                Vector3f(0f, 0f, 7f), // Camera position
-                Vector3f(0f, 0f, 0f), // Look at point
-                Vector3f(0f, 1f, 0f)  // Up vector
-            )
-        )
-
-        program.setUniform("uProj", // 透視投影
-            Projection.getPerspectiveMatrix(1600f / 1600f)
-        )
+//        program.setUniform("uView",
+//            ViewMatrix.getMatrix( // OpenGLは右手系座標
+//                Vector3f(0f, 0f, 7f), // Camera position
+//                Vector3f(0f, 0f, 0f), // Look at point
+//                Vector3f(0f, 1f, 0f)  // Up vector
+//            )
+//        )
+//
+//        program.setUniform("uProj", // 透視投影
+//            ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f)
+//        )
     }
     
     companion object {

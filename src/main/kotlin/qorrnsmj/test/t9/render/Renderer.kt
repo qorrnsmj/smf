@@ -3,19 +3,15 @@ package qorrnsmj.test.t9.render
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.graphic.render.ProjectionMatrix
-import qorrnsmj.smf.graphic.render.ViewMatrix
 import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
-import qorrnsmj.smf.graphic.shader.VertexArrayObject
-import qorrnsmj.smf.graphic.shader.VertexBufferObject
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import java.nio.FloatBuffer
 
 object Renderer {
-    private lateinit var vao: VertexArrayObject
-    private lateinit var vbo: VertexBufferObject
+//    private lateinit var vao: VertexArrayObject
+//    private lateinit var vbo: VertexBufferObject
     private lateinit var program: ShaderProgram
     private lateinit var vertices: FloatBuffer
     private var verticesCount = 0
@@ -32,14 +28,14 @@ object Renderer {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
         // TEST: glClearColorここでOK?
 
-        vao = VertexArrayObject().bind()
-        vbo = VertexBufferObject().bind(GL_ARRAY_BUFFER)
-        program = ShaderProgram().apply {
-            attachShader(Shader(GL_VERTEX_SHADER, "../../test/test8.vert"))
-            attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/test8.frag"))
-            link()
-            use()
-        }
+//        vao = VertexArrayObject().bind()
+//        vbo = VertexBufferObject().bind(GL_ARRAY_BUFFER)
+//        program = ShaderProgram().apply {
+//            attachShader(Shader(GL_VERTEX_SHADER, "../../test/test8.vert"))
+//            attachShader(Shader(GL_FRAGMENT_SHADER, "../../test/test8.frag"))
+//            link()
+//            use()
+//        }
         vertices = MemoryUtil.memAllocFloat(1024)
 
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 9 * Float.SIZE_BYTES, 0)
@@ -49,12 +45,12 @@ object Renderer {
         glVertexAttribPointer(2, 2, GL_FLOAT, false, 9 * Float.SIZE_BYTES, (7 * Float.SIZE_BYTES).toLong())
         glEnableVertexAttribArray(2)
 
-        setProjection(ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f))
-        setView(ViewMatrix.getMatrix(
-            eye = Vector3f(0f, 0f, 10f),
-            center = Vector3f(0f, 0f, 0f),
-            up = Vector3f(0f, 1f, 0f)
-        ))
+//        setProjection(ProjectionMatrix.getPerspectiveMatrix(1600f / 1600f))
+//        setView(ViewMatrix.getMatrix(
+//            eye = Vector3f(0f, 0f, 10f),
+//            center = Vector3f(0f, 0f, 0f),
+//            up = Vector3f(0f, 1f, 0f)
+//        ))
         setModel(Matrix4f())
     }
 
@@ -77,8 +73,8 @@ object Renderer {
     }
 
     fun dispose() {
-        vao.delete()
-        vbo.delete()
+//        vao.delete()
+//        vbo.delete()
         program.delete()
     }
 
@@ -102,8 +98,8 @@ object Renderer {
             vertices.flip()
 
             // vboは外部からも渡せるようにする？
-            vbo.bind(GL_ARRAY_BUFFER)
-            vbo.uploadData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+//            vbo.bind(GL_ARRAY_BUFFER)
+//            vbo.uploadData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
             // 描画
             glDrawArrays(GL_TRIANGLES, 0, verticesCount)
@@ -117,14 +113,14 @@ object Renderer {
     /* Uniforms */
 
     fun setProjection(projection: Matrix4f) {
-        program.setUniform("projection", projection)
+//        program.setUniform("projection", projection)
     }
 
     fun setView(view: Matrix4f) {
-        program.setUniform("view", view)
+//        program.setUniform("view", view)
     }
 
     fun setModel(model: Matrix4f) {
-        program.setUniform("model", model)
+//        program.setUniform("model", model)
     }
 }
