@@ -8,6 +8,7 @@ import kotlin.math.sqrt
  *
  * @author Heiko Brumme
  */
+// TODO: operator-function作る (Test9_1のVector参照)
 class Vector3f {
     var x: Float
     var y: Float
@@ -167,5 +168,9 @@ class Vector3f {
     fun toBuffer(buffer: FloatBuffer) {
         buffer.put(x).put(y).put(z)
         buffer.flip()
+    }
+
+    override fun toString(): String {
+        return "($x, $y, $z)"
     }
 }

@@ -1,37 +1,45 @@
-package qorrnsmj.smf.state
+package qorrnsmj.smf.game.state
 
 import org.tinylog.kotlin.Logger
 
 class StateMachine : State() {
-    private var currentState = States.EMPTY.instance
+    var currentState = States.EMPTY.instance
 
     fun changeState(newState: States) {
         val newInstance = newState.instance
-        Logger.debug("Changing state: \"$currentState\" to \"$newInstance\"")
+        Logger.info("Changing state: \"$currentState\" to \"$newInstance\"")
 
-        currentState.exit()
+        currentState.stop()
         currentState = newInstance
-        currentState.enter()
+        currentState.start()
     }
 
-    override fun enter() {
-        currentState.enter()
+    override fun start() {
+        currentState.start()
     }
 
     override fun input() {
         currentState.input()
     }
 
+    fun update() {
+        currentState.update(1f)
+    }
+
     override fun update(delta: Float) {
         currentState.update(delta)
+    }
+
+    fun render() {
+        currentState.render(1f)
     }
 
     override fun render(alpha: Float) {
         currentState.render(alpha)
     }
 
-    override fun exit() {
-        currentState.exit()
+    override fun stop() {
+        currentState.stop()
     }
 
     override fun resize(width: Int, height: Int) {
@@ -39,6 +47,6 @@ class StateMachine : State() {
     }
 
     override fun toString(): String {
-        return currentState.toString()
+        return "StateMachine[current: \"${currentState}\"]"
     }
 }

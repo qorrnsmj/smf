@@ -1,35 +1,33 @@
 package qorrnsmj.smf.core
 
 import org.lwjgl.glfw.GLFW.glfwWindowShouldClose
-import qorrnsmj.smf.core.Game
-import qorrnsmj.smf.state.States.EXAMPLE1
-import qorrnsmj.smf.state.States.EXAMPLE2
-import qorrnsmj.smf.state.custom.ExampleState1
-import qorrnsmj.smf.state.custom.ExampleState2
 
-// 自分のに手直し
+// TODO: 手直し
 abstract class FixedTimestepGame : Game() {
+    lateinit var timer: Timer
+
     override fun gameLoop() {
         var alpha: Float
         var delta: Float
         var accumulator = 0f
         val interval = 1f / TARGET_UPS
 
+        running = true
         while (running) {
-            // Check if game should close
+            // Checks if game should close
             if (glfwWindowShouldClose(window.id)) {
                 running = false
             }
 
-            // Get delta time and update the accumulator
+            // Gets delta time and update the accumulator
             delta = timer.getDelta()
             accumulator += delta
 
-            // Handle input
+            // Handles input
             input()
 
-            // Update game and timer UPS if enough time has passed
-            // Calculate alpha value for interpolation
+            // Updates game and timer UPS if enough time has passed
+            // Calculates alpha value for interpolation
             while (accumulator >= interval) {
                 update()
                 timer.updateUPS()
@@ -37,18 +35,52 @@ abstract class FixedTimestepGame : Game() {
             }
             alpha = accumulator / interval
 
-            // Render game
+            // Renders game
             render(alpha)
 
-            // Update timer and window
+            // Updates timer and window
             timer.updateFPS()
             timer.update()
             window.update()
 
-            // Synchronize if v-sync is disabled
-            if (!window.isVSyncEnabled) {
+            // Synchronizes if v-sync is disabled
+            if (!window.vsync) {
                 sync(TARGET_FPS)
             }
         }
+    }
+
+    protected fun update(delta: Float = 1f / TARGET_UPS) {
+        stateMachine.update(delta)
+    }
+
+    protected fun render(alpha: Float = 1f) {
+        stateMachine.render(alpha)
+    }
+
+    protected fun sync(fps: Int) {
+        val lastLoopTime = timer.lastLoopTime
+        var now = timer.getTime()
+        val targetTime = 1f / fps
+
+        while (now - lastLoopTime < targetTime) {
+            Thread.yield()
+
+            // This is optional if you want your game to stop consuming too much
+            // CPU but you will loose some accuracy because Thread.sleep(1)
+            // could sleep longer than 1 millisecond
+            try {
+                Thread.sleep(1)
+            } catch (e: InterruptedException) {
+                throw RuntimeException(e)
+            }
+
+            now = timer.getTime()
+        }
+    }
+
+    companion object {
+        const val TARGET_FPS = 60
+        const val TARGET_UPS = 30
     }
 }

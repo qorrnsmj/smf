@@ -1,5 +1,6 @@
 package qorrnsmj.smf.math
 
+import org.lwjgl.BufferUtils
 import java.nio.FloatBuffer
 
 /**
@@ -194,6 +195,7 @@ class Matrix3f {
         return result
     }
 
+    // TODO: 消す
     /**
      * Stores the matrix in a given Buffer.
      *
@@ -204,5 +206,16 @@ class Matrix3f {
         buffer.put(m01).put(m11).put(m21)
         buffer.put(m02).put(m12).put(m22)
         buffer.flip()
+    }
+
+    fun getBuffer(): FloatBuffer {
+        val buffer = BufferUtils.createFloatBuffer(3 * 3)
+
+        buffer.put(m00).put(m10).put(m20)
+        buffer.put(m01).put(m11).put(m21)
+        buffer.put(m02).put(m12).put(m22)
+        buffer.flip()
+
+        return buffer
     }
 }

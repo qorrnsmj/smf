@@ -1,5 +1,6 @@
 package qorrnsmj.smf.math
 
+import org.lwjgl.BufferUtils
 import java.nio.FloatBuffer
 import kotlin.math.cos
 import kotlin.math.sin
@@ -11,7 +12,6 @@ import kotlin.math.tan
  * @author Heiko Brumme
  */
 class Matrix4f {
-    // privateに戻す
     var m00: Float = 0f
     var m01: Float = 0f
     var m02: Float = 0f
@@ -254,11 +254,6 @@ class Matrix4f {
         return result
     }
 
-    /**
-     * Stores the matrix in a given Buffer.
-     *
-     * @param buffer The buffer to store the matrix data
-     */
     fun toBuffer(buffer: FloatBuffer) {
         buffer.put(m00).put(m10).put(m20).put(m30)
         buffer.put(m01).put(m11).put(m21).put(m31)
@@ -267,6 +262,63 @@ class Matrix4f {
         buffer.flip()
     }
 
+    // TODO: 消す (toBufferをMemoryStackで使う)
+    fun getBuffer(): FloatBuffer {
+        val buffer = BufferUtils.createFloatBuffer(4 * 4)
+
+        buffer.put(m00).put(m10).put(m20).put(m30)
+        buffer.put(m01).put(m11).put(m21).put(m31)
+        buffer.put(m02).put(m12).put(m22).put(m32)
+        buffer.put(m03).put(m13).put(m23).put(m33)
+        buffer.flip()
+
+        return buffer
+    }
+
+    fun invert(): Matrix4f {
+        val inv = Matrix4f()
+        val m = this
+        val invOut = inv
+        val det =
+            m.m00 * m.m11 * m.m22 * m.m33 + m.m00 * m.m12 * m.m23 * m.m31 + m.m00 * m.m13 * m.m21 * m.m32 + m.m01 * m.m10 * m.m23 * m.m32 + m.m01 * m.m12 * m.m20 * m.m33 + m.m01 * m.m13 * m.m22 * m.m30 + m.m02 * m.m10 * m.m21 * m.m33 + m.m02 * m.m11 * m.m23 * m.m30 + m.m02 * m.m13 * m.m20 * m.m31 + m.m03 * m.m10 * m.m22 * m.m31 + m.m03 * m.m11 * m.m20 * m.m32 + m.m03 * m.m12 * m.m21 * m.m30 - m.m00 * m.m11 * m.m23 * m.m32 - m.m00 * m.m12 * m.m21 * m.m33 - m.m00 * m.m13 * m.m22 * m.m31 - m.m01 * m.m10 * m.m22 * m.m33 - m.m01 * m.m12 * m.m23 * m.m30 - m.m01 * m.m13 * m.m20 * m.m32 - m.m02 * m.m10 * m.m23 * m.m31 - m.m02 * m.m11 * m.m20 * m.m33 - m.m02 * m.m13 * m.m21 * m.m30 - m.m03 * m.m10 * m.m21 * m.m32 - m.m03 * m.m11 * m.m22 * m.m30 - m.m03 * m.m12 * m.m20 * m.m31
+        val invDet = 1.0f / det
+        invOut.m00 =
+            (m.m11 * m.m22 * m.m33 + m.m12 * m.m23 * m.m31 + m.m13 * m.m21 * m.m32 - m.m11 * m.m23 * m.m32 - m.m12 * m.m21 * m.m33 - m.m13 * m.m22 * m.m31) * invDet
+        invOut.m01 =
+            (m.m01 * m.m23 * m.m32 + m.m02 * m.m21 * m.m33 + m.m03 * m.m22 * m.m31 - m.m01 * m.m22 * m.m33 - m.m02 * m.m23 * m.m31 - m.m03 * m.m21 * m.m32) * invDet
+        invOut.m02 =
+            (m.m01 * m.m12 * m.m33 + m.m02 * m.m13 * m.m31 + m.m03 * m.m11 * m.m32 - m.m01 * m.m13 * m.m32 - m.m02 * m.m11 * m.m33 - m.m03 * m.m12 * m.m31) * invDet
+        invOut.m03 =
+            (m.m01 * m.m13 * m.m22 + m.m02 * m.m11 * m.m23 + m.m03 * m.m12 * m.m21 - m.m01 * m.m12 * m.m23 - m.m02 * m.m13 * m.m21 - m.m03 * m.m11 * m.m22) * invDet
+        invOut.m10 =
+            (m.m10 * m.m23 * m.m32 + m.m12 * m.m20 * m.m33 + m.m13 * m.m22 * m.m30 - m.m10 * m.m22 * m.m33 - m.m12 * m.m23 * m.m30 - m.m13 * m.m20 * m.m32) * invDet
+        invOut.m11 =
+            (m.m00 * m.m22 * m.m33 + m.m02 * m.m23 * m.m30 + m.m03 * m.m20 * m.m32 - m.m00 * m.m23 * m.m32 - m.m02 * m.m20 * m.m33 - m.m03 * m.m22 * m.m30) * invDet
+        invOut.m12 =
+            (m.m00 * m.m13 * m.m32 + m.m02 * m.m10 * m.m33 + m.m03 * m.m12 * m.m30 - m.m00 * m.m12 * m.m33 - m.m02 * m.m13 * m.m30 - m.m03 * m.m10 * m.m32) * invDet
+        invOut.m13 =
+            (m.m00 * m.m12 * m.m23 + m.m02 * m.m13 * m.m20 + m.m03 * m.m10 * m.m22 - m.m00 * m.m13 * m.m22 - m.m02 * m.m10 * m.m23 - m.m03 * m.m12 * m.m20) * invDet
+        invOut.m20 =
+            (m.m10 * m.m21 * m.m33 + m.m11 * m.m23 * m.m30 + m.m13 * m.m20 * m.m31 - m.m10 * m.m23 * m.m31 - m.m11 * m.m20 * m.m33 - m.m13 * m.m21 * m.m30) * invDet
+        invOut.m21 =
+            (m.m00 * m.m23 * m.m31 + m.m01 * m.m20 * m.m33 + m.m03 * m.m21 * m.m30 - m.m00 * m.m21 * m.m33 - m.m01 * m.m23 * m.m30 - m.m03 * m.m20 * m.m31) * invDet
+        invOut.m22 =
+            (m.m00 * m.m11 * m.m33 + m.m01 * m.m13 * m.m30 + m.m03 * m.m10 * m.m31 - m.m00 * m.m13 * m.m31 - m.m01 * m.m10 * m.m33 - m.m03 * m.m11 * m.m30) * invDet
+        invOut.m23 =
+            (m.m00 * m.m13 * m.m21 + m.m01 * m.m10 * m.m23 + m.m03 * m.m11 * m.m20 - m.m00 * m.m11 * m.m23 - m.m01 * m.m13 * m.m20 - m.m03 * m.m10 * m.m21) * invDet
+        invOut.m30 =
+            (m.m10 * m.m22 * m.m31 + m.m11 * m.m20 * m.m32 + m.m12 * m.m21 * m.m30 - m.m10 * m.m21 * m.m32 - m.m11 * m.m22 * m.m30 - m.m12 * m.m20 * m.m31) * invDet
+        invOut.m31 =
+            (m.m00 * m.m21 * m.m32 + m.m01 * m.m22 * m.m30 + m.m02 * m.m20 * m.m31 - m.m00 * m.m22 * m.m31 - m.m01 * m.m20 * m.m32 - m.m02 * m.m21 * m.m30) * invDet
+        invOut.m32 =
+            (m.m00 * m.m12 * m.m31 + m.m01 * m.m10 * m.m32 + m.m02 * m.m11 * m.m30 - m.m00 * m.m11 * m.m32 - m.m01 * m.m12 * m.m30 - m.m02 * m.m10 * m.m31) * invDet
+        invOut.m33 =
+            (m.m00 * m.m11 * m.m22 + m.m01 * m.m12 * m.m20 + m.m02 * m.m10 * m.m21 - m.m00 * m.m12 * m.m21 - m.m01 * m.m10 * m.m22 - m.m02 * m.m11 * m.m20) * invDet
+        return inv
+    }
+
+
+    // TODO: perspectiveとかの例ある
     companion object {
         /**
          * Creates a orthographic projection matrix. Similar to

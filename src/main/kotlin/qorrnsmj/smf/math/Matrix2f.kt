@@ -152,6 +152,7 @@ class Matrix2f {
         return result
     }
 
+    // TODO: 消す
     /**
      * Stores the matrix in a given Buffer.
      *
@@ -161,5 +162,15 @@ class Matrix2f {
         buffer.put(m00).put(m10)
         buffer.put(m01).put(m11)
         buffer.flip()
+    }
+
+    fun getBuffer(): FloatBuffer {
+        val buffer = FloatBuffer.allocate(2 * 2)
+
+        buffer.put(m00).put(m10)
+        buffer.put(m01).put(m11)
+        buffer.flip()
+
+        return buffer
     }
 }

@@ -1,4 +1,4 @@
-package qorrnsmj.smf.state.custom
+package qorrnsmj.smf.game.state.custom
 
 // debugはstateにするとまずい？
 // stateを同時に2つとかできない？

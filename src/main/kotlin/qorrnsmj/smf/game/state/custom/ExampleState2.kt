@@ -1,9 +1,9 @@
-package qorrnsmj.smf.state.custom
+package qorrnsmj.smf.game.state.custom
 
-import qorrnsmj.smf.state.State
+import qorrnsmj.smf.game.state.State
 
-class EmptyState : State() {
-    override fun enter() {
+class ExampleState2 : State() {
+    override fun start() {
     }
 
     override fun input() {
@@ -15,7 +15,7 @@ class EmptyState : State() {
     override fun render(alpha: Float) {
     }
 
-    override fun exit() {
+    override fun stop() {
     }
 
     override fun resize(width: Int, height: Int) {
