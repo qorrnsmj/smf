@@ -31,7 +31,7 @@ dependencies {
     runtimeOnly("org.lwjgl:lwjgl-assimp:$lwjglVersion:$nativeTarget")
     runtimeOnly("org.lwjgl:lwjgl-glfw:$lwjglVersion:$nativeTarget")
     runtimeOnly("org.lwjgl:lwjgl-opengl:$lwjglVersion:$nativeTarget")
-    runtimeOnly("org.lwjgl:lwjgl-openal:$lwjglVersion")
+    runtimeOnly("org.lwjgl:lwjgl-openal:$lwjglVersion:$nativeTarget")
 }
 
 tasks {
