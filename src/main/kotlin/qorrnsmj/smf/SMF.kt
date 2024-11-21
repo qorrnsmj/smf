@@ -27,7 +27,6 @@ object SMF : FixedTimestepGame() {
         resizeCallback = GLFWFramebufferSizeCallback.create { _, width, height ->
             window.resize(width, height)
             renderer.resize(width, height)
-            stateMachine.resize(width, height)
         }.set(window.id)
         keyCallback = SMFKeyCallback().set(window.id)
 
