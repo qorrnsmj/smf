@@ -10,7 +10,7 @@ object Models {
     fun load() {
         TREE = loadModel("tree.obj", "tree.png")
         STALL = loadModel("stall.obj", "stall.png")
-        SHIP = loadModel("ship.obj", "tree.png")
+        SHIP = loadModel("ship.obj", "white.png")
     }
 
     private fun loadModel(model: String, texture: String): Model {
