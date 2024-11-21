@@ -16,28 +16,29 @@ dependencies {
     val nativeTarget = "natives-windows"
 
     implementation(kotlin("stdlib-jdk8"))
-    implementation("dev.romainguy:kotlin-math:1.5.3")
     implementation("org.tinylog:tinylog-impl:2.7.0")
     implementation("org.tinylog:tinylog-api-kotlin:2.7.0")
 
     implementation("org.lwjgl:lwjgl:$lwjglVersion")
     implementation("org.lwjgl:lwjgl-stb:$lwjglVersion")
+    implementation("org.lwjgl:lwjgl-assimp:$lwjglVersion")
     implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion")
     implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion")
-    //implementation("org.lwjgl:lwjgl-openal:$lwjglVersion")
+    implementation("org.lwjgl:lwjgl-openal:$lwjglVersion")
 
     runtimeOnly("org.lwjgl:lwjgl:$lwjglVersion:$nativeTarget")
     runtimeOnly("org.lwjgl:lwjgl-stb:$lwjglVersion:$nativeTarget")
+    runtimeOnly("org.lwjgl:lwjgl-assimp:$lwjglVersion:$nativeTarget")
     runtimeOnly("org.lwjgl:lwjgl-glfw:$lwjglVersion:$nativeTarget")
     runtimeOnly("org.lwjgl:lwjgl-opengl:$lwjglVersion:$nativeTarget")
-    //implementation("org.lwjgl:lwjgl-openal:$lwjglVersion")
+    runtimeOnly("org.lwjgl:lwjgl-openal:$lwjglVersion")
 }
 
 tasks {
     shadowJar {
-        archiveBaseName.set("SMF")
-        archiveVersion.set("${rootProject.version}")
-        archiveClassifier.set("")
+        archiveBaseName = "SMF"
+        archiveVersion = "${rootProject.version}"
+        archiveClassifier = ""
         manifest {
             attributes["Main-Class"] = "qorrnsmj.smf.SMF"
         }
