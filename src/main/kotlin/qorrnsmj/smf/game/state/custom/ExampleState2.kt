@@ -17,7 +17,4 @@ class ExampleState2 : State() {
 
     override fun stop() {
     }
-
-    override fun resize(width: Int, height: Int) {
-    }
 }

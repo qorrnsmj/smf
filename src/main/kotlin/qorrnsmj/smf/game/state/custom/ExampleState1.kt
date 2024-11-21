@@ -42,7 +42,4 @@ class ExampleState1 : State() {
     override fun stop() {
         SMF.window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL)
     }
-
-    override fun resize(width: Int, height: Int) {
-    }
 }

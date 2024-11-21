@@ -42,10 +42,6 @@ class StateMachine : State() {
         currentState.stop()
     }
 
-    override fun resize(width: Int, height: Int) {
-        currentState.resize(width, height)
-    }
-
     override fun toString(): String {
         return "StateMachine[current: \"${currentState}\"]"
     }

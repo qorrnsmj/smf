@@ -1,8 +1,6 @@
 package qorrnsmj.smf.game.state
 
-import qorrnsmj.smf.util.Resizable
-
-abstract class State : Resizable {
+abstract class State {
     abstract fun start()
 
     abstract fun input()
