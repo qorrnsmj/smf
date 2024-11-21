@@ -1,6 +1,6 @@
 package qorrnsmj.test.t11.core.render
 
-import dev.romainguy.kotlin.math.radians
+//import dev.romainguy.kotlin.math.radians
 import org.lwjgl.glfw.GLFW
 import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.math.Vector3f
@@ -85,11 +85,11 @@ class Camera(
         if (pitch < -89.0f) pitch = -89.0f
 
         // 新しいfrontベクトルを計算して正規化
-        front = Vector3f(
-            x = cos(radians(yaw)) * cos(radians(pitch)),
-            y = sin(radians(pitch)),
-            z = sin(radians(yaw)) * cos(radians(pitch))
-        ).normalize()
+//        front = Vector3f(
+//            x = cos(radians(yaw)) * cos(radians(pitch)),
+//            y = sin(radians(pitch)),
+//            z = sin(radians(yaw)) * cos(radians(pitch))
+//        ).normalize()
     }
 
     private fun right(): Vector3f {
