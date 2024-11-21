@@ -3,7 +3,7 @@ package qorrnsmj.smf.game.state
 import org.tinylog.kotlin.Logger
 
 class StateMachine : State() {
-    var currentState = States.EMPTY.instance
+    private var currentState = States.EMPTY.instance
 
     fun changeState(newState: States) {
         val newInstance = newState.instance
