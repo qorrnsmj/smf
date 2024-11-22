@@ -4,21 +4,14 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWKeyCallback
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil
 
-/** 基本的な図形描画テスト */
+/** 基本的な図形描画テスト
+ * - Primitive Draw Call
+ */
 object Test1 {
-    /**
-     * This error callback will simply print the error to
-     * `System.err`.
-     */
     private val errorCallback = GLFWErrorCallback.createPrint(System.err)
-
-    /**
-     * This key callback will check if ESC is pressed and will close the window
-     * if it is pressed.
-     */
     private val keyCallback = object : GLFWKeyCallback() {
         override fun invoke(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
             if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_PRESS) {
@@ -27,28 +20,18 @@ object Test1 {
         }
     }
 
-    /**
-     * The main function will create a 640x480 window and renders a rotating
-     * triangle until the window gets closed.
-     *
-     * @param args the command line arguments
-     */
     @JvmStatic
     fun main(args: Array<String>) {
-        /* Set the error callback */
         GLFW.glfwSetErrorCallback(errorCallback)
-
-        /* Initialize GLFW */
         check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
 
-        /* Create window */
-        val window = GLFW.glfwCreateWindow(640, 480, "Simple example", MemoryUtil.NULL, MemoryUtil.NULL)
+        val window = GLFW.glfwCreateWindow(640, 480, "Test1", MemoryUtil.NULL, MemoryUtil.NULL)
         if (window == MemoryUtil.NULL) {
             GLFW.glfwTerminate()
             throw RuntimeException("Failed to create the GLFW window")
         }
 
-        /* Center the window on screen */
+        // ウィンドウ位置をセンターに設定
         val vidMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor())!!
         GLFW.glfwSetWindowPos(
             window,
@@ -56,59 +39,58 @@ object Test1 {
             (vidMode.height() - 480) / 2
         )
 
-        /* Create OpenGL context */
+        // OpenGLのコンテキストを作成
         GLFW.glfwMakeContextCurrent(window)
         GL.createCapabilities()
 
-        /* Enable vertical synchronization */
+        // v-syncを有効化
         GLFW.glfwSwapInterval(1)
 
-        /* Set the key callback */
+        // キーコールバックを設定
         GLFW.glfwSetKeyCallback(window, keyCallback)
 
-        /* Declare buffers for using inside the loop */
+        // ループで使うwidth, heightバッファー
         val width = MemoryUtil.memAllocInt(1)
         val height = MemoryUtil.memAllocInt(1)
 
-        /* Loop until window gets closed */
+        // メインループ
         while (!GLFW.glfwWindowShouldClose(window)) {
-            /* Get width and height to calculate the ratio */
+            // フレームサイズを取得
             GLFW.glfwGetFramebufferSize(window, width, height)
             val ratio = width.get() / height.get().toFloat()
 
-            /* Rewind buffers for next get */
+            // 次の書き込みの為にリセット
             width.rewind()
             height.rewind()
 
-            /* Set viewport and clear screen */
+            // ビューポートを設定 && 画面クリア
             glViewport(0, 0, width.get(), height.get())
             glClear(GL_COLOR_BUFFER_BIT)
 
-            /* Set orthographic projection */
+            // 透視投影行列を設定
             glMatrixMode(GL_PROJECTION)
             glLoadIdentity()
             glOrtho(-ratio.toDouble(), ratio.toDouble(), -1.0, 1.0, 1.0, -1.0)
 
+            // 描画 (バッファする)
             render()
 
-            /* Swap buffers and poll Events */
+            // バッファーをスワップして、描画内容を画面に表示
             GLFW.glfwSwapBuffers(window)
             GLFW.glfwPollEvents()
 
-            /* Flip buffers for next loop */
+            // 次の読み込みの為にフリップ
+            // 書き込みから読み込みに切り替えるために使う
+            // 制限（limit）を現在のポジションに設定
             width.flip()
             height.flip()
         }
 
-        /* Free buffers */
         MemoryUtil.memFree(width)
         MemoryUtil.memFree(height)
-
-        /* Release window and its callbacks */
         GLFW.glfwDestroyWindow(window)
         keyCallback.free()
 
-        /* Terminate GLFW and release the error callback */
         GLFW.glfwTerminate()
         errorCallback.free()
     }
@@ -116,11 +98,11 @@ object Test1 {
     private fun render() {
         glMatrixMode(GL_MODELVIEW)
 
-        // Rotate matrix
+        // 回転行列を設定
         glLoadIdentity()
         glRotatef(GLFW.glfwGetTime().toFloat() * 50f, 0f, 0f, 1f)
 
-        // Render shape
+        // 四角形を描画
         glBegin(GL_QUADS)
 
         glColor3f(1f, 0f, 0f)

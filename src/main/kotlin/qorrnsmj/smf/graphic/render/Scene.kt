@@ -1,6 +1,6 @@
 package qorrnsmj.smf.graphic.render
 
-import qorrnsmj.smf.game.entity.component.Entity
+import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.graphic.render.camera.Camera
 import qorrnsmj.smf.graphic.render.light.Light
 

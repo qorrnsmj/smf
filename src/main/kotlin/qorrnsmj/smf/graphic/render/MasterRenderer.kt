@@ -3,12 +3,7 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.util.Resizable
-import qorrnsmj.smf.game.entity.component.Entity
-import qorrnsmj.smf.game.entity.model.component.Model
-import qorrnsmj.smf.math.*
 import qorrnsmj.smf.graphic.MVP
-import qorrnsmj.smf.graphic.shader.custom.DefaultShader
-import qorrnsmj.smf.util.UniformUtils
 
 class MasterRenderer : Resizable {
     private val entityRenderer = EntityRenderer()

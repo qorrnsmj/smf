@@ -2,7 +2,7 @@ package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.entity.component.Entity
+import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.graphic.MVP
 import qorrnsmj.smf.graphic.render.camera.Camera
@@ -25,7 +25,7 @@ class EntityRenderer {
         UniformUtils.setUniform(PROJECTION.location, Matrix4f())
 
         UniformUtils.setUniform(LIGHT_POSITION.location, Vector3f(0f, 50f, 0f))
-        UniformUtils.setUniform(AMBIENT_COLOR.location, Vector3f(1f, 1f, 1f))
+        UniformUtils.setUniform(AMBIENT_COLOR.location, Vector3f(0.5f, 0.5f, 0.5f))
         UniformUtils.setUniform(SPECULAR_STRENGTH.location, 0.5f)
         UniformUtils.setUniform(SHININESS.location, 32.0f)
 

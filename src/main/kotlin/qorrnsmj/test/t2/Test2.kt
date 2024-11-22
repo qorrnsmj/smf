@@ -35,8 +35,6 @@ object Test2 {
         GL.createCapabilities()
     }
 
-    // vaoを1回unbindして、再びbindするのには理由がある
-    // https://www.gamedev.net/forums/topic/685340-opengl-why-unbind-vao/
     private fun loop() {
 //        ShaderProgram().apply {
 //            attachShader(Shader(GL_VERTEX_SHADER, "../../test/test2.vert"))
@@ -67,18 +65,13 @@ object Test2 {
 //        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * 4, 0)
 //        glEnableVertexAttribArray(0) // 有効化
 
-        // vaoをloop前に1回unbindするのは無駄っぽい?
-        // https://www.gamedev.net/forums/topic/685340-opengl-why-unbind-vao/
-        //vao.unbind()
-        //vbo.unbind(GL_ARRAY_BUFFER)
-
         while (!GLFW.glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             // Render
             glDrawArrays(GL_TRIANGLES, 0, 3) // 3つの頂点を描画
 
-            // Swap buffers and poll events
+            // Update
             GLFW.glfwSwapBuffers(window)
             GLFW.glfwPollEvents()
         }
