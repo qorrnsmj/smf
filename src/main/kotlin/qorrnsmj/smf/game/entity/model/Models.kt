@@ -14,6 +14,6 @@ object Models {
     }
 
     private fun loadModel(model: String, texture: String): Model {
-        return Model(OBJLoader.loadMesh(model), Loader.loadTexture(texture))
+        return Model(Loader.loadMesh(model), Loader.loadTexture(texture))
     }
 }
