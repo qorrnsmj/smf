@@ -21,7 +21,6 @@ object Loader {
     private val ebos = mutableListOf<Int>()
     private val textures = mutableListOf<Texture>()
 
-    // TODO: streamで渡してないからjarだとできないかも
     fun loadMesh(file: String): Mesh {
         try {
             // Loads model data
