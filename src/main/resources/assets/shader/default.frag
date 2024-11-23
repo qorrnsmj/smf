@@ -1,16 +1,22 @@
 #version 330 core
 
+struct Light {
+    vec3 position;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+    float constant;
+    float linear;
+    float quadratic;
+};
+
 uniform sampler2D texImage;
-uniform vec3 lightPos;          // 点光源の位置
-uniform vec3 ambientColor;      // 環境光の色
-uniform float specularStrength; // 反射光の強度
-uniform float shininess;        // 光沢度
-uniform float constant;         // 減衰係数(定数項)
-uniform float linear;           // 減衰係数(線形項)
-uniform float quadratic;        // 減衰係数(二次項)
+uniform Light lights[100];
+uniform int light_count;
 
 layout(location = 0) in vec4 color;
-layout(location = 1) in vec2 texCoords;
+layout(location = 1) in vec2 texCoord;
 layout(location = 2) in vec3 worldPosition;
 layout(location = 3) in vec3 worldNormal;
 layout(location = 4) in vec3 viewPosition;
@@ -18,32 +24,30 @@ layout(location = 4) in vec3 viewPosition;
 layout(location = 0) out vec4 fragColor;
 
 void main() {
-    // 法線ベクトルの正規化
     vec3 norm = normalize(worldNormal);
+    vec3 viewDir = normalize(viewPosition - worldPosition);
+    vec3 result = vec3(0.0);
 
-    // 点光源からフラグメントまでのベクトルと距離
-    vec3 lightDir = normalize(lightPos - worldPosition);
-    float distance = length(lightPos - worldPosition);
+    for (int i = 0; i < light_count; i++) {
+        vec3 lightDir = normalize(lights[i].position - worldPosition);
+        float distance = length(lights[i].position - worldPosition);
+        float attenuation = 1.0 / (lights[i].constant + lights[i].linear * distance + lights[i].quadratic * (distance * distance));
 
-    // 減衰の計算
-    float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
+        // Ambient
+        vec3 ambient = lights[i].ambient * attenuation;
 
-    // 環境光
-    vec3 ambient = ambientColor * attenuation;
+        // Diffuse
+        float diff = max(dot(norm, lightDir), 0.0);
+        vec3 diffuse = lights[i].diffuse * diff * attenuation;
 
-    // 拡散光
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = vec3(diff * attenuation);
+        // Specular
+        vec3 reflectDir = reflect(-lightDir, norm);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), lights[i].shininess);
+        vec3 specular = lights[i].specular * spec * attenuation;
 
-    // 反射光
-    vec3 viewDir = normalize(viewPosition - worldPosition); // 視線方向ベクトル
-    vec3 reflectDir = reflect(-lightDir, norm);  // 光源の反射ベクトル (光源ベクトルは逆向きに)
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-    vec3 specular = specularStrength * spec * attenuation * vec3(1.0); // 反射光の色は白
+        result += ambient + diffuse + specular;
+    }
 
-    // テクスチャカラー
-    vec4 texColor = texture(texImage, texCoords);
-
-    // 環境光 + 拡散光 + 反射光
-    fragColor = texColor * color * vec4(ambient + diffuse + specular, 1.0);
+    vec4 texColor = texture(texImage, texCoord);
+    fragColor = texColor * color * vec4(result, 1.0);
 }

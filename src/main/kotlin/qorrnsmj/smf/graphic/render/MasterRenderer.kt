@@ -4,6 +4,8 @@ import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.graphic.MVP
+import qorrnsmj.smf.graphic.shader.custom.DefaultShader.Uniform.PROJECTION
+import qorrnsmj.smf.util.UniformUtils
 
 class MasterRenderer : Resizable {
     private val entityRenderer = EntityRenderer()
@@ -23,25 +25,24 @@ class MasterRenderer : Resizable {
         Logger.info("MasterRenderer initialized!")
     }
 
-    override fun resize(width: Int, height: Int) {
-        val matrix = MVP.getPerspectiveMatrix(width / height.toFloat())
-        glViewport(0, 0, width, height)
-
-        entityRenderer.start()
-        entityRenderer.setProjection(matrix)
-        entityRenderer.stop()
-    }
-
     fun render(scene: Scene) {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         entityRenderer.start()
-        entityRenderer.setCamera(scene.camera)
-        entityRenderer.render(scene.entities)
+        entityRenderer.render(scene)
         entityRenderer.stop()
     }
 
     fun cleanup() {
         Logger.info("MasterRenderer cleaned up!")
+    }
+
+    override fun resize(width: Int, height: Int) {
+        val matrix = MVP.getPerspectiveMatrix(width / height.toFloat())
+        glViewport(0, 0, width, height)
+
+        entityRenderer.start()
+        UniformUtils.setUniform(PROJECTION.location, matrix)
+        entityRenderer.stop()
     }
 }

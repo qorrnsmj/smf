@@ -21,17 +21,8 @@ object DefaultShader : ShaderProgram(
 
     // TODO: DefaultShaderをクラスにするなら、enumのlocationは消して、uniformLocationMapをつくる
     enum class Uniform(val location: Int) {
-        MODEL(glGetUniformLocation(DefaultShader.id, "model")),
-        VIEW(glGetUniformLocation(DefaultShader.id, "view")),
-        PROJECTION(glGetUniformLocation(DefaultShader.id, "projection")),
-
-        LIGHT_POSITION(glGetUniformLocation(DefaultShader.id, "lightPos")),
-        AMBIENT_COLOR(glGetUniformLocation(DefaultShader.id, "ambientColor")),
-        SPECULAR_STRENGTH(glGetUniformLocation(DefaultShader.id, "specularStrength")),
-        SHININESS(glGetUniformLocation(DefaultShader.id, "shininess")),
-
-        CONSTANT(glGetUniformLocation(DefaultShader.id, "constant")),
-        LINEAR(glGetUniformLocation(DefaultShader.id, "linear")),
-        QUADRATIC(glGetUniformLocation(DefaultShader.id, "quadratic"))
+        MODEL(glGetUniformLocation(id, "model")),
+        VIEW(glGetUniformLocation(id, "view")),
+        PROJECTION(glGetUniformLocation(id, "projection"))
     }
 }

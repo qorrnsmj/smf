@@ -5,11 +5,10 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.graphic.MVP
-import qorrnsmj.smf.graphic.render.camera.Camera
+import qorrnsmj.smf.game.light.Light
 import qorrnsmj.smf.graphic.shader.custom.DefaultShader
 import qorrnsmj.smf.graphic.shader.custom.DefaultShader.Uniform.*
 import qorrnsmj.smf.math.Matrix4f
-import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.UniformUtils
 
 class EntityRenderer {
@@ -24,15 +23,6 @@ class EntityRenderer {
         UniformUtils.setUniform(VIEW.location, Matrix4f())
         UniformUtils.setUniform(PROJECTION.location, Matrix4f())
 
-        UniformUtils.setUniform(LIGHT_POSITION.location, Vector3f(0f, 50f, 0f))
-        UniformUtils.setUniform(AMBIENT_COLOR.location, Vector3f(0.5f, 0.5f, 0.5f))
-        UniformUtils.setUniform(SPECULAR_STRENGTH.location, 0.5f)
-        UniformUtils.setUniform(SHININESS.location, 32.0f)
-
-        UniformUtils.setUniform(CONSTANT.location, 1f)
-        UniformUtils.setUniform(LINEAR.location, 0f)
-        UniformUtils.setUniform(QUADRATIC.location, 0f)
-
         glUseProgram(0)
         Logger.info("EntityRenderer initialized!")
     }
@@ -45,15 +35,33 @@ class EntityRenderer {
         glUseProgram(0)
     }
 
-    fun setProjection(matrix: Matrix4f) {
-        UniformUtils.setUniform(PROJECTION.location, matrix)
+    fun render(scene: Scene) {
+        UniformUtils.setUniform(VIEW.location, scene.camera.getViewMatrix())
+        setLightUniforms(scene.lights)
+
+        renderEntity(scene.entities)
     }
 
-    fun setCamera(camera: Camera) {
-        UniformUtils.setUniform(VIEW.location, camera.getViewMatrix())
+    /* Light */
+
+    private fun setLightUniforms(lights: List<Light>) {
+        glUniform1i(glGetUniformLocation(program.id, "light_count"), lights.size)
+
+        lights.forEachIndexed { index, light ->
+            glUniform3f(glGetUniformLocation(program.id, "lights[$index].position"), light.position.x, light.position.y, light.position.z)
+            glUniform3f(glGetUniformLocation(program.id, "lights[$index].ambient"), light.ambient.x, light.ambient.y, light.ambient.z)
+            glUniform3f(glGetUniformLocation(program.id, "lights[$index].diffuse"), light.diffuse.x, light.diffuse.y, light.diffuse.z)
+            glUniform3f(glGetUniformLocation(program.id, "lights[$index].specular"), light.specular.x, light.specular.y, light.specular.z)
+            glUniform1f(glGetUniformLocation(program.id, "lights[$index].shininess"), light.shininess)
+            glUniform1f(glGetUniformLocation(program.id, "lights[$index].constant"), light.constant)
+            glUniform1f(glGetUniformLocation(program.id, "lights[$index].linear"), light.linear)
+            glUniform1f(glGetUniformLocation(program.id, "lights[$index].quadratic"), light.quadratic)
+        }
     }
 
-    fun render(entities: MutableList<Entity>) {
+    /* Entity */
+
+    private fun renderEntity(entities: List<Entity>) {
         for (entity in entities) processEntity(entity)
 
         for ((model, targets) in modelEntitiesMap) {
@@ -76,7 +84,7 @@ class EntityRenderer {
     private fun prepareEntity(entity: Entity) {
         UniformUtils.setUniform(
             MODEL.location,
-            MVP.getModelMatrix(entity.pos, entity.rot, entity.scale)
+            MVP.getModelMatrix(entity.position, entity.rot, entity.scale)
         )
     }
 
