@@ -144,15 +144,6 @@ object Loader {
 
         return Texture(0)
     }
-    
-    fun cleanup() {
-        vaos.forEach { glDeleteVertexArrays(it) }
-        vbos.forEach { glDeleteBuffers(it) }
-        ebos.forEach { glDeleteBuffers(it) }
-        textures.forEach { it.delete() }
-    }
-
-    /* Shader */
 
     private fun bindVBO(attribIndex: Int, attribSize: Int, data: FloatArray) {
         val vboID = glGenBuffers()
@@ -179,10 +170,15 @@ object Loader {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
     }
 
-    /* Util */
-
     private fun getResourceAsStream(path: String): InputStream {
         return ClassLoader.getSystemResourceAsStream(path)
             ?: throw IllegalArgumentException("Resource not found: $path")
+    }
+
+    fun cleanup() {
+        vaos.forEach { glDeleteVertexArrays(it) }
+        vbos.forEach { glDeleteBuffers(it) }
+        ebos.forEach { glDeleteBuffers(it) }
+        textures.forEach { it.delete() }
     }
 }
