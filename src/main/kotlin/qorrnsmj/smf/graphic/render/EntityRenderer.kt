@@ -3,7 +3,7 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.entity.Entity
-import qorrnsmj.smf.game.entity.model.component.Model
+import qorrnsmj.smf.game.entity.component.Model
 import qorrnsmj.smf.graphic.MVP
 import qorrnsmj.smf.game.light.Light
 import qorrnsmj.smf.graphic.shader.custom.DefaultShader

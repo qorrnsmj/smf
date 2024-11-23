@@ -1,19 +1,16 @@
-package qorrnsmj.smf.game.entity.model
+package qorrnsmj.smf.game.entity
 
 import org.lwjgl.BufferUtils
 import org.lwjgl.assimp.AIMesh
-import org.lwjgl.assimp.AIScene
-import org.lwjgl.assimp.AIVector3D
 import org.lwjgl.assimp.Assimp
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.entity.model.component.Mesh
-import qorrnsmj.smf.game.entity.model.component.Texture
+import qorrnsmj.smf.game.entity.component.Mesh
+import qorrnsmj.smf.game.entity.component.Texture
 import java.io.InputStream
 import java.nio.ByteBuffer
-import java.nio.file.Path
 
 object Loader {
     private val vaos = mutableListOf<Int>()

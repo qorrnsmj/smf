@@ -1,6 +1,6 @@
 package qorrnsmj.smf.game.entity
 
-import qorrnsmj.smf.game.entity.model.component.Model
+import qorrnsmj.smf.game.entity.component.Model
 import qorrnsmj.smf.math.Vector3f
 
 // TODO: GameObjectに名前変える パッケージも

@@ -6,7 +6,7 @@ import org.lwjgl.glfw.GLFWFramebufferSizeCallback
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.core.FixedTimestepGame
 import qorrnsmj.smf.core.Timer
-import qorrnsmj.smf.game.entity.model.Models
+import qorrnsmj.smf.game.entity.Models
 import qorrnsmj.smf.graphic.render.MasterRenderer
 import qorrnsmj.smf.state.StateMachine
 import qorrnsmj.smf.window.SMFKeyCallback

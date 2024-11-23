@@ -1,6 +1,6 @@
-package qorrnsmj.smf.game.entity.model
+package qorrnsmj.smf.game.entity
 
-import qorrnsmj.smf.game.entity.model.component.Model
+import qorrnsmj.smf.game.entity.component.Model
 
 object Models {
     lateinit var TREE: Model

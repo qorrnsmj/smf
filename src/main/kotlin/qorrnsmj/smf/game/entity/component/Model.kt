@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.entity.model.component
+package qorrnsmj.smf.game.entity.component
 
 data class Model(
     val mesh: Mesh,
