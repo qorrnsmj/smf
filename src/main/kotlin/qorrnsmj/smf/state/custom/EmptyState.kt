@@ -1,6 +1,6 @@
-package qorrnsmj.smf.game.state.custom
+package qorrnsmj.smf.state.custom
 
-import qorrnsmj.smf.game.state.State
+import qorrnsmj.smf.state.State
 
 class EmptyState : State() {
     override fun start() {

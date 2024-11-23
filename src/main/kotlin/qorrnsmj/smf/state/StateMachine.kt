@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.state
+package qorrnsmj.smf.state
 
 import org.tinylog.kotlin.Logger
 

@@ -136,7 +136,7 @@ object Loader {
                 }
                 glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, imageByteBuffer)
                 STBImage.stbi_image_free(imageByteBuffer)
-                Logger.info("\"$file\" loaded (${w}x${h})")
+                Logger.info("\"$file\" loaded (${w} x ${h})")
             }
 
             texture.unbind()
@@ -155,7 +155,7 @@ object Loader {
         textures.forEach { it.delete() }
     }
 
-    /* Shader Object */
+    /* Shader */
 
     private fun bindVBO(attribIndex: Int, attribSize: Int, data: FloatArray) {
         val vboID = glGenBuffers()

@@ -1,8 +1,8 @@
 package qorrnsmj.smf.graphic.render
 
 import qorrnsmj.smf.game.entity.Entity
-import qorrnsmj.smf.graphic.render.camera.Camera
-import qorrnsmj.smf.graphic.render.light.Light
+import qorrnsmj.smf.game.camera.Camera
+import qorrnsmj.smf.game.light.Light
 
 data class Scene(
     var camera: Camera = Camera(),

@@ -1,4 +1,4 @@
-package qorrnsmj.smf.graphic.render.camera
+package qorrnsmj.smf.game.camera
 
 import org.lwjgl.glfw.GLFW
 import qorrnsmj.smf.graphic.MVP

@@ -7,8 +7,8 @@ import org.lwjgl.glfw.GLFWKeyCallback
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.render.MasterRenderer
 import qorrnsmj.smf.window.Window
-import qorrnsmj.smf.game.state.StateMachine
-import qorrnsmj.smf.game.state.States.*
+import qorrnsmj.smf.state.StateMachine
+import qorrnsmj.smf.state.States.*
 
 abstract class Game {
     lateinit var window: Window

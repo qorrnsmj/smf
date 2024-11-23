@@ -3,7 +3,7 @@ package qorrnsmj.smf.window
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWKeyCallback
 import qorrnsmj.smf.SMF
-import qorrnsmj.smf.game.state.States
+import qorrnsmj.smf.state.States
 
 class SMFKeyCallback : GLFWKeyCallback() {
     override fun invoke(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {

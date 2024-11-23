@@ -8,7 +8,7 @@ import qorrnsmj.smf.core.FixedTimestepGame
 import qorrnsmj.smf.core.Timer
 import qorrnsmj.smf.game.entity.model.Models
 import qorrnsmj.smf.graphic.render.MasterRenderer
-import qorrnsmj.smf.game.state.StateMachine
+import qorrnsmj.smf.state.StateMachine
 import qorrnsmj.smf.window.SMFKeyCallback
 import qorrnsmj.smf.window.Window
 
