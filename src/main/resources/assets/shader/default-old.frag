@@ -61,18 +61,18 @@ void main() {
         // Diffuse
         float diff = max(dot(norm, lightDir), 0.0);
         vec3 diffuseTex = texture(material.diffuseTexture, texCoord).rgb;
-        vec3 diffuse = lights[i].diffuse * (material.diffuseColor * diffuseTex) * diff * attenuation;
+        vec3 diffuse = lights[i].diffuse * diffuseTex * diff * attenuation;
 
         // Specular
         vec3 reflectDir = reflect(-lightDir, norm);
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
         vec3 specularTex = texture(material.specularTexture, texCoord).rgb;
-        vec3 specular = lights[i].specular * (material.specularColor * specularTex) * spec * attenuation;
+        vec3 specular = lights[i].specular * specularTex * spec * attenuation;
 
-        // Add to result
         result += ambient + diffuse + specular;
     }
 
     // Final color
-    fragColor = vec4(result, material.opacity); // Apply opacity
+    vec3 finalColor = result * material.diffuseColor; // Combine with material's diffuse color
+    fragColor = vec4(finalColor, material.opacity); // Apply opacity
 }

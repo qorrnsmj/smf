@@ -9,5 +9,5 @@ abstract class Entity(
     var rot: Vector3f = Vector3f(0.0f, 0.0f, 0.0f),
     var scale: Vector3f = Vector3f(1.0f, 1.0f, 1.0f)
 ) {
-    abstract fun getModel(): Model
+    abstract fun getModels(): List<Model>
 }

@@ -4,8 +4,8 @@ import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.Models
 import qorrnsmj.smf.game.entity.component.Model
 
-class Tree : Entity() {
+class NormCube : Entity() {
     override fun getModels(): List<Model> {
-        return Models.TREE
+        return Models.NORM_CUBE
     }
 }

@@ -30,7 +30,7 @@ class Texture(file: String) {
 
             STBImage.stbi_set_flip_vertically_on_load(true)
             val image = STBImage.stbi_load(path.toString(), width, height, channels, 4)
-                ?: throw RuntimeException("Failed to load texture: $path")
+                ?: throw IllegalStateException("Failed to load texture: $path")
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width.get(), height.get(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
             STBImage.stbi_image_free(image)

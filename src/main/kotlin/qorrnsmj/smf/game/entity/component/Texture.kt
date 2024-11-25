@@ -2,7 +2,7 @@ package qorrnsmj.smf.game.entity.component
 
 import org.lwjgl.opengl.GL33.*
 
-class Texture(val id: Int) {
+data class Texture(val id: Int = 0) {
     fun bind() {
         glBindTexture(GL_TEXTURE_2D, id)
     }

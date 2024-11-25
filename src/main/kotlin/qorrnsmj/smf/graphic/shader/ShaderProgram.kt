@@ -23,6 +23,10 @@ abstract class ShaderProgram(
 
     protected abstract fun bindAttributes()
 
+    abstract fun enableAttributes()
+
+    abstract fun disableAttributes()
+
     fun delete() {
         vertexShader.delete()
         fragmentShader.delete()

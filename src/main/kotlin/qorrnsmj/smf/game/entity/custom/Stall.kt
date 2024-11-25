@@ -5,7 +5,7 @@ import qorrnsmj.smf.game.entity.Models
 import qorrnsmj.smf.game.entity.component.Model
 
 class Stall : Entity() {
-    override fun getModel(): Model {
+    override fun getModels(): List<Model> {
         return Models.STALL
     }
 }
