@@ -5,7 +5,7 @@ import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
 
 // TODO: Objectにすべきじゃないかも、同じシェーダーで別のuniformを使いたい場合とか
-object DefaultShader : ShaderProgram(
+class DefaultShader : ShaderProgram(
     Shader(GL_VERTEX_SHADER, "default.vert"),
     Shader(GL_FRAGMENT_SHADER, "default.frag")
 ) {
@@ -28,12 +28,5 @@ object DefaultShader : ShaderProgram(
         glDisableVertexAttribArray(1)
         glDisableVertexAttribArray(2)
         glDisableVertexAttribArray(3)
-    }
-
-    // TODO: DefaultShaderをクラスにするなら、enumのlocationは消して、uniformLocationMapをつくる
-    enum class Uniform(val location: Int) {
-        MODEL(glGetUniformLocation(id, "model")),
-        VIEW(glGetUniformLocation(id, "view")),
-        PROJECTION(glGetUniformLocation(id, "projection"))
     }
 }

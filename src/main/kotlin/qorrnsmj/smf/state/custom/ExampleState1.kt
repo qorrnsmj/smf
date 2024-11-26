@@ -2,24 +2,21 @@ package qorrnsmj.smf.state.custom
 
 import org.lwjgl.glfw.GLFW
 import qorrnsmj.smf.SMF
-import qorrnsmj.smf.game.entity.custom.NormCube
-import qorrnsmj.smf.game.entity.custom.Ship
-import qorrnsmj.smf.game.entity.custom.Stall
-import qorrnsmj.smf.game.entity.custom.Tree
+import qorrnsmj.smf.game.entity.custom.NormCubeEntity
+import qorrnsmj.smf.game.entity.custom.StallEntity
 import qorrnsmj.smf.game.light.PointLight
 import qorrnsmj.smf.graphic.render.Scene
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.state.State
-import kotlin.math.sin
 
 class ExampleState1 : State() {
     private var elapsedTime = 0f
     private val scene = Scene()
-    private val stall = Stall()
-    private val normCube = NormCube()
+    private val stall = StallEntity()
+    private val normCube = NormCubeEntity()
     private val pointLight1 = PointLight(
         position = Vector3f(0f, 20f, 0f),
-        ambient = Vector3f(0.5f, 0.5f, 0.5f),
+        ambient = Vector3f(1f, 1f, 1f),
         diffuse = Vector3f(1f, 1f, 1f),
         specular = Vector3f(1f, 1f, 1f),
         shininess = 32f,
@@ -38,17 +35,15 @@ class ExampleState1 : State() {
         quadratic = 0f
     )
 
-
     override fun start() {
         SMF.window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
 
         stall.position = Vector3f(10f, 0f, 0f)
         normCube.position = Vector3f(0f, 0f, 0f)
-
-        scene.camera.position = Vector3f(0f, 0f, 0f)
+        scene.camera.position = Vector3f(5f, 5f, 0f)
 
         scene.lights.add(pointLight1)
-        scene.lights.add(pointLight2)
+        //scene.lights.add(pointLight2)
         scene.entities.add(stall)
         scene.entities.add(normCube)
     }
@@ -61,7 +56,10 @@ class ExampleState1 : State() {
     override fun update(delta: Float) {
         elapsedTime += delta
 
-        pointLight2.position = scene.camera.position
+        stall.move()
+        stall.fruits.position.y += 0.01f
+
+        //pointLight2.position = scene.camera.position
         //pointLight1.position = Vector3f(0f, sin(elapsedTime / 5) * 20, 0f)
     }
 

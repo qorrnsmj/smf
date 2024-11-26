@@ -17,6 +17,7 @@ import qorrnsmj.smf.game.entity.component.Texture
 import qorrnsmj.smf.math.Vector3f
 import java.io.InputStream
 import java.nio.ByteBuffer
+import kotlin.collections.mutableMapOf
 
 object Loader {
     private val vaos = mutableListOf<Int>()
@@ -26,7 +27,7 @@ object Loader {
 
     /* Model */
 
-    fun loadModel(file: String): List<Model> {
+    fun loadModel(file: String): Map<String, Model> {
         try {
             // Load scene
             val fileExtension = file.substringAfterLast('.', "").lowercase()
@@ -42,11 +43,11 @@ object Loader {
             ) ?: throw IllegalStateException(Assimp.aiGetErrorString())
 
             // Process models
-            val models = mutableListOf<Model>()
+            val models = mutableMapOf<String, Model>()
             processModel(scene, models)
 
             // Log face count
-            val faceCount = models.sumOf { it.mesh.vertexCount }.div(3)
+            val faceCount = models.values.sumOf { it.mesh.vertexCount }.div(3)
             Logger.info("\"$file\" loaded ($faceCount faces)")
 
             Assimp.aiReleaseImport(scene)
@@ -55,10 +56,10 @@ object Loader {
             Logger.error(e) { "Failed to load model: \"$file\"" }
         }
 
-        return emptyList()
+        return emptyMap()
     }
 
-    private fun processModel(scene: AIScene, models: MutableList<Model>) {
+    private fun processModel(scene: AIScene, models: MutableMap<String, Model>) {
         val meshes = scene.mMeshes() ?: throw IllegalStateException("Scene has no meshes")
         val materials = scene.mMaterials() ?: throw IllegalStateException("Scene has no materials")
 
@@ -70,7 +71,7 @@ object Loader {
             val meshName = aiMesh.mName().dataString()
             val meshInstance = loadMesh(aiMesh)
             val materialInstance = loadMaterial(aiMaterial)
-            models.add(Model(meshName, meshInstance, materialInstance))
+            models[meshName] = Model(meshName, meshInstance, materialInstance)
         }
     }
 

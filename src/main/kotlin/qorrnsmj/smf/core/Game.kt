@@ -8,7 +8,7 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.render.MasterRenderer
 import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.state.StateMachine
-import qorrnsmj.smf.state.States.*
+import qorrnsmj.smf.state.States.EMPTY
 
 abstract class Game {
     lateinit var window: Window

@@ -3,14 +3,13 @@ package qorrnsmj.smf.state
 import org.tinylog.kotlin.Logger
 
 class StateMachine : State() {
-    private var currentState = States.EMPTY.instance
+    private var currentState: State = States.EMPTY
 
-    fun changeState(newState: States) {
-        val newInstance = newState.instance
-        Logger.info("Changing state: \"$currentState\" to \"$newInstance\"")
+    fun changeState(newState: State) {
+        Logger.info("Changing state: \"$currentState\" to \"$newState\"")
 
         currentState.stop()
-        currentState = newInstance
+        currentState = newState
         currentState.start()
     }
 

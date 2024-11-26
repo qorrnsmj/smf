@@ -22,7 +22,7 @@ struct Material {
     sampler2D normalTexture;
 };
 
-uniform Light lights[100];
+uniform Light lights[30];
 uniform int light_count;
 uniform Material material;
 

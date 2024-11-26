@@ -4,8 +4,5 @@ import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.Models
 import qorrnsmj.smf.game.entity.component.Model
 
-class Tree : Entity() {
-    override fun getModels(): List<Model> {
-        return Models.TREE
-    }
+class TreeEntity : Entity() {
 }

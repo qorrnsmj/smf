@@ -4,11 +4,11 @@ import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.graphic.MVP
-import qorrnsmj.smf.graphic.shader.custom.DefaultShader.Uniform.PROJECTION
 import qorrnsmj.smf.util.UniformUtils
 
 class MasterRenderer : Resizable {
     private val entityRenderer = EntityRenderer()
+    private val terrainRenderer = TerrainRenderer()
 
     init {
         Logger.info("MasterRenderer initializing...")
@@ -31,6 +31,10 @@ class MasterRenderer : Resizable {
         entityRenderer.start()
         entityRenderer.render(scene)
         entityRenderer.stop()
+
+        terrainRenderer.start()
+        terrainRenderer.render(scene)
+        terrainRenderer.stop()
     }
 
     fun cleanup() {
@@ -42,7 +46,11 @@ class MasterRenderer : Resizable {
         glViewport(0, 0, width, height)
 
         entityRenderer.start()
-        UniformUtils.setUniform(PROJECTION.location, matrix)
+        UniformUtils.setUniform(entityRenderer.locProjection, matrix)
         entityRenderer.stop()
+
+        terrainRenderer.start()
+        //UniformUtils.setUniform(TerrainShader.PROJECTION.location, matrix)
+        terrainRenderer.stop()
     }
 }

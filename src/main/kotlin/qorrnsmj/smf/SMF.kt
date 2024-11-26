@@ -20,6 +20,8 @@ object SMF : FixedTimestepGame() {
         window = Window(1600, 1600, "SMF", true)
         renderer = MasterRenderer()
         renderer.resize(window.width, window.height)
+
+        Models.load()
         stateMachine = StateMachine()
         timer = Timer()
 
@@ -30,7 +32,6 @@ object SMF : FixedTimestepGame() {
         }.set(window.id)
         keyCallback = SMFKeyCallback().set(window.id)
 
-        Models.load()
         Logger.info("SMF initialized!")
     }
 

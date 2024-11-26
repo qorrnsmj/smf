@@ -11,14 +11,19 @@ abstract class ShaderProgram(
     val id = glCreateProgram()
 
     init {
-        glAttachShader(id, vertexShader.id)
-        glAttachShader(id, fragmentShader.id)
-        bindAttributes()
-        glLinkProgram(id)
+        try {
+            glAttachShader(id, vertexShader.id)
+            glAttachShader(id, fragmentShader.id)
+            bindAttributes()
+            glLinkProgram(id)
 
-        val status = glGetProgrami(id, GL_LINK_STATUS)
-        check(status == GL_TRUE) { Logger.error(glGetProgramInfoLog(id)) }
-        glValidateProgram(id)
+            val status = glGetProgrami(id, GL_LINK_STATUS)
+            check(status == GL_TRUE) { Logger.error(glGetProgramInfoLog(id)) }
+            glValidateProgram(id)
+        } catch (e: Exception) {
+            Logger.error(e)
+            delete()
+        }
     }
 
     protected abstract fun bindAttributes()

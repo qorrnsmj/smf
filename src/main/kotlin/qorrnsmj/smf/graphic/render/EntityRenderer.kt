@@ -1,31 +1,53 @@
 package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
-import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.entity.Entity
+import qorrnsmj.smf.game.entity.Models
 import qorrnsmj.smf.game.entity.component.Model
 import qorrnsmj.smf.graphic.MVP
 import qorrnsmj.smf.game.light.Light
 import qorrnsmj.smf.graphic.shader.custom.DefaultShader
-import qorrnsmj.smf.graphic.shader.custom.DefaultShader.Uniform.*
-import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.util.UniformUtils
 
 class EntityRenderer {
-    val program = DefaultShader
-    // TODO: Modelsの同じモデルをまとめる (複数をあつめたモデルのクラスを新しく作る？)
-    private val modelEntitiesMap = HashMap<Model, MutableList<Entity>>()
+    val program = DefaultShader()
+    val locModel: Int
+    val locView: Int
+    val locProjection: Int
+    val locLightCount: Int
+    val locLights: MutableMap<Int, HashMap<String, Int>>
+    val locMaterials: HashMap<String, Int>
 
     init {
-        Logger.info("EntityRenderer initializing...")
-        glUseProgram(program.id)
+        locModel = glGetUniformLocation(program.id, "model")
+        locView = glGetUniformLocation(program.id, "view")
+        locProjection = glGetUniformLocation(program.id, "projection")
+        locLightCount = glGetUniformLocation(program.id, "light_count")
 
-        UniformUtils.setUniform(MODEL.location, Matrix4f())
-        UniformUtils.setUniform(VIEW.location, Matrix4f())
-        UniformUtils.setUniform(PROJECTION.location, Matrix4f())
+        locLights = mutableMapOf()
+        for (i in 0..30) {
+            locLights[i] = hashMapOf(
+                "position" to glGetUniformLocation(program.id, "lights[$i].position"),
+                "ambient" to glGetUniformLocation(program.id, "lights[$i].ambient"),
+                "diffuse" to glGetUniformLocation(program.id, "lights[$i].diffuse"),
+                "specular" to glGetUniformLocation(program.id, "lights[$i].specular"),
+                "shininess" to glGetUniformLocation(program.id, "lights[$i].shininess"),
+                "constant" to glGetUniformLocation(program.id, "lights[$i].constant"),
+                "linear" to glGetUniformLocation(program.id, "lights[$i].linear"),
+                "quadratic" to glGetUniformLocation(program.id, "lights[$i].quadratic")
+            )
+        }
 
-        glUseProgram(0)
-        Logger.info("EntityRenderer initialized!")
+        locMaterials = hashMapOf()
+        locMaterials["diffuseColor"] = glGetUniformLocation(program.id, "material.diffuseColor")
+        locMaterials["ambientColor"] = glGetUniformLocation(program.id, "material.ambientColor")
+        locMaterials["specularColor"] = glGetUniformLocation(program.id, "material.specularColor")
+        locMaterials["emissiveColor"] = glGetUniformLocation(program.id, "material.emissiveColor")
+        locMaterials["shininess"] = glGetUniformLocation(program.id, "material.shininess")
+        locMaterials["opacity"] = glGetUniformLocation(program.id, "material.opacity")
+        locMaterials["diffuseTexture"] = glGetUniformLocation(program.id, "material.diffuseTexture")
+        locMaterials["specularTexture"] = glGetUniformLocation(program.id, "material.specularTexture")
+        locMaterials["normalTexture"] = glGetUniformLocation(program.id, "material.normalTexture")
     }
 
     fun start() {
@@ -37,7 +59,7 @@ class EntityRenderer {
     }
 
     fun render(scene: Scene) {
-        UniformUtils.setUniform(VIEW.location, scene.camera.getViewMatrix())
+        UniformUtils.setUniform(locView, scene.camera.getViewMatrix())
         setLightUniforms(scene.lights)
 
         renderEntity(scene.entities)
@@ -45,29 +67,32 @@ class EntityRenderer {
 
     /* Light */
 
-    // TODO: position[COUNT] みたいな変数を持つクラスにする
     private fun setLightUniforms(lights: List<Light>) {
-        glUniform1i(glGetUniformLocation(program.id, "light_count"), lights.size)
+        glUniform1i(locLightCount, lights.size)
 
         lights.forEachIndexed { index, light ->
-            glUniform3f(glGetUniformLocation(program.id, "lights[$index].position"), light.position.x, light.position.y, light.position.z)
-            glUniform3f(glGetUniformLocation(program.id, "lights[$index].ambient"), light.ambient.x, light.ambient.y, light.ambient.z)
-            glUniform3f(glGetUniformLocation(program.id, "lights[$index].diffuse"), light.diffuse.x, light.diffuse.y, light.diffuse.z)
-            glUniform3f(glGetUniformLocation(program.id, "lights[$index].specular"), light.specular.x, light.specular.y, light.specular.z)
-            glUniform1f(glGetUniformLocation(program.id, "lights[$index].shininess"), light.shininess)
-            glUniform1f(glGetUniformLocation(program.id, "lights[$index].constant"), light.constant)
-            glUniform1f(glGetUniformLocation(program.id, "lights[$index].linear"), light.linear)
-            glUniform1f(glGetUniformLocation(program.id, "lights[$index].quadratic"), light.quadratic)
+            val locations = locLights[index]!!
+            glUniform3f(locations.get("position")!!, light.position.x, light.position.y, light.position.z)
+            glUniform3f(locations.get("ambient")!!, light.ambient.x, light.ambient.y, light.ambient.z)
+            glUniform3f(locations.get("diffuse")!!, light.diffuse.x, light.diffuse.y, light.diffuse.z)
+            glUniform3f(locations.get("specular")!!, light.specular.x, light.specular.y, light.specular.z)
+            glUniform1f(locations.get("shininess")!!, light.shininess)
+            glUniform1f(locations.get("constant")!!, light.constant)
+            glUniform1f(locations.get("linear")!!, light.linear)
+            glUniform1f(locations.get("quadratic")!!, light.quadratic)
         }
     }
 
     /* Entity */
 
+    // TODO: 基本的にParentの子供は後から追加しない限りテクスチャは同じだから、テクスチャが同じだったらbindTextureしないようにする
+    // TODO: そのためにはbindTexture()作るのと、modelEntityMapの中身を更に同じテクスチャIDでまとめる (今は同じテクスチャでも別のテクスチャIDになっちゃってる)
     private fun renderEntity(entities: List<Entity>) {
-        for (entity in entities) processEntity(entity)
+        val batchMap = mutableMapOf<Model, MutableList<Entity>>()
+        for (entity in entities) processEntity(entity, batchMap)
 
-        for ((model, targets) in modelEntitiesMap) {
-            // モデル毎に設定するのはマテリアル
+        for ((model, targets) in batchMap) {
+            // モデル毎に設定するのはマテリアmodelEntityMap = {HashMap@1863}  size = 9ル(テクスチャ)
             bindModel(model)
             for (target in targets) {
                 // エンティティ毎に設定するのはModel行列
@@ -76,42 +101,59 @@ class EntityRenderer {
             }
             unbindModel()
         }
-
-        modelEntitiesMap.clear()
     }
 
-    // FIXME: ここでgetUniformLocationしない
+    // TODO: 親のpos, rot, scaleを子にも適用 -> そもそもmodel-matrix共有しとけば？ (同じfbxのモデルならわかるけど、後から別モデルをchildren登録したらどうなる？)
+    private fun processEntity(entity: Entity, batchMap: MutableMap<Model, MutableList<Entity>>) {
+        // Parent model
+        if (entity.model.name != Models.EMPTY.name) {
+            val batch = batchMap.getOrPut(entity.model) { mutableListOf() }
+            batch.add(entity)
+        }
+
+        // Children model
+        for (child in entity.children) {
+            processEntity(child, batchMap)
+        }
+    }
+
+    private fun prepareEntity(entity: Entity) {
+        UniformUtils.setUniform(
+            locModel,
+            MVP.getModelMatrix(entity.position, entity.rotation, entity.scale)
+        )
+    }
+
     private fun bindModel(model: Model) {
         glBindVertexArray(model.mesh.vaoID)
 
-        program.enableAttributes()
         val material = model.material
+        program.enableAttributes()
 
         // Diffuse texture
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, material.diffuseTexture.id)
-        glUniform1i(glGetUniformLocation(program.id, "material.diffuseTexture"), 0)
+        glUniform1i(locMaterials["diffuseTexture"]!!, 0)
 
         // Specular texture
         glActiveTexture(GL_TEXTURE1)
         glBindTexture(GL_TEXTURE_2D, material.specularTexture.id)
-        glUniform1i(glGetUniformLocation(program.id, "material.specularTexture"), 1)
+        glUniform1i(locMaterials["specularTexture"]!!, 1)
 
         // Normal texture
         glActiveTexture(GL_TEXTURE2)
         glBindTexture(GL_TEXTURE_2D, material.normalTexture.id)
-        glUniform1i(glGetUniformLocation(program.id, "material.normalTexture"), 2)
+        glUniform1i(locMaterials["normalTexture"]!!, 2)
 
-        glUniform3f(glGetUniformLocation(program.id, "material.diffuseColor"), material.diffuseColor.x, material.diffuseColor.y, material.diffuseColor.z)
-        glUniform3f(glGetUniformLocation(program.id, "material.ambientColor"), material.ambientColor.x, material.ambientColor.y, material.ambientColor.z)
-        glUniform3f(glGetUniformLocation(program.id, "material.specularColor"), material.specularColor.x, material.specularColor.y, material.specularColor.z)
-        glUniform3f(glGetUniformLocation(program.id, "material.emissiveColor"), material.emissiveColor.x, material.emissiveColor.y, material.emissiveColor.z)
-        glUniform3f(glGetUniformLocation(program.id, "material.emissiveColor"), material.emissiveColor.x, material.emissiveColor.y, material.emissiveColor.z)
-        glUniform1f(glGetUniformLocation(program.id, "material.shininess"), material.shininess)
-        glUniform1f(glGetUniformLocation(program.id, "material.opacity"), material.opacity)
+        // Material
+        UniformUtils.setUniform(locMaterials["diffuseColor"]!!, material.diffuseColor)
+        UniformUtils.setUniform(locMaterials["ambientColor"]!!, material.ambientColor)
+        UniformUtils.setUniform(locMaterials["specularColor"]!!, material.specularColor)
+        UniformUtils.setUniform(locMaterials["emissiveColor"]!!, material.emissiveColor)
+        UniformUtils.setUniform(locMaterials["shininess"]!!, material.shininess)
+        UniformUtils.setUniform(locMaterials["opacity"]!!, material.opacity)
     }
 
-    // FIXME: 本当にいる？bindModelで全て上書きしちゃえばよくない？
     private fun unbindModel() {
         program.disableAttributes()
         glBindVertexArray(0)
@@ -122,20 +164,5 @@ class EntityRenderer {
         glBindTexture(GL_TEXTURE_2D, 0)
         glActiveTexture(GL_TEXTURE2)
         glBindTexture(GL_TEXTURE_2D, 0)
-    }
-
-    // TODO: 複数モデルをもつエンティティのバッチ処理にする
-    private fun processEntity(entity: Entity) {
-        for (model in entity.getModels()) {
-            val batch = modelEntitiesMap.getOrPut(model) { mutableListOf() }
-            batch.add(entity)
-        }
-    }
-
-    private fun prepareEntity(entity: Entity) {
-        UniformUtils.setUniform(
-            MODEL.location,
-            MVP.getModelMatrix(entity.position, entity.rot, entity.scale)
-        )
     }
 }
