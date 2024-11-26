@@ -6,7 +6,7 @@ import org.lwjgl.glfw.GLFWFramebufferSizeCallback
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.core.FixedTimestepGame
 import qorrnsmj.smf.core.Timer
-import qorrnsmj.smf.game.entity.Models
+import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.graphic.render.MasterRenderer
 import qorrnsmj.smf.state.StateMachine
 import qorrnsmj.smf.window.SMFKeyCallback
@@ -21,7 +21,7 @@ object SMF : FixedTimestepGame() {
         renderer = MasterRenderer()
         renderer.resize(window.width, window.height)
 
-        Models.load()
+        EntityModels.load()
         stateMachine = StateMachine()
         timer = Timer()
 

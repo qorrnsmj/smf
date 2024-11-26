@@ -46,11 +46,11 @@ class MasterRenderer : Resizable {
         glViewport(0, 0, width, height)
 
         entityRenderer.start()
-        UniformUtils.setUniform(entityRenderer.locProjection, matrix)
+        UniformUtils.setUniform(entityRenderer.locationProjection, matrix)
         entityRenderer.stop()
 
         terrainRenderer.start()
-        //UniformUtils.setUniform(TerrainShader.PROJECTION.location, matrix)
+        UniformUtils.setUniform(terrainRenderer.locationProjection, matrix)
         terrainRenderer.stop()
     }
 }

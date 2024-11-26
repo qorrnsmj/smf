@@ -17,9 +17,8 @@ import qorrnsmj.smf.game.entity.component.Texture
 import qorrnsmj.smf.math.Vector3f
 import java.io.InputStream
 import java.nio.ByteBuffer
-import kotlin.collections.mutableMapOf
 
-object Loader {
+object EntityLoader {
     private val vaos = mutableListOf<Int>()
     private val vbos = mutableListOf<Int>()
     private val ebos = mutableListOf<Int>()
@@ -43,7 +42,7 @@ object Loader {
             ) ?: throw IllegalStateException(Assimp.aiGetErrorString())
 
             // Process models
-            val models = mutableMapOf<String, Model>()
+            val models = hashMapOf<String, Model>()
             processModel(scene, models)
 
             // Log face count

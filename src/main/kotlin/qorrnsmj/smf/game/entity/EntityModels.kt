@@ -6,7 +6,7 @@ import qorrnsmj.smf.game.entity.component.Mesh
 import qorrnsmj.smf.game.entity.component.Model
 import qorrnsmj.smf.game.entity.component.Texture
 
-object Models {
+object EntityModels {
     lateinit var EMPTY: Model
     //lateinit var TREE: Map<String, Model>
     lateinit var STALL: Map<String, Model>
@@ -23,7 +23,7 @@ object Models {
     }
 
     private fun loadModel(file: String): Map<String, Model> {
-        return Loader.loadModel(file)
+        return EntityLoader.loadModel(file)
     }
 
     fun getModel(map: Map<String, Model>, key: String): Model {
