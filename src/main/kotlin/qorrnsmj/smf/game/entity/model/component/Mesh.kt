@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.entity.model
+package qorrnsmj.smf.game.entity.model.component
 
 data class Mesh(
     val vaoID: Int = 0,

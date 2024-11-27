@@ -38,10 +38,6 @@ class MasterRenderer : Resizable {
         terrainRenderer.stop()
     }
 
-    fun cleanup() {
-        Logger.info("MasterRenderer cleaned up!")
-    }
-
     override fun resize(width: Int, height: Int) {
         val matrix = MVP.getPerspectiveMatrix(width / height.toFloat())
         glViewport(0, 0, width, height)
@@ -53,5 +49,9 @@ class MasterRenderer : Resizable {
         terrainRenderer.start()
         UniformUtils.setUniform(terrainRenderer.locationProjection, matrix)
         terrainRenderer.stop()
+    }
+
+    fun cleanup() {
+        Logger.info("MasterRenderer cleaned up!")
     }
 }

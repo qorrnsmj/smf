@@ -3,8 +3,8 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.Scene
 import qorrnsmj.smf.game.entity.Entity
-import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.entity.model.Model
+import qorrnsmj.smf.game.entity.model.Models
+import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.graphic.MVP
 import qorrnsmj.smf.game.light.Light
 import qorrnsmj.smf.graphic.shader.custom.DefaultShader
@@ -75,7 +75,7 @@ class EntityRenderer {
         for (entity in entities) processEntity(entity, batchMap)
 
         for ((model, targets) in batchMap) {
-            // モデル毎に設定するのはマテリアmodelEntityMap = {HashMap@1863}  size = 9ル(テクスチャ)
+            // モデル毎に設定するのはマテリア
             bindModel(model)
             for (target in targets) {
                 // エンティティ毎に設定するのはModel行列
@@ -89,7 +89,7 @@ class EntityRenderer {
     // TODO: 親のpos, rot, scaleを子にも適用 -> そもそもmodel-matrix共有しとけば？ (同じfbxのモデルならわかるけど、後から別モデルをchildren登録したらどうなる？)
     private fun processEntity(entity: Entity, batchMap: MutableMap<Model, MutableList<Entity>>) {
         // Parent model
-        if (entity.model.name != EntityModels.EMPTY.name) {
+        if (entity.model != Models.EMPTY) {
             val batch = batchMap.getOrPut(entity.model) { mutableListOf() }
             batch.add(entity)
         }

@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.entity
+package qorrnsmj.smf.game.entity.model
 
 import org.lwjgl.BufferUtils
 import org.lwjgl.assimp.AIMaterial
@@ -10,15 +10,15 @@ import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.entity.model.Material
-import qorrnsmj.smf.game.entity.model.Mesh
-import qorrnsmj.smf.game.entity.model.Model
-import qorrnsmj.smf.game.entity.model.Texture
+import qorrnsmj.smf.game.entity.model.component.Material
+import qorrnsmj.smf.game.entity.model.component.Mesh
+import qorrnsmj.smf.game.entity.model.component.Model
+import qorrnsmj.smf.game.entity.model.component.Texture
 import qorrnsmj.smf.math.Vector3f
 import java.io.InputStream
 import java.nio.ByteBuffer
 
-object EntityLoader {
+object ModelLoader {
     private val vaos = mutableListOf<Int>()
     private val vbos = mutableListOf<Int>()
     private val ebos = mutableListOf<Int>()
@@ -114,7 +114,7 @@ object EntityLoader {
         return loadMesh(positions, texCoords, normals, tangents, indices)
     }
 
-    private fun loadMesh(positions: FloatArray, texCoords: FloatArray, normals: FloatArray, tangents: FloatArray, indices: IntArray): Mesh {
+    fun loadMesh(positions: FloatArray, texCoords: FloatArray, normals: FloatArray, tangents: FloatArray, indices: IntArray): Mesh {
         val vaoID = glGenVertexArrays()
         vaos.add(vaoID)
 
@@ -184,7 +184,7 @@ object EntityLoader {
     }
 
     // TODO: これも同じテクスチャなのに、別のidで取得してる (画像事に生成してTexturesにまとめる？)
-    private fun loadTexture(file: String): Texture {
+    fun loadTexture(file: String): Texture {
         try {
             val texture = Texture(glGenTextures())
             texture.bind()

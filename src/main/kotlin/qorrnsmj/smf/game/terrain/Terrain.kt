@@ -1,6 +1,6 @@
 package qorrnsmj.smf.game.terrain
 
-import qorrnsmj.smf.game.entity.model.Model
+import qorrnsmj.smf.game.entity.model.component.Model
 
 class Terrain(gridX: Float, gridZ: Float) {
     val x = gridX * SIZE

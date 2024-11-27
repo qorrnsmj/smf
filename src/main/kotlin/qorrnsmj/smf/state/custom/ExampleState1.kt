@@ -6,49 +6,53 @@ import qorrnsmj.smf.game.entity.custom.NormCubeEntity
 import qorrnsmj.smf.game.entity.custom.StallEntity
 import qorrnsmj.smf.game.light.PointLight
 import qorrnsmj.smf.game.Scene
+import qorrnsmj.smf.game.entity.Entity
+import qorrnsmj.smf.game.entity.custom.TestPlaneEntity
+import qorrnsmj.smf.game.entity.model.Models
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.state.State
 
 class ExampleState1 : State() {
     private var elapsedTime = 0f
-    private val scene = Scene()
-    private val stall = StallEntity()
-    private val normCube = NormCubeEntity()
-    private val pointLight1 = PointLight(
-        position = Vector3f(0f, 20f, 0f),
-        ambient = Vector3f(1f, 1f, 1f),
-        diffuse = Vector3f(1f, 1f, 1f),
-        specular = Vector3f(1f, 1f, 1f),
-        shininess = 32f,
-        constant = 1f,
-        linear = 0f,
-        quadratic = 0f
-    )
-    private val pointLight2 = PointLight(
-        position = Vector3f(0f, 20f, 0f),
-        ambient = Vector3f(0.5f, 0.5f, 0.5f),
-        diffuse = Vector3f(1f, 1f, 1f),
-        specular = Vector3f(1f, 1f, 1f),
-        shininess = 32f,
-        constant = 1f,
-        linear = 0f,
-        quadratic = 0f
-    )
+    private lateinit var scene: Scene
+    private lateinit var stall: StallEntity
+    private lateinit var normCube: NormCubeEntity
+    private lateinit var plane: TestPlaneEntity
+    private lateinit var pointLight1: PointLight
+    private lateinit var pointLight2: PointLight
 
     override fun start() {
+        // init
+        elapsedTime = 0f
+        scene = Scene()
+        stall = StallEntity()
+        normCube = NormCubeEntity()
+        plane = TestPlaneEntity()
+        pointLight1 = PointLight().apply {
+            position = Vector3f(0f, 20f, 0f)
+            ambient = Vector3f(1f, 1f, 1f)
+            diffuse = Vector3f(1f, 1f, 1f)
+            specular = Vector3f(1f, 1f, 1f)
+            shininess = 32f
+            constant = 1f
+            linear = 0f
+            quadratic = 0f
+        }
+
+        // setup
         SMF.window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
-
-        stall.position = Vector3f(10f, 0f, 0f)
-        normCube.position = Vector3f(0f, 0f, 0f)
-
-        // FIXME: 効いてなくない？
         scene.camera.position = Vector3f(5f, 5f, 0f)
-        scene.camera.front = Vector3f(0f, 10f, 10f)
 
+        // transform
+        stall.position = Vector3f(0f, 0f, 0f)
+        normCube.position = Vector3f(10f, 3f, 0f)
+        plane.position = Vector3f(20f, 3f, 0f)
+
+        // add
         scene.lights.add(pointLight1)
-        //scene.lights.add(pointLight2)
         scene.entities.add(stall)
         scene.entities.add(normCube)
+        scene.entities.add(plane)
     }
 
     override fun input() {
@@ -61,9 +65,9 @@ class ExampleState1 : State() {
 
         stall.move()
         stall.fruits.position.y += 0.01f
+        plane.rotation.y += 1f
 
         //pointLight2.position = scene.camera.position
-        //pointLight1.position = Vector3f(0f, sin(elapsedTime / 5) * 20, 0f)
     }
 
     override fun render(alpha: Float) {

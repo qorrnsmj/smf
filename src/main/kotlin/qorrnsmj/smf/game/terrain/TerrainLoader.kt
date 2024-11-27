@@ -5,10 +5,10 @@ import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.entity.model.Material
-import qorrnsmj.smf.game.entity.model.Mesh
-import qorrnsmj.smf.game.entity.model.Model
-import qorrnsmj.smf.game.entity.model.Texture
+import qorrnsmj.smf.game.entity.model.component.Material
+import qorrnsmj.smf.game.entity.model.component.Mesh
+import qorrnsmj.smf.game.entity.model.component.Model
+import qorrnsmj.smf.game.entity.model.component.Texture
 import qorrnsmj.smf.game.terrain.Terrain.Companion.SIZE
 import qorrnsmj.smf.game.terrain.Terrain.Companion.VERTEX_COUNT
 import java.io.InputStream

@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.entity.model
+package qorrnsmj.smf.game.entity.model.component
 
 import org.lwjgl.opengl.GL33.*
 

@@ -1,6 +1,6 @@
-package qorrnsmj.smf.game.entity.model
+package qorrnsmj.smf.game.entity.model.component
 
-data class Model(
+open class Model(
     val name: String,
     val mesh: Mesh,
     val material: Material
