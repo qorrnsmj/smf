@@ -5,7 +5,7 @@ import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.entity.custom.NormCubeEntity
 import qorrnsmj.smf.game.entity.custom.StallEntity
 import qorrnsmj.smf.game.light.PointLight
-import qorrnsmj.smf.graphic.render.Scene
+import qorrnsmj.smf.game.Scene
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.state.State
 

@@ -1,4 +1,4 @@
-package qorrnsmj.smf.graphic.render
+package qorrnsmj.smf.game
 
 import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.camera.Camera

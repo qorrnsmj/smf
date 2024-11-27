@@ -2,6 +2,7 @@ package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
+import qorrnsmj.smf.game.Scene
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.graphic.MVP
 import qorrnsmj.smf.util.UniformUtils

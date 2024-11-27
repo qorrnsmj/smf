@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL20C.glUniform1i
 import org.lwjgl.opengl.GL20C.glUseProgram
 import org.lwjgl.opengl.GL30C.glBindVertexArray
 import org.lwjgl.opengl.GL33C.glGetUniformLocation
+import qorrnsmj.smf.game.Scene
 import qorrnsmj.smf.game.entity.component.Model
 import qorrnsmj.smf.game.terrain.Terrain
 import qorrnsmj.smf.game.terrain.TerrainModels

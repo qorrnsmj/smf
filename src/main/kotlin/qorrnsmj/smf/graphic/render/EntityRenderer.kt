@@ -1,6 +1,7 @@
 package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
+import qorrnsmj.smf.game.Scene
 import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.component.Model
