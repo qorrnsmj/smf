@@ -8,17 +8,13 @@ import qorrnsmj.smf.game.entity.component.Texture
 
 object EntityModels {
     lateinit var EMPTY: Model
-    //lateinit var TREE: Map<String, Model>
     lateinit var STALL: Map<String, Model>
-    //lateinit var SHIP: Map<String, Model>
     lateinit var NORM_CUBE: Map<String, Model>
 
     fun load() {
         EMPTY = Model("empty", Mesh(), Material(diffuseTexture = Texture(), specularTexture = Texture(), normalTexture = Texture()))
 
-        //TREE = loadModel("")
         STALL = loadModel("stall.fbx")
-        //SHIP = loadModel("")
         NORM_CUBE = loadModel("cube.fbx")
     }
 

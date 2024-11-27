@@ -7,6 +7,7 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.core.FixedTimestepGame
 import qorrnsmj.smf.core.Timer
 import qorrnsmj.smf.game.entity.EntityModels
+import qorrnsmj.smf.game.terrain.TerrainModels
 import qorrnsmj.smf.graphic.render.MasterRenderer
 import qorrnsmj.smf.state.StateMachine
 import qorrnsmj.smf.window.SMFKeyCallback
@@ -22,6 +23,7 @@ object SMF : FixedTimestepGame() {
         renderer.resize(window.width, window.height)
 
         EntityModels.load()
+        TerrainModels.load()
         stateMachine = StateMachine()
         timer = Timer()
 

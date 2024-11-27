@@ -183,7 +183,7 @@ object EntityLoader {
         }
     }
 
-    // TODO: これも同じテクスチャなのに、別のidで取得してる
+    // TODO: これも同じテクスチャなのに、別のidで取得してる (画像事に生成してTexturesにまとめる？)
     private fun loadTexture(file: String): Texture {
         try {
             val texture = Texture(glGenTextures())
@@ -205,7 +205,7 @@ object EntityLoader {
                 val channels = stack.mallocInt(1)
 
                 STBImage.stbi_set_flip_vertically_on_load(false)
-                val buffer = getResourceAsByteBuffer("assets/texture/$file")
+                val buffer = getResourceAsByteBuffer("assets/texture/entity/$file")
                 val imageByteBuffer = STBImage.stbi_load_from_memory(buffer, width, height, channels, 0)
                 checkNotNull(imageByteBuffer) {
                     throw IllegalStateException("Failed to load image: \"$file\" (${STBImage.stbi_failure_reason()})")

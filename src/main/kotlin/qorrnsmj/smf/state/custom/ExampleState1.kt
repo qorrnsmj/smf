@@ -40,7 +40,10 @@ class ExampleState1 : State() {
 
         stall.position = Vector3f(10f, 0f, 0f)
         normCube.position = Vector3f(0f, 0f, 0f)
+
+        // FIXME: 効いてなくない？
         scene.camera.position = Vector3f(5f, 5f, 0f)
+        scene.camera.front = Vector3f(0f, 10f, 10f)
 
         scene.lights.add(pointLight1)
         //scene.lights.add(pointLight2)

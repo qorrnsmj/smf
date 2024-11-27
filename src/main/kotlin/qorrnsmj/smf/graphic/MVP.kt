@@ -105,7 +105,8 @@ object MVP {
         )
     }
 
-    fun getPerspectiveMatrix(aspect: Float, fov: Float = 90f, zNear: Float = 0.1f, zFar: Float = 100f): Matrix4f {
+    // TODO: zNearとzFarの値どうする？ -> 設定で描画距離を変えられるようにする？
+    fun getPerspectiveMatrix(aspect: Float, fov: Float = 90f, zNear: Float = 0.1f, zFar: Float = 100000f): Matrix4f {
         val rad = fov * (PI / 180f)
         val yScale = 1f / tan(rad / 2f)
         val xScale = yScale / aspect

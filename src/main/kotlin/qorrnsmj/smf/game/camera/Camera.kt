@@ -17,7 +17,7 @@ class Camera(
 ) {
     private var yaw: Float = -90.0f // Y軸の回転角度
     private var pitch: Float = 0.0f // X軸の回転角度
-    private val speed: Float = 0.1f // 移動速度
+    private val speed: Float = 0.3f // 移動速度
     private val sensitivity: Float = 0.1f // マウスの感度
     private var lastX: Double = 0.0
     private var lastY: Double = 0.0

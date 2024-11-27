@@ -18,7 +18,7 @@ abstract class ShaderProgram(
             glLinkProgram(id)
 
             val status = glGetProgrami(id, GL_LINK_STATUS)
-            check(status == GL_TRUE) { Logger.error(glGetProgramInfoLog(id)) }
+            check(status == GL_TRUE) { glGetProgramInfoLog(id) }
             glValidateProgram(id)
         } catch (e: Exception) {
             Logger.error(e)
