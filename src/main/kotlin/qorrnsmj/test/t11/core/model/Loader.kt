@@ -2,7 +2,7 @@ package qorrnsmj.test.t11.core.model
 
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
-import qorrnsmj.smf.game.entity.component.Mesh
+import qorrnsmj.smf.game.entity.model.Mesh
 
 object Loader {
     private val vaos = mutableListOf<Int>()

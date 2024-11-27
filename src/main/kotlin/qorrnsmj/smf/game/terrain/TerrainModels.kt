@@ -1,6 +1,6 @@
 package qorrnsmj.smf.game.terrain
 
-import qorrnsmj.smf.game.entity.component.Model
+import qorrnsmj.smf.game.entity.model.Model
 
 object TerrainModels {
     lateinit var TERRAIN: Model

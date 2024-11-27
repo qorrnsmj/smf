@@ -4,7 +4,7 @@ import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.Scene
 import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.entity.component.Model
+import qorrnsmj.smf.game.entity.model.Model
 import qorrnsmj.smf.graphic.MVP
 import qorrnsmj.smf.game.light.Light
 import qorrnsmj.smf.graphic.shader.custom.DefaultShader

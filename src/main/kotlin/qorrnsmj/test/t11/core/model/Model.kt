@@ -1,6 +1,6 @@
 package qorrnsmj.test.t11.core.model
 
-import qorrnsmj.smf.game.entity.component.Mesh
+import qorrnsmj.smf.game.entity.model.Mesh
 
 data class Model(
     val mesh: Mesh,

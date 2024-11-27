@@ -1,10 +1,10 @@
 package qorrnsmj.smf.game.entity
 
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.entity.component.Material
-import qorrnsmj.smf.game.entity.component.Mesh
-import qorrnsmj.smf.game.entity.component.Model
-import qorrnsmj.smf.game.entity.component.Texture
+import qorrnsmj.smf.game.entity.model.Material
+import qorrnsmj.smf.game.entity.model.Mesh
+import qorrnsmj.smf.game.entity.model.Model
+import qorrnsmj.smf.game.entity.model.Texture
 
 object EntityModels {
     lateinit var EMPTY: Model

@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.entity.component
+package qorrnsmj.smf.game.entity.model
 
 import qorrnsmj.smf.math.Vector3f
 
