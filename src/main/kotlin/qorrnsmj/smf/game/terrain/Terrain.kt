@@ -1,11 +1,11 @@
 package qorrnsmj.smf.game.terrain
 
-import qorrnsmj.smf.game.entity.Models
+import qorrnsmj.smf.game.entity.component.Model
 
 class Terrain(gridX: Float, gridZ: Float) {
-    private val x = gridX * SIZE
-    private val z = gridZ * SIZE
-    private val model = Models.EMPTY
+    val x = gridX * SIZE
+    val z = gridZ * SIZE
+    lateinit var model: Model
 
     companion object {
         const val SIZE = 800
