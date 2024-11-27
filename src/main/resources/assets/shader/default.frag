@@ -36,6 +36,10 @@ layout(location = 5) in vec3 viewPosition;
 layout(location = 0) out vec4 fragColor;
 
 void main() {
+    if (texture(material.diffuseTexture, texCoord).a < 0.5) {
+        discard;
+    }
+
     // Calculate TBN matrix
     vec3 tang = normalize(tangent);
     vec3 bitang = normalize(cross(worldNormal, tang));
