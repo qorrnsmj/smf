@@ -18,6 +18,7 @@ class EntityRenderer {
     val locationLightCount: Int
     val locationLights: MutableMap<Int, HashMap<String, Int>>
     val locationMaterials: HashMap<String, Int>
+    val locationUseFakeLighting: Int = glGetUniformLocation(program.id, "useFakeLighting")
 
     init {
         locationModel = glGetUniformLocation(program.id, "model")
@@ -109,11 +110,14 @@ class EntityRenderer {
 
     private fun bindModel(model: Model) {
         glBindVertexArray(model.mesh.vaoID)
-
-        val material = model.material
         program.enableAttributes()
 
+        // Transparency and Fake lighting
+        if (model.hasTransparency) glDisable(GL_CULL_FACE)
+        glUniform1i(locationUseFakeLighting, if (model.useFakeLighting) 1 else 0)
+
         // Diffuse texture
+        val material = model.material
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, material.diffuseTexture.id)
         glUniform1i(locationMaterials["diffuseTexture"]!!, 0)
@@ -138,8 +142,11 @@ class EntityRenderer {
     }
 
     private fun unbindModel() {
-        program.disableAttributes()
         glBindVertexArray(0)
+        program.disableAttributes()
+
+        glEnable(GL_CULL_FACE)
+        glCullFace(GL_BACK)
 
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, 0)

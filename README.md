@@ -64,3 +64,5 @@ or uniform loads, it's almost always a good idea to do it.
 - RenderDocでデバッグ[Appendix A - OpenGL Debugging](https://lwjglgamedev.gitbooks.io/3d-game-development-with-lwjgl/content/appendixa/appendixa.html)
 - [WebGLで複数のシェーダー使用時にハマる罠](https://qiita.com/emadurandal/items/5966c8374f03d4de3266)
 - マイクラのmodは特に参考に[15+ Client Side Mods](https://youtu.be/TWNQVdtMBIE?si=0D31khSS4csT_uZx)
+- 加算ブレンド、乗算ブレンド、逆乗算ブレンド使い分ける
+- 不透明テクスチャを描画する時に、描画順を気にしたくない時はOrder-Independent-Transparencyを使う

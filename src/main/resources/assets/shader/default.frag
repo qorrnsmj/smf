@@ -25,6 +25,7 @@ struct Material {
 uniform Light lights[30];
 uniform int light_count;
 uniform Material material;
+uniform bool useFakeLighting;
 
 layout(location = 0) in vec4 vertexColor;
 layout(location = 1) in vec2 texCoord;
@@ -36,6 +37,7 @@ layout(location = 5) in vec3 viewPosition;
 layout(location = 0) out vec4 fragColor;
 
 void main() {
+    // Discard transparent fragments (TODO)
     if (texture(material.diffuseTexture, texCoord).a < 0.5) {
         discard;
     }
@@ -45,6 +47,11 @@ void main() {
     vec3 bitang = normalize(cross(worldNormal, tang));
     vec3 norm = normalize(worldNormal);
     mat3 TBN = mat3(tang, bitang, norm);
+
+    // Fake lighting
+    if (useFakeLighting) {
+        norm = vec3(0.0, 1.0, 0.0);
+    }
 
     // Normal mapping
     vec3 texNormal = texture(material.normalTexture, texCoord).rgb;

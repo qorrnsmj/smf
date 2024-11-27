@@ -6,7 +6,8 @@ import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.game.entity.model.component.Texture
 
 class PlaneModel(id: String, texture: String)
-    : Model(id, mesh, Material(diffuseTexture = ModelLoader.loadTexture(texture))) {
+    : Model(id, mesh, Material(diffuseTexture = ModelLoader.loadTexture(texture)),
+        hasTransparency = true, useFakeLighting = true) {
 
     companion object {
         private val mesh = ModelLoader.loadMesh(
