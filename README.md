@@ -27,10 +27,9 @@ or uniform loads, it's almost always a good idea to do it.
 
 [Test-Lighting]
 - 法線マッピングの実装 (gimpのプラグインとかある)
-- Per-Pixel-Lightingの実装
+- Per-Pixel-Lightingの実装 (もうできてる？)
 - 様々な種類の光源を実装 [Light casters](https://learnopengl.com/Lighting/Light-casters)
-- 全ての種類の光源を一つに [Multiple lights](https://learnopengl.com/Lighting/Multiple-lights)
-- マテリアルの実装
+- マテリアルの実装 (fbx出力する時の値も修正する)
  
 [Test-Shading]
 - 影modのシェーダー参考に
@@ -48,13 +47,13 @@ or uniform loads, it's almost always a good idea to do it.
 - 港も作る
 - カモメ飛ばす
 - 船のモデル小さすぎるから20倍くらいにする
+- 船の当たり判定はどうする？
 
 [狼と若草色の寄り道]
 - 絵コンテ書く (紙で, 写真で, 3Dモデルで)
 - モデルのアニメーションは一まとまりでBlenderで作成 (fbx, gltf or other)
 - 例えば馬車が揺れたら、そこに乗ってるオブジェクトも一緒に揺れるように、model行列を共有しとく (まとまりObject)
 - アニメーションを合成して再生できるように
-- 服とか布の当たり判定 (ウマ娘, 原神, ゼンゼロ)
 - 表情の変化はどうする？
 - システム内でレンダリングして動画ファイルに出力するのもあり(4k/60fps?)
 - 台詞をクリックで進める or 自動で進むかの設定

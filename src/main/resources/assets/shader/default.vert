@@ -1,5 +1,8 @@
 #version 330 core
 
+const float DENSITY = 0.007;
+const float GRADIENT = 1.5;
+
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -16,6 +19,7 @@ layout(location = 2) out vec3 outTangent;
 layout(location = 3) out vec3 worldPosition;
 layout(location = 4) out vec3 worldNormal;
 layout(location = 5) out vec3 viewPosition;
+layout(location = 6) out float visibility;
 
 void main() {
     gl_Position = projection  * view * model * vec4(position, 1.0);
@@ -31,4 +35,9 @@ void main() {
     worldPosition = vec3(model * vec4(position, 1.0));
     worldNormal = mat3(transpose(inverse(model))) * n;
     viewPosition = vec3(inverse(view)[3]);
+
+    // Set fog visibility
+    float distance = length(viewPosition - worldPosition);
+    visibility = exp(-pow(distance * DENSITY, GRADIENT));
+    visibility = clamp(visibility, 0.0, 1.0);
 }

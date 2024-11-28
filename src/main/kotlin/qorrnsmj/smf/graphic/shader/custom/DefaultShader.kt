@@ -4,7 +4,6 @@ import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
 
-// TODO: Objectにすべきじゃないかも、同じシェーダーで別のuniformを使いたい場合とか
 class DefaultShader : ShaderProgram(
     Shader(GL_VERTEX_SHADER, "default.vert"),
     Shader(GL_FRAGMENT_SHADER, "default.frag")

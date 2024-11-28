@@ -22,8 +22,9 @@ struct Material {
     sampler2D normalTexture;
 };
 
-uniform Light lights[30];
+uniform vec3 skyColor;
 uniform int light_count;
+uniform Light lights[30];
 uniform Material material;
 
 layout(location = 0) in vec4 vertexColor;
@@ -32,6 +33,7 @@ layout(location = 2) in vec3 tangent;
 layout(location = 3) in vec3 worldPosition;
 layout(location = 4) in vec3 worldNormal;
 layout(location = 5) in vec3 viewPosition;
+layout(location = 6) in float visibility;
 
 layout(location = 0) out vec4 fragColor;
 
@@ -80,4 +82,5 @@ void main() {
 
     // Final color
     fragColor = vec4(result, material.opacity); // Apply opacity
+    fragColor = mix(vec4(skyColor, 1.0), fragColor, visibility); // Apply sky color
 }

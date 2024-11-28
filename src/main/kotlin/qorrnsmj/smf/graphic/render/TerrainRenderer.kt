@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL20C.glUseProgram
 import org.lwjgl.opengl.GL30C.glBindVertexArray
 import org.lwjgl.opengl.GL33C.glGetUniformLocation
 import qorrnsmj.smf.game.Scene
+import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.game.terrain.Terrain
 import qorrnsmj.smf.game.terrain.TerrainModels
@@ -28,6 +29,7 @@ class TerrainRenderer {
     val locationView = glGetUniformLocation(program.id, "view")
     val locationProjection = glGetUniformLocation(program.id, "projection")
     val locationTexImage = glGetUniformLocation(program.id, "texImage")
+    val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
 
     fun start() {
         glUseProgram(program.id)
@@ -37,15 +39,11 @@ class TerrainRenderer {
         glUseProgram(0)
     }
 
-    fun render(scene: Scene) {
+    /* Render */
+
+    fun renderTerrain(terrains: List<Terrain>) {
         UniformUtils.setUniform(locationModel, Matrix4f())
-        UniformUtils.setUniform(locationView, scene.camera.getViewMatrix())
-        //setLightUniforms(scene.lights)
 
-        renderTerrain(scene.terrains)
-    }
-
-    private fun renderTerrain(terrains: List<Terrain>) {
         bindModel(TerrainModels.TERRAIN)
         prepareTerrain()
         glDrawElements(GL_TRIANGLES, TerrainModels.TERRAIN.mesh.vertexCount, GL_UNSIGNED_INT, 0)
@@ -101,5 +99,15 @@ class TerrainRenderer {
         glBindTexture(GL_TEXTURE_2D, 0)
         glActiveTexture(GL_TEXTURE2)
         glBindTexture(GL_TEXTURE_2D, 0)*/
+    }
+
+    /* Uniforms */
+
+    fun loadCamera(camera: Camera) {
+        UniformUtils.setUniform(locationView, camera.getViewMatrix())
+    }
+
+    fun loadSkyColor(skyColor: Vector3f) {
+        UniformUtils.setUniform(locationSkyColor, skyColor)
     }
 }

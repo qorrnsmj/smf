@@ -2,12 +2,14 @@ package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.Scene
+import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.model.Models
 import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.graphic.MVP
 import qorrnsmj.smf.game.light.Light
 import qorrnsmj.smf.graphic.shader.custom.DefaultShader
+import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.UniformUtils
 
 class EntityRenderer {
@@ -15,17 +17,20 @@ class EntityRenderer {
     val locationModel: Int
     val locationView: Int
     val locationProjection: Int
+    val locationUseFakeLighting: Int
+    val locationSkyColor: Int
     val locationLightCount: Int
     val locationLights: MutableMap<Int, HashMap<String, Int>>
     val locationMaterials: HashMap<String, Int>
-    val locationUseFakeLighting: Int = glGetUniformLocation(program.id, "useFakeLighting")
 
     init {
         locationModel = glGetUniformLocation(program.id, "model")
         locationView = glGetUniformLocation(program.id, "view")
         locationProjection = glGetUniformLocation(program.id, "projection")
-        locationLightCount = glGetUniformLocation(program.id, "light_count")
+        locationUseFakeLighting = glGetUniformLocation(program.id, "useFakeLighting")
+        locationSkyColor = glGetUniformLocation(program.id, "skyColor")
 
+        locationLightCount = glGetUniformLocation(program.id, "light_count")
         locationLights = mutableMapOf()
         for (i in 0..30) {
             locationLights[i] = hashMapOf(
@@ -60,18 +65,11 @@ class EntityRenderer {
         glUseProgram(0)
     }
 
-    fun render(scene: Scene) {
-        UniformUtils.setUniform(locationView, scene.camera.getViewMatrix())
-        setLightUniforms(scene.lights)
-
-        renderEntity(scene.entities)
-    }
-
-    /* Entity */
+    /* Render */
 
     // TODO: 基本的にParentの子供は後から追加しない限りテクスチャは同じだから、テクスチャが同じだったらbindTextureしないようにする
     // TODO: そのためにはbindTexture()作るのと、modelEntityMapの中身を更に同じテクスチャIDでまとめる (今は同じテクスチャでも別のテクスチャIDになっちゃってる)
-    private fun renderEntity(entities: List<Entity>) {
+    fun renderEntity(entities: List<Entity>) {
         val batchMap = mutableMapOf<Model, MutableList<Entity>>()
         for (entity in entities) processEntity(entity, batchMap)
 
@@ -156,9 +154,13 @@ class EntityRenderer {
         glBindTexture(GL_TEXTURE_2D, 0)
     }
 
-    /* Light */
+    /* Uniforms */
 
-    private fun setLightUniforms(lights: List<Light>) {
+    fun loadCamera(camera: Camera) {
+        UniformUtils.setUniform(locationView, camera.getViewMatrix())
+    }
+
+    fun loadLights(lights: List<Light>) {
         glUniform1i(locationLightCount, lights.size)
 
         lights.forEachIndexed { index, light ->
@@ -172,5 +174,9 @@ class EntityRenderer {
             glUniform1f(locations.get("linear")!!, light.linear)
             glUniform1f(locations.get("quadratic")!!, light.quadratic)
         }
+    }
+
+    fun loadSkyColor(skyColor: Vector3f) {
+        UniformUtils.setUniform(locationSkyColor, skyColor)
     }
 }
