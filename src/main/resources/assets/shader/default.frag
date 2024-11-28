@@ -23,7 +23,7 @@ struct Material {
 };
 
 uniform vec3 skyColor;
-uniform int light_count;
+uniform int lightCount;
 uniform Light lights[30];
 uniform Material material;
 
@@ -57,7 +57,7 @@ void main() {
     // Process lights
     vec3 viewDir = normalize(viewPosition - worldPosition);
     vec3 result = material.emissiveColor; // Start with emissive color
-    for (int i = 0; i < light_count; i++) {
+    for (int i = 0; i < lightCount; i++) {
         vec3 lightDir = normalize(lights[i].position - worldPosition);
         float distance = length(lights[i].position - worldPosition);
         float attenuation = 1.0 / (lights[i].constant + lights[i].linear * distance + lights[i].quadratic * (distance * distance));

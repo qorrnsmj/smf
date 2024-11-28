@@ -66,8 +66,8 @@ abstract class FixedTimestepGame : Game() {
         while (now - lastLoopTime < targetTime) {
             Thread.yield()
 
-            // This is optional if you want your game to stop consuming too much
-            // CPU but you will loose some accuracy because Thread.sleep(1)
+            // This is optional if you want your game to stop consuming too much CPU,
+            // but you will lose some accuracy because Thread.sleep(1)
             // could sleep longer than 1 millisecond
             try {
                 Thread.sleep(1)

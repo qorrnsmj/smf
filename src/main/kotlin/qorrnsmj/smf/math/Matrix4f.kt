@@ -321,7 +321,7 @@ class Matrix4f {
     // TODO: perspectiveとかの例ある
     companion object {
         /**
-         * Creates a orthographic projection matrix. Similar to
+         * Creates an orthographic projection matrix. Similar to
          * `glOrtho(left, right, bottom, top, near, far)`.
          *
          * @param left   Coordinate for the left vertical clipping pane
@@ -387,9 +387,9 @@ class Matrix4f {
 
         /**
          * Creates a perspective projection matrix. Similar to
-         * `gluPerspective(fovy, aspec, zNear, zFar)`.
+         * `gluPerspective(fov, aspect, zNear, zFar)`.
          *
-         * @param fovy   Field of view angle in degrees
+         * @param fov   Field of view angle in degrees
          * @param aspect The aspect ratio is the ratio of width to height
          * @param near   Distance from the viewer to the near clipping plane, must
          * be positive
@@ -398,10 +398,10 @@ class Matrix4f {
          *
          * @return Perspective matrix
          */
-        fun perspective(fovy: Float, aspect: Float, near: Float, far: Float): Matrix4f {
+        fun perspective(fov: Float, aspect: Float, near: Float, far: Float): Matrix4f {
             val perspective = Matrix4f()
 
-            val f = (1f / tan(Math.toRadians(fovy.toDouble()) / 2f)).toFloat()
+            val f = (1f / tan(Math.toRadians(fov.toDouble()) / 2f)).toFloat()
 
             perspective.m00 = f / aspect
             perspective.m11 = f

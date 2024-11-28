@@ -14,24 +14,16 @@ import qorrnsmj.smf.util.UniformUtils
 
 class EntityRenderer {
     val program = DefaultShader()
-    val locationModel: Int
-    val locationView: Int
-    val locationProjection: Int
-    val locationUseFakeLighting: Int
-    val locationSkyColor: Int
-    val locationLightCount: Int
-    val locationLights: MutableMap<Int, HashMap<String, Int>>
-    val locationMaterials: HashMap<String, Int>
+    val locationModel = glGetUniformLocation(program.id, "model")
+    val locationView = glGetUniformLocation(program.id, "view")
+    val locationProjection = glGetUniformLocation(program.id, "projection")
+    val locationUseFakeLighting = glGetUniformLocation(program.id, "useFakeLighting")
+    val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
+    val locationLightCount = glGetUniformLocation(program.id, "lightCount")
+    val locationLights = mutableMapOf<Int, HashMap<String, Int>>()
+    val locationMaterials = hashMapOf<String, Int>()
 
     init {
-        locationModel = glGetUniformLocation(program.id, "model")
-        locationView = glGetUniformLocation(program.id, "view")
-        locationProjection = glGetUniformLocation(program.id, "projection")
-        locationUseFakeLighting = glGetUniformLocation(program.id, "useFakeLighting")
-        locationSkyColor = glGetUniformLocation(program.id, "skyColor")
-
-        locationLightCount = glGetUniformLocation(program.id, "light_count")
-        locationLights = mutableMapOf()
         for (i in 0..30) {
             locationLights[i] = hashMapOf(
                 "position" to glGetUniformLocation(program.id, "lights[$i].position"),
@@ -45,7 +37,6 @@ class EntityRenderer {
             )
         }
 
-        locationMaterials = hashMapOf()
         locationMaterials["diffuseColor"] = glGetUniformLocation(program.id, "material.diffuseColor")
         locationMaterials["ambientColor"] = glGetUniformLocation(program.id, "material.ambientColor")
         locationMaterials["specularColor"] = glGetUniformLocation(program.id, "material.specularColor")
