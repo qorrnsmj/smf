@@ -22,7 +22,7 @@ class MasterRenderer : Resizable {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         glEnable(GL_DEPTH_TEST)
-        glClearColor(0.5f, 0.5f, 0.5f, 1f) // TODO: Sky color
+        glClearColor(0f, 0f, 0f, 1f)
 
         Logger.info("MasterRenderer initialized!")
     }
@@ -32,7 +32,6 @@ class MasterRenderer : Resizable {
         glClearColor(skyColor.x, skyColor.y, skyColor.z, 1f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        // TODO: renderEntity()にするのとloadCameraとかはMasterRendererで実装する
         entityRenderer.start()
         entityRenderer.loadCamera(scene.camera)
         entityRenderer.loadLights(scene.lights)
