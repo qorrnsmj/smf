@@ -1,8 +1,7 @@
 #version 330
 
-const float contrast = 2.0;
-
 uniform sampler2D colorTexture;
+uniform float contrast;
 
 layout(location = 0) in vec2 texCoord;
 
