@@ -2,7 +2,6 @@ package qorrnsmj.smf.graphic.shader
 
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.graphic.shader.Shader
 
 abstract class ShaderProgram(
     private val vertexShader: Shader,
@@ -12,11 +11,13 @@ abstract class ShaderProgram(
 
     init {
         try {
+            // Attach shaders and link program
             glAttachShader(id, vertexShader.id)
             glAttachShader(id, fragmentShader.id)
             bindAttributes()
             glLinkProgram(id)
 
+            // Check if linking was successful
             val status = glGetProgrami(id, GL_LINK_STATUS)
             check(status == GL_TRUE) { glGetProgramInfoLog(id) }
             glValidateProgram(id)
@@ -24,6 +25,15 @@ abstract class ShaderProgram(
             Logger.error(e)
             delete()
         }
+    }
+
+    // TODO: useに全部変える (glUseProgram使ってるところ)
+    fun use() {
+        glUseProgram(id)
+    }
+
+    fun unuse() {
+        glUseProgram(0)
     }
 
     protected abstract fun bindAttributes()

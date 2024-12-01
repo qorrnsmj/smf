@@ -1,7 +1,7 @@
 package qorrnsmj.smf.game.camera
 
 import org.lwjgl.glfw.GLFW
-import qorrnsmj.smf.graphic.MVP
+import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.math.Vector3f

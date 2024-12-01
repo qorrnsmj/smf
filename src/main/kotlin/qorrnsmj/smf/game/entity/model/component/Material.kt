@@ -1,6 +1,7 @@
 package qorrnsmj.smf.game.entity.model.component
 
 import qorrnsmj.smf.game.entity.model.ModelLoader
+import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 import qorrnsmj.smf.math.Vector3f
 
 data class Material(
@@ -10,7 +11,7 @@ data class Material(
     val emissiveColor: Vector3f = Vector3f(0.0f, 0.0f, 0.0f),
     val shininess: Float = 32.0f,
     val opacity: Float = 1.0f,
-    val diffuseTexture: Texture = ModelLoader.loadTexture("null_diff.png"),
-    val specularTexture: Texture = ModelLoader.loadTexture("null_spec.png"),
-    val normalTexture: Texture = ModelLoader.loadTexture("null_norm.png"),
+    val diffuseTexture: TextureBufferObject = ModelLoader.loadTexture("null_diff.png"),
+    val specularTexture: TextureBufferObject = ModelLoader.loadTexture("null_spec.png"),
+    val normalTexture: TextureBufferObject = ModelLoader.loadTexture("null_norm.png"),
 )

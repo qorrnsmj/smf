@@ -3,7 +3,7 @@ package qorrnsmj.test.t10
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33C
-import qorrnsmj.smf.graphic.MVP
+import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.window.Window
 import qorrnsmj.test.t10.game.Moon

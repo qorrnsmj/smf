@@ -8,7 +8,7 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.entity.model.component.Material
 import qorrnsmj.smf.game.entity.model.component.Mesh
 import qorrnsmj.smf.game.entity.model.component.Model
-import qorrnsmj.smf.game.entity.model.component.Texture
+import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 import qorrnsmj.smf.game.terrain.Terrain.Companion.SIZE
 import qorrnsmj.smf.game.terrain.Terrain.Companion.VERTEX_COUNT
 import java.io.InputStream
@@ -19,7 +19,7 @@ object TerrainLoader {
     private val vaos = mutableListOf<Int>()
     private val vbos = mutableListOf<Int>()
     private val ebos = mutableListOf<Int>()
-    private val textures = mutableListOf<Texture>()
+    private val textures = mutableListOf<TextureBufferObject>()
 
     // TODO: EntityLoaderみたいに綺麗にまとめる
     fun loadModel(terrain: Terrain): Model {
@@ -67,7 +67,7 @@ object TerrainLoader {
         }
 
         val mesh = loadMesh(positions, texCoords, normals, indices)
-        val material = Material(diffuseTexture = loadTexture("grass.png"), specularTexture = Texture(), normalTexture = Texture())
+        val material = Material(diffuseTexture = loadTexture("grass.png"), specularTexture = TextureBufferObject(), normalTexture = TextureBufferObject())
         val model = Model("terrain", mesh, material)
         Logger.info("Terrain loaded (${mesh.vertexCount / 3} faces)")
 
@@ -96,9 +96,9 @@ object TerrainLoader {
         return Mesh(vaoID, indices.size)
     }
     
-    private fun loadTexture(file: String): Texture {
+    private fun loadTexture(file: String): TextureBufferObject {
         try {
-            val texture = Texture(glGenTextures())
+            val texture = TextureBufferObject()
             texture.bind()
 
             // Sets texture parameters
@@ -141,7 +141,7 @@ object TerrainLoader {
             e.printStackTrace()
         }
 
-        return Texture()
+        return TextureBufferObject()
     }
 
     private fun bindVBO(attribIndex: Int, attribSize: Int, data: FloatArray) {

@@ -5,7 +5,7 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33
 import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.smf.graphic.MVP
+import qorrnsmj.smf.util.MVP
 import qorrnsmj.test.t10.game.Moon
 import qorrnsmj.test.t10.render.Renderer
 

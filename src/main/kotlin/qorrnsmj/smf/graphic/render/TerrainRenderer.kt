@@ -11,20 +11,20 @@ import org.lwjgl.opengl.GL20C.glUniform1i
 import org.lwjgl.opengl.GL20C.glUseProgram
 import org.lwjgl.opengl.GL30C.glBindVertexArray
 import org.lwjgl.opengl.GL33C.glGetUniformLocation
-import qorrnsmj.smf.game.Scene
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.game.terrain.Terrain
 import qorrnsmj.smf.game.terrain.TerrainModels
-import qorrnsmj.smf.graphic.MVP
-import qorrnsmj.smf.graphic.shader.custom.TerrainShader
+import qorrnsmj.smf.util.MVP
+import qorrnsmj.smf.graphic.shader.custom.TerrainShaderProgram
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils
 
 // TODO: 整理する
-class TerrainRenderer {
-    val program = TerrainShader()
+class TerrainRenderer : Resizable {
+    val program = TerrainShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
     val locationView = glGetUniformLocation(program.id, "view")
     val locationProjection = glGetUniformLocation(program.id, "projection")
@@ -41,7 +41,7 @@ class TerrainRenderer {
 
     /* Render */
 
-    fun renderTerrain(terrains: List<Terrain>) {
+    fun renderTerrains(terrains: List<Terrain>) {
         UniformUtils.setUniform(locationModel, Matrix4f())
 
         bindModel(TerrainModels.TERRAIN)
@@ -61,9 +61,9 @@ class TerrainRenderer {
 
     private fun bindModel(model: Model) {
         glBindVertexArray(model.mesh.vaoID)
+        program.enableAttributes()
 
         val material = model.material
-        program.enableAttributes()
 
         // Diffuse texture
         glActiveTexture(GL_TEXTURE0)
@@ -109,5 +109,9 @@ class TerrainRenderer {
 
     fun loadSkyColor(skyColor: Vector3f) {
         UniformUtils.setUniform(locationSkyColor, skyColor)
+    }
+
+    override fun resize(width: Int, height: Int) {
+        UniformUtils.setUniform(locationProjection, MVP.getPerspectiveMatrix(width / height.toFloat()))
     }
 }

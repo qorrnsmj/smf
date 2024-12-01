@@ -3,7 +3,6 @@ package qorrnsmj.smf.game.entity.model.custom
 import qorrnsmj.smf.game.entity.model.ModelLoader
 import qorrnsmj.smf.game.entity.model.component.Material
 import qorrnsmj.smf.game.entity.model.component.Model
-import qorrnsmj.smf.game.entity.model.component.Texture
 
 class PlaneModel(id: String, texture: String)
     : Model(id, mesh, Material(diffuseTexture = ModelLoader.loadTexture(texture)),

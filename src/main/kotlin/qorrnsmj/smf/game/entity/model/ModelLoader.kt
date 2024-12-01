@@ -13,7 +13,7 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.entity.model.component.Material
 import qorrnsmj.smf.game.entity.model.component.Mesh
 import qorrnsmj.smf.game.entity.model.component.Model
-import qorrnsmj.smf.game.entity.model.component.Texture
+import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 import qorrnsmj.smf.math.Vector3f
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -22,7 +22,7 @@ object ModelLoader {
     private val vaos = mutableListOf<Int>()
     private val vbos = mutableListOf<Int>()
     private val ebos = mutableListOf<Int>()
-    private val textures = mutableListOf<Texture>()
+    private val textures = mutableListOf<TextureBufferObject>()
 
     /* Model */
 
@@ -184,19 +184,19 @@ object ModelLoader {
     }
 
     // TODO: これも同じテクスチャなのに、別のidで取得してる (画像事に生成してTexturesにまとめる？)
-    fun loadTexture(file: String): Texture {
+    fun loadTexture(file: String): TextureBufferObject {
         try {
-            val texture = Texture(glGenTextures())
+            val texture = TextureBufferObject()
             texture.bind()
 
             // Sets texture parameters
             glGenerateMipmap(GL_TEXTURE_2D)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.4f)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
 
             // Uploads image data
             MemoryStack.stackPush().use { stack ->
@@ -229,7 +229,7 @@ object ModelLoader {
             e.printStackTrace()
         }
 
-        return Texture()
+        return TextureBufferObject()
     }
 
     /* Util */

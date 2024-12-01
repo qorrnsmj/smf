@@ -5,7 +5,7 @@ import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.entity.custom.NormCubeEntity
 import qorrnsmj.smf.game.entity.custom.StallEntity
 import qorrnsmj.smf.game.light.PointLight
-import qorrnsmj.smf.game.Scene
+import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.custom.TestPlaneEntity
 import qorrnsmj.smf.game.entity.model.Models

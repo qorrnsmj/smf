@@ -1,19 +1,19 @@
 package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
-import qorrnsmj.smf.game.Scene
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.model.Models
 import qorrnsmj.smf.game.entity.model.component.Model
-import qorrnsmj.smf.graphic.MVP
+import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.game.light.Light
-import qorrnsmj.smf.graphic.shader.custom.DefaultShader
+import qorrnsmj.smf.graphic.shader.custom.DefaultShaderProgram
 import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils
 
-class EntityRenderer {
-    val program = DefaultShader()
+class EntityRenderer : Resizable {
+    val program = DefaultShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
     val locationView = glGetUniformLocation(program.id, "view")
     val locationProjection = glGetUniformLocation(program.id, "projection")
@@ -49,18 +49,18 @@ class EntityRenderer {
     }
 
     fun start() {
-        glUseProgram(program.id)
+        program.use()
     }
 
     fun stop() {
-        glUseProgram(0)
+        program.unuse()
     }
 
     /* Render */
 
     // TODO: 基本的にParentの子供は後から追加しない限りテクスチャは同じだから、テクスチャが同じだったらbindTextureしないようにする
     // TODO: そのためにはbindTexture()作るのと、modelEntityMapの中身を更に同じテクスチャIDでまとめる (今は同じテクスチャでも別のテクスチャIDになっちゃってる)
-    fun renderEntity(entities: List<Entity>) {
+    fun renderEntities(entities: List<Entity>) {
         val batchMap = mutableMapOf<Model, MutableList<Entity>>()
         for (entity in entities) processEntity(entity, batchMap)
 
@@ -131,8 +131,8 @@ class EntityRenderer {
     }
 
     private fun unbindModel() {
-        glBindVertexArray(0)
         program.disableAttributes()
+        glBindVertexArray(0)
 
         glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
@@ -169,5 +169,9 @@ class EntityRenderer {
 
     fun loadSkyColor(skyColor: Vector3f) {
         UniformUtils.setUniform(locationSkyColor, skyColor)
+    }
+
+    override fun resize(width: Int, height: Int) {
+        UniformUtils.setUniform(locationProjection, MVP.getPerspectiveMatrix(width / height.toFloat()))
     }
 }

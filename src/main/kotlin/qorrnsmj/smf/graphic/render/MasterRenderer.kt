@@ -2,13 +2,13 @@ package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.Scene
-import qorrnsmj.smf.util.Resizable
-import qorrnsmj.smf.graphic.MVP
+import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.graphic.render.effect.ContrastEffect
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.smf.util.UniformUtils
+import qorrnsmj.smf.util.Resizable
 
 class MasterRenderer : Resizable {
+    private val postProcessor = PostProcessor()
     private val entityRenderer = EntityRenderer()
     private val terrainRenderer = TerrainRenderer()
 
@@ -28,7 +28,10 @@ class MasterRenderer : Resizable {
     }
 
     fun render(scene: Scene) {
-        val skyColor = Vector3f(0.5f, 0.5f, 0.5f)
+        // If there are no effects, render directly to the default frame-buffer
+        /*if (scene.effects.isNotEmpty())*/ postProcessor.bindFrameBuffer()
+
+        val skyColor = Vector3f(0.3f, 0.6f, 1f)
         glClearColor(skyColor.x, skyColor.y, skyColor.z, 1f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
@@ -36,30 +39,41 @@ class MasterRenderer : Resizable {
         entityRenderer.loadCamera(scene.camera)
         entityRenderer.loadLights(scene.lights)
         entityRenderer.loadSkyColor(skyColor)
-        entityRenderer.renderEntity(scene.entities)
+        entityRenderer.renderEntities(scene.entities)
         entityRenderer.stop()
 
         terrainRenderer.start()
         terrainRenderer.loadCamera(scene.camera)
         terrainRenderer.loadSkyColor(skyColor)
-        terrainRenderer.renderTerrain(scene.terrains)
+        terrainRenderer.renderTerrains(scene.terrains)
         terrainRenderer.stop()
-    }
 
-    override fun resize(width: Int, height: Int) {
-        val matrix = MVP.getPerspectiveMatrix(width / height.toFloat())
-        glViewport(0, 0, width, height)
-
-        entityRenderer.start()
-        UniformUtils.setUniform(entityRenderer.locationProjection, matrix)
-        entityRenderer.stop()
-
-        terrainRenderer.start()
-        UniformUtils.setUniform(terrainRenderer.locationProjection, matrix)
-        terrainRenderer.stop()
+        //if (scene.effects.isNotEmpty()) {
+            postProcessor.unbindFrameBuffer()
+            postProcessor.applyPostProcess(ContrastEffect())
+        //    postEffectHandler.applyEffects(scene.effects)
+        //}
     }
 
     fun cleanup() {
         Logger.info("MasterRenderer cleaned up!")
+
+        // TODO
+        postProcessor.cleanup()
+        //entityRenderer.cleanup()
+        //terrainRenderer.cleanup()
+    }
+
+    override fun resize(width: Int, height: Int) {
+        glViewport(0, 0, width, height)
+        postProcessor.resize(width, height)
+
+        entityRenderer.start()
+        entityRenderer.resize(width, height)
+        entityRenderer.stop()
+
+        terrainRenderer.start()
+        terrainRenderer.resize(width, height)
+        terrainRenderer.stop()
     }
 }

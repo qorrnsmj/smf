@@ -9,13 +9,13 @@ class Shader(type: Int, file: String) {
 
     init {
         try {
-            // Compiles shader from file
-            val inputStream = ResourceUtils.getShader(file)
+            // Compile shader from file
+            val inputStream = ResourceUtils.getResourceAsStream("assets/shader/$file")
             glShaderSource(id, inputStream.readAllBytes().toString(Charsets.UTF_8))
             glCompileShader(id)
             inputStream.close()
 
-            // Checks if compilation was successful
+            // Check if compilation was successful
             val status = glGetShaderi(id, GL_COMPILE_STATUS)
             check(status == GL_TRUE) { glGetShaderInfoLog(id) }
         } catch (e: Exception) {

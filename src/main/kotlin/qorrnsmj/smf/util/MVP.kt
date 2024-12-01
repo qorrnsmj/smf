@@ -1,9 +1,8 @@
-package qorrnsmj.smf.graphic
+package qorrnsmj.smf.util
 
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
-import java.lang.Math.toRadians
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -29,9 +28,9 @@ object MVP {
     }
 
     fun getRotationMatrix(rotation: Vector3f): Matrix4f {
-        val radX = toRadians(rotation.x.toDouble()).toFloat()
-        val radY = toRadians(rotation.y.toDouble()).toFloat()
-        val radZ = toRadians(rotation.z.toDouble()).toFloat()
+        val radX = Math.toRadians(rotation.x.toDouble()).toFloat()
+        val radY = Math.toRadians(rotation.y.toDouble()).toFloat()
+        val radZ = Math.toRadians(rotation.z.toDouble()).toFloat()
 
         val xRotation = Matrix4f(
             Vector4f(1f, 0f, 0f, 0f),
@@ -86,10 +85,10 @@ object MVP {
 
         return viewMatrix.multiply(
             Matrix4f(
-            Vector4f(1f, 0f, 0f, 0f),
-            Vector4f(0f, 1f, 0f, 0f),
-            Vector4f(0f, 0f, 1f, 0f),
-            Vector4f(-eye.x, -eye.y, -eye.z, 1f)
+                Vector4f(1f, 0f, 0f, 0f),
+                Vector4f(0f, 1f, 0f, 0f),
+                Vector4f(0f, 0f, 1f, 0f),
+                Vector4f(-eye.x, -eye.y, -eye.z, 1f)
             )
         )
     }
@@ -101,7 +100,12 @@ object MVP {
             Vector4f(2f / (right - left), 0f, 0f, 0f),
             Vector4f(0f, 2f / (top - bottom), 0f, 0f),
             Vector4f(0f, 0f, -2f / (far - near), 0f),
-            Vector4f(-(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far + near) / (far - near), 1f)
+            Vector4f(
+                -(right + left) / (right - left),
+                -(top + bottom) / (top - bottom),
+                -(far + near) / (far - near),
+                1f
+            )
         )
     }
 
