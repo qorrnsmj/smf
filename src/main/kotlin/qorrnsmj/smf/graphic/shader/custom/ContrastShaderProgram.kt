@@ -16,14 +16,4 @@ class ContrastShaderProgram : ShaderProgram(
         glBindAttribLocation(id, 0, "position")
         glBindAttribLocation(id, 1, "texCoord")
     }
-
-    override fun enableAttributes() {
-        glEnableVertexAttribArray(0)
-        glEnableVertexAttribArray(1)
-    }
-
-    override fun disableAttributes() {
-        glDisableVertexAttribArray(0)
-        glDisableVertexAttribArray(1)
-    }
 }

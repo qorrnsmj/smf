@@ -14,6 +14,8 @@ import qorrnsmj.smf.game.entity.model.component.Material
 import qorrnsmj.smf.game.entity.model.component.Mesh
 import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
+import qorrnsmj.smf.graphic.`object`.VertexArrayObject
+import qorrnsmj.smf.graphic.shader.custom.DefaultShaderProgram
 import qorrnsmj.smf.math.Vector3f
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -115,23 +117,28 @@ object ModelLoader {
     }
 
     fun loadMesh(positions: FloatArray, texCoords: FloatArray, normals: FloatArray, tangents: FloatArray, indices: IntArray): Mesh {
-        val vaoID = glGenVertexArrays()
-        vaos.add(vaoID)
+        val vao = VertexArrayObject()
+        vaos.add(vao.id)
+        vao.bind()
 
         // bind
-        glBindVertexArray(vaoID)
         bindVBO(0, 3, positions)
         bindVBO(1, 2, texCoords)
         bindVBO(2, 3, normals)
         bindVBO(3, 3, tangents)
         bindEBO(indices)
 
+        glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
+        glEnableVertexAttribArray(2)
+        glEnableVertexAttribArray(3)
+
         // unbind
         glBindVertexArray(0)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
-        return Mesh(vaoID, indices.size)
+        return Mesh(vao.id, indices.size)
     }
 
     /* Material */
@@ -235,27 +242,27 @@ object ModelLoader {
     /* Util */
 
     private fun bindVBO(attribIndex: Int, attribSize: Int, data: FloatArray) {
-        val vboID = glGenBuffers()
-        vbos.add(vboID)
+        val vboId = glGenBuffers()
+        vbos.add(vboId)
 
         val buffer = BufferUtils.createFloatBuffer(data.size)
         buffer.put(data)
         buffer.flip()
 
-        glBindBuffer(GL_ARRAY_BUFFER, vboID)
+        glBindBuffer(GL_ARRAY_BUFFER, vboId)
         glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
         glVertexAttribPointer(attribIndex, attribSize, GL_FLOAT, false, 0, 0)
     }
 
     private fun bindEBO(data: IntArray) {
-        val eboID = glGenBuffers()
-        ebos.add(eboID)
+        val eboId = glGenBuffers()
+        ebos.add(eboId)
 
         val buffer = BufferUtils.createIntBuffer(data.size)
         buffer.put(data)
         buffer.flip()
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
     }
 

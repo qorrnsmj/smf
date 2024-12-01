@@ -14,18 +14,4 @@ class DefaultShaderProgram : ShaderProgram(
         glBindAttribLocation(id, 2, "normal")
         glBindAttribLocation(id, 3, "tangent")
     }
-
-    override fun enableAttributes() {
-        glEnableVertexAttribArray(0)
-        glEnableVertexAttribArray(1)
-        glEnableVertexAttribArray(2)
-        glEnableVertexAttribArray(3)
-    }
-
-    override fun disableAttributes() {
-        glDisableVertexAttribArray(0)
-        glDisableVertexAttribArray(1)
-        glDisableVertexAttribArray(2)
-        glDisableVertexAttribArray(3)
-    }
 }
