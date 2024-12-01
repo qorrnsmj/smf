@@ -61,7 +61,6 @@ class TerrainRenderer : Resizable {
 
     private fun bindModel(model: Model) {
         glBindVertexArray(model.mesh.vaoID)
-        program.enableAttributes()
 
         val material = model.material
 
@@ -90,7 +89,6 @@ class TerrainRenderer : Resizable {
     }
 
     private fun unbindModel() {
-        program.disableAttributes()
         glBindVertexArray(0)
 
         /*glActiveTexture(GL_TEXTURE0)

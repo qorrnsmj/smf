@@ -99,7 +99,6 @@ class EntityRenderer : Resizable {
 
     private fun bindModel(model: Model) {
         glBindVertexArray(model.mesh.vaoID)
-        program.enableAttributes()
 
         // Transparency and Fake lighting
         if (model.hasTransparency) glDisable(GL_CULL_FACE)
@@ -131,7 +130,6 @@ class EntityRenderer : Resizable {
     }
 
     private fun unbindModel() {
-        program.disableAttributes()
         glBindVertexArray(0)
 
         glEnable(GL_CULL_FACE)

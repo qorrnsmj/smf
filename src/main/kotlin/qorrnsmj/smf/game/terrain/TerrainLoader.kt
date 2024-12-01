@@ -11,6 +11,7 @@ import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 import qorrnsmj.smf.game.terrain.Terrain.Companion.SIZE
 import qorrnsmj.smf.game.terrain.Terrain.Companion.VERTEX_COUNT
+import qorrnsmj.smf.graphic.`object`.VertexArrayObject
 import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.use
@@ -78,22 +79,26 @@ object TerrainLoader {
     }
 
     private fun loadMesh(positions: FloatArray, texCoords: FloatArray, normals: FloatArray, indices: IntArray): Mesh {
-        val vaoID = glGenVertexArrays()
-        vaos.add(vaoID)
+        val vao = VertexArrayObject()
+        vaos.add(vao.id)
+        vao.bind()
 
         // bind
-        glBindVertexArray(vaoID)
         bindVBO(0, 3, positions)
         bindVBO(1, 2, texCoords)
         //bindVBO(2, 3, normals)
         bindEBO(indices)
+
+        glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
+        //glEnableVertexAttribArray(2)
 
         // unbind
         glBindVertexArray(0)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
-        return Mesh(vaoID, indices.size)
+        return Mesh(vao.id, indices.size)
     }
     
     private fun loadTexture(file: String): TextureBufferObject {
