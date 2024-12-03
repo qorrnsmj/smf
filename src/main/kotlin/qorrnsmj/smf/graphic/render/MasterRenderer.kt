@@ -30,9 +30,7 @@ class MasterRenderer : Resizable {
     }
 
     // TEST
-    var testTime = 0f
-    val colorEffect = ColorEffect()
-    val contrastEffect = ContrastEffect()
+    val testEffects = listOf(ColorEffect(), ContrastEffect())
 
     fun render(scene: Scene) {
         // If there are no effects, render directly to the default frame-buffer
@@ -55,14 +53,9 @@ class MasterRenderer : Resizable {
         terrainRenderer.renderTerrains(scene.terrains)
         terrainRenderer.stop()
 
-        // TEST
-        testTime += 0.01f
-        contrastEffect.contrast = sin(testTime) * 2f + 2f
-
         //if (scene.effects.isNotEmpty()) {
             postProcessor.unbindFrameBuffer()
-            //postProcessor.applyPostProcess(colorEffect)
-            postProcessor.applyPostProcess(listOf(colorEffect, contrastEffect))
+            postProcessor.applyPostProcess(testEffects)
         //}
     }
 

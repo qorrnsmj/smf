@@ -15,7 +15,6 @@ import qorrnsmj.smf.game.entity.model.component.Mesh
 import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 import qorrnsmj.smf.graphic.`object`.VertexArrayObject
-import qorrnsmj.smf.graphic.shader.custom.DefaultShaderProgram
 import qorrnsmj.smf.math.Vector3f
 import java.io.InputStream
 import java.nio.ByteBuffer

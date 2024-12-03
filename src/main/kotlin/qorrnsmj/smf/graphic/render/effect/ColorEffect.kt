@@ -1,6 +1,6 @@
 package qorrnsmj.smf.graphic.render.effect
 
-import qorrnsmj.smf.graphic.shader.custom.ColorEffectShaderProgram
+import qorrnsmj.smf.graphic.shader.custom.ColorShaderProgram
 
 class ColorEffect() : Effect(program) {
     override fun use() {
@@ -12,6 +12,6 @@ class ColorEffect() : Effect(program) {
     }
 
     companion object {
-        val program = ColorEffectShaderProgram()
+        val program = ColorShaderProgram()
     }
 }

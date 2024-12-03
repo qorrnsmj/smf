@@ -6,9 +6,9 @@ import org.lwjgl.opengl.GL33C.GL_FRAGMENT_SHADER
 import qorrnsmj.smf.graphic.shader.Shader
 import qorrnsmj.smf.graphic.shader.ShaderProgram
 
-class ColorEffectShaderProgram : ShaderProgram(
-    Shader(GL_VERTEX_SHADER, "color.vert"),
-    Shader(GL_FRAGMENT_SHADER, "color.frag")
+class ColorShaderProgram : ShaderProgram(
+    Shader(GL_VERTEX_SHADER, "effect/color.vert"),
+    Shader(GL_FRAGMENT_SHADER, "effect/color.frag")
 ) {
     override fun bindAttributes() {
         glBindAttribLocation(id, 0, "position")

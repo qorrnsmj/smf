@@ -7,13 +7,13 @@ import qorrnsmj.smf.game.entity.model.Models
 import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.game.light.Light
-import qorrnsmj.smf.graphic.shader.custom.DefaultShaderProgram
+import qorrnsmj.smf.graphic.shader.custom.EntityShaderProgram
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils
 
 class EntityRenderer : Resizable {
-    val program = DefaultShaderProgram()
+    val program = EntityShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
     val locationView = glGetUniformLocation(program.id, "view")
     val locationProjection = glGetUniformLocation(program.id, "projection")
