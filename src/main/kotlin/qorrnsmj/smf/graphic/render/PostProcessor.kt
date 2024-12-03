@@ -4,13 +4,12 @@ import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.graphic.`object`.FrameBufferObject
 import qorrnsmj.smf.graphic.`object`.VertexArrayObject
 import qorrnsmj.smf.graphic.`object`.VertexBufferObject
-import qorrnsmj.smf.graphic.render.effect.ContrastEffect
 import qorrnsmj.smf.graphic.render.effect.Effect
 import qorrnsmj.smf.util.Resizable
 
 class PostProcessor : Resizable {
-    private lateinit var fbo: FrameBufferObject
-    private lateinit var tmpFbo: FrameBufferObject
+    private lateinit var inFbo: FrameBufferObject
+    private lateinit var outFbo: FrameBufferObject
     private val quadVao = VertexArrayObject()
     private val quadVbo = VertexBufferObject()
     private val quadVertices = floatArrayOf(
@@ -37,25 +36,25 @@ class PostProcessor : Resizable {
     }
 
     fun bindFrameBuffer() {
-        fbo.bind()
+        inFbo.bind()
     }
 
     fun unbindFrameBuffer() {
-        fbo.unbind()
+        inFbo.unbind()
     }
 
     fun applyPostProcess(effects: List<Effect>) {
         // Apply each effect except the last one
         for (effect in effects.dropLast(1)) {
-            tmpFbo.bind()
+            outFbo.bind()
 
             effect.use()
             renderScreenQuad()
             effect.unuse()
 
-            val tmp = fbo
-            fbo = tmpFbo
-            tmpFbo = tmp
+            val tmp = inFbo
+            inFbo = outFbo
+            outFbo = tmp
         }
 
         // Bind default FBO
@@ -70,25 +69,25 @@ class PostProcessor : Resizable {
 
     private fun renderScreenQuad() {
         quadVao.bind()
-        fbo.colorTexture.bind()
+        inFbo.colorTexture.bind()
 
         // Render the screen quad
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
 
-        fbo.colorTexture.unbind()
+        inFbo.colorTexture.unbind()
         quadVao.unbind()
     }
 
     /* Misc */
 
     fun cleanup() {
-        fbo.delete()
-        tmpFbo.delete()
+        inFbo.delete()
+        outFbo.delete()
     }
 
     override fun resize(width: Int, height: Int) {
-        fbo = FrameBufferObject(width, height)
-        tmpFbo = FrameBufferObject(width, height)
+        inFbo = FrameBufferObject(width, height)
+        outFbo = FrameBufferObject(width, height)
     }
 }
