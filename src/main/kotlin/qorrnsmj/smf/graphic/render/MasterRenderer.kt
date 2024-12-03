@@ -3,9 +3,10 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.Scene
-import qorrnsmj.smf.graphic.render.effect.BlurHorizontalEffect
-import qorrnsmj.smf.graphic.render.effect.BlurVerticalEffect
-import qorrnsmj.smf.graphic.render.effect.Effect
+import qorrnsmj.smf.graphic.effect.*
+import qorrnsmj.smf.graphic.effect.custom.BlurHorizontalEffect
+import qorrnsmj.smf.graphic.effect.custom.BlurVerticalEffect
+import qorrnsmj.smf.graphic.effect.custom.NoiseEffect
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.Resizable
 
@@ -29,8 +30,15 @@ class MasterRenderer : Resizable {
         Logger.info("MasterRenderer initialized!")
     }
 
-    //val testEffects = listOf(ColorEffect(), ContrastEffect())
-    val testEffects = listOf<Effect>(BlurHorizontalEffect(), BlurVerticalEffect())
+    // TEST
+    var testTime = 0f
+    val testEffects1 = listOf<Effect>(NoiseEffect())
+    val testEffects2 = listOf<Effect>(
+        BlurHorizontalEffect().apply { blurStrength = 5f },
+        BlurVerticalEffect().apply { blurStrength = 5f },
+        BlurHorizontalEffect().apply { blurStrength = 3f },
+        BlurVerticalEffect().apply { blurStrength = 3f }
+    )
 
     fun render(scene: Scene) {
         // If there are no effects, render directly to the default frame-buffer
@@ -54,8 +62,9 @@ class MasterRenderer : Resizable {
         terrainRenderer.stop()
 
         //if (scene.effects.isNotEmpty()) {
+            testTime += 0.01f
             postProcessor.unbindFrameBuffer()
-            postProcessor.applyPostProcess(testEffects)
+            postProcessor.applyPostProcess(testEffects1)
         //}
     }
 

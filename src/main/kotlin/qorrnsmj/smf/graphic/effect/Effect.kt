@@ -1,4 +1,4 @@
-package qorrnsmj.smf.graphic.render.effect
+package qorrnsmj.smf.graphic.effect
 
 import qorrnsmj.smf.graphic.shader.ShaderProgram
 

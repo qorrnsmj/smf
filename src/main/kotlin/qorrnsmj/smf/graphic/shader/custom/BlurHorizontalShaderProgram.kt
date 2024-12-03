@@ -12,6 +12,5 @@ class BlurHorizontalShaderProgram : ShaderProgram(
 ) {
     override fun bindAttributes() {
         glBindAttribLocation(id, 0, "position")
-        //glBindAttribLocation(id, 1, "texCoord")
     }
 }
