@@ -3,6 +3,7 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.graphic.render.effect.ColorEffect
 import qorrnsmj.smf.graphic.render.effect.ContrastEffect
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.Resizable
@@ -30,7 +31,8 @@ class MasterRenderer : Resizable {
 
     // TEST
     var testTime = 0f
-    val testEffect = ContrastEffect()
+    val colorEffect = ColorEffect()
+    val contrastEffect = ContrastEffect()
 
     fun render(scene: Scene) {
         // If there are no effects, render directly to the default frame-buffer
@@ -55,12 +57,12 @@ class MasterRenderer : Resizable {
 
         // TEST
         testTime += 0.01f
-        testEffect.contrast = sin(testTime) * 2f + 2f
+        contrastEffect.contrast = sin(testTime) * 2f + 2f
 
         //if (scene.effects.isNotEmpty()) {
             postProcessor.unbindFrameBuffer()
-            postProcessor.applyPostProcess(testEffect)
-        //    postEffectHandler.applyEffects(scene.effects)
+            //postProcessor.applyPostProcess(colorEffect)
+            postProcessor.applyPostProcess(listOf(colorEffect, contrastEffect))
         //}
     }
 

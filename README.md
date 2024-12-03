@@ -24,19 +24,24 @@ or uniform loads, it's almost always a good idea to do it.
 - 継承よりも委譲、インターフェース
 - check require assert(VMオプションで切り替え可) の3つを使う (ちなみにkotlinには検査例外がないので注意)
 - アノテーションで呼び出せるクラスを限定する
+- ID -> Idに変更
 
-[Test-Lighting]
-- 法線マッピングの実装 (gimpのプラグインとかある)
+[Lighting]
+- gimp-normalmap使ってみる
 - Per-Pixel-Lightingの実装 (もうできてる？)
 - 様々な種類の光源を実装 [Light casters](https://learnopengl.com/Lighting/Light-casters)
-- マテリアルの実装 (fbx出力する時の値も修正する)
+- マテリアルの調整 (fbx出力する時の値も修正する)
  
-[Test-Shading]
-- 影modのシェーダー参考に
-
-[Test-Stencil]
+[Stencil]
 - [depth stencil](https://open.gl/depthstencils)
 - [ステンシルバッファを使った立体視](https://marina.sys.wakayama-u.ac.jp/~tokoi/?date=20040208)
+
+[Shader]
+- 影modのシェーダー参考に
+- トゥーンシェーダー
+- ポストプロセス、FBOを使って色々なポストエフェクト実装 (まばたきとか、ぼやけ)
+https://qiita.com/cy_ryosuke_zushi/items/0356bf621f4cf5215f21
+https://learning.unity3d.jp/tag/post-effect/
 
 [Ship]
 - 特定のルートを巡行するように
@@ -50,6 +55,9 @@ or uniform loads, it's almost always a good idea to do it.
 - 船の当たり判定はどうする？
 
 [狼と若草色の寄り道]
+- [状態遷移について](https://qiita.com/sawasaka/items/288c745b48328e76ca66)
+- https://tech.cygames.co.jp/archives/2820/
+- ムービーはタイムライン駆動で
 - 絵コンテ書く (紙で, 写真で, 3Dモデルで)
 - モデルのアニメーションは一まとまりでBlenderで作成 (fbx, gltf or other)
 - 例えば馬車が揺れたら、そこに乗ってるオブジェクトも一緒に揺れるように、model行列を共有しとく (まとまりObject)
@@ -65,3 +73,5 @@ or uniform loads, it's almost always a good idea to do it.
 - マイクラのmodは特に参考に[15+ Client Side Mods](https://youtu.be/TWNQVdtMBIE?si=0D31khSS4csT_uZx)
 - 加算ブレンド、乗算ブレンド、逆乗算ブレンド使い分ける
 - 不透明テクスチャを描画する時に、描画順を気にしたくない時はOrder-Independent-Transparencyを使う
+- learn openglの項目全部やる
+- モジュール結合度とか意識して、なるべくパッケージ外への依存度を減らす。(SMFが親で、外部を参照するにしてもインターフェースだったり間に何かを挟む)

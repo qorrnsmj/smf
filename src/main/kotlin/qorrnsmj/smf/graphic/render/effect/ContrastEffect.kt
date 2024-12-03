@@ -1,7 +1,7 @@
 package qorrnsmj.smf.graphic.render.effect
 
 import org.lwjgl.opengl.GL33C.glGetUniformLocation
-import qorrnsmj.smf.graphic.shader.custom.ContrastShaderProgram
+import qorrnsmj.smf.graphic.shader.custom.ContrastEffectShaderProgram
 import qorrnsmj.smf.util.UniformUtils
 
 class ContrastEffect() : Effect(program) {
@@ -17,7 +17,7 @@ class ContrastEffect() : Effect(program) {
     }
 
     companion object {
-        val program = ContrastShaderProgram()
+        val program = ContrastEffectShaderProgram()
         val locationContrast = glGetUniformLocation(program.id, "contrast")
     }
 }

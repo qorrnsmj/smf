@@ -44,54 +44,39 @@ class PostProcessor : Resizable {
         fbo.unbind()
     }
 
-    fun applyPostProcess(effect: Effect) {
-        effect.use()
-        renderScreenQuad()
-        effect.unuse()
-    }
-
-    // FIXME
-    fun applyEffects(effects: List<Effect>) {
-        val testEffects = listOf(ContrastEffect())
-
-        for (effect in testEffects) {
+    fun applyPostProcess(effects: List<Effect>) {
+        // Apply each effect except the last one
+        for (effect in effects.dropLast(1)) {
             tmpFbo.bind()
-            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-            // Render the effect to the tmpFbo
             effect.use()
-            glActiveTexture(GL_TEXTURE0)
-            glBindTexture(GL_TEXTURE_2D, fbo.colorTexture.id)
             renderScreenQuad()
             effect.unuse()
-            tmpFbo.unbind()
 
-            // Swap the frame-buffers
             val tmp = fbo
             fbo = tmpFbo
             tmpFbo = tmp
         }
 
-        // Bind the default frame-buffer and render the final texture
-        fbo.unbind()
-        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+        // Bind default FBO
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, fbo.colorTexture.id)
+        // Apply the last effect
+        val lastEffect = effects.last()
+        lastEffect.use()
         renderScreenQuad()
-        glBindTexture(GL_TEXTURE_2D, 0)
+        lastEffect.unuse()
     }
 
     private fun renderScreenQuad() {
         quadVao.bind()
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, fbo.colorTexture.id)
+        fbo.colorTexture.bind()
 
         // Render the screen quad
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
 
-        glBindTexture(GL_TEXTURE_2D, 0)
+        fbo.colorTexture.unbind()
         quadVao.unbind()
     }
 
