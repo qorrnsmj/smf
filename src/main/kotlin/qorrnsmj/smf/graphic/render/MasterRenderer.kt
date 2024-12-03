@@ -3,11 +3,11 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.Scene
-import qorrnsmj.smf.graphic.render.effect.ColorEffect
-import qorrnsmj.smf.graphic.render.effect.ContrastEffect
+import qorrnsmj.smf.graphic.render.effect.BlurHorizontalEffect
+import qorrnsmj.smf.graphic.render.effect.BlurVerticalEffect
+import qorrnsmj.smf.graphic.render.effect.Effect
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.Resizable
-import kotlin.math.sin
 
 class MasterRenderer : Resizable {
     private val postProcessor = PostProcessor()
@@ -29,8 +29,8 @@ class MasterRenderer : Resizable {
         Logger.info("MasterRenderer initialized!")
     }
 
-    // TEST
-    val testEffects = listOf(ColorEffect(), ContrastEffect())
+    //val testEffects = listOf(ColorEffect(), ContrastEffect())
+    val testEffects = listOf<Effect>(BlurHorizontalEffect(), BlurVerticalEffect())
 
     fun render(scene: Scene) {
         // If there are no effects, render directly to the default frame-buffer

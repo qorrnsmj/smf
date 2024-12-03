@@ -8,6 +8,8 @@ import qorrnsmj.smf.graphic.render.effect.Effect
 import qorrnsmj.smf.util.Resizable
 
 class PostProcessor : Resizable {
+    private var width = 0
+    private var height = 0
     private lateinit var inFbo: FrameBufferObject
     private lateinit var outFbo: FrameBufferObject
     private val quadVao = VertexArrayObject()
@@ -46,8 +48,11 @@ class PostProcessor : Resizable {
     fun applyPostProcess(effects: List<Effect>) {
         // Apply each effect except the last one
         for (effect in effects.dropLast(1)) {
-            outFbo.bind()
+            if (effect is Resizable) {
+                effect.resize(width, height)
+            }
 
+            outFbo.bind()
             effect.use()
             renderScreenQuad()
             effect.unuse()
@@ -57,11 +62,15 @@ class PostProcessor : Resizable {
             outFbo = tmp
         }
 
+        val lastEffect = effects.last()
+        if (lastEffect is Resizable) {
+            lastEffect.resize(width, height)
+        }
+
         // Bind default FBO
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         // Apply the last effect
-        val lastEffect = effects.last()
         lastEffect.use()
         renderScreenQuad()
         lastEffect.unuse()
@@ -87,6 +96,9 @@ class PostProcessor : Resizable {
     }
 
     override fun resize(width: Int, height: Int) {
+        this.width = width
+        this.height = height
+
         inFbo = FrameBufferObject(width, height)
         outFbo = FrameBufferObject(width, height)
     }
