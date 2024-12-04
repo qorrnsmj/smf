@@ -44,7 +44,7 @@ class FrameBufferObject(val width: Int, val height: Int) : Object() {
             unbind()
 
             val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
-            check (status == GL_FRAMEBUFFER_COMPLETE) { "Frame-buffer is not complete" }
+            check (status == GL_FRAMEBUFFER_COMPLETE) { "Frame-buffer is not complete: $status" }
         } catch (e: Exception) {
             Logger.error(e)
             delete()
@@ -52,7 +52,6 @@ class FrameBufferObject(val width: Int, val height: Int) : Object() {
     }
 
     override fun bind() {
-        //glActiveTexture(GL_TEXTURE0 + unit)
         glBindFramebuffer(GL_FRAMEBUFFER, id)
     }
 

@@ -107,13 +107,11 @@ object TerrainLoader {
             texture.bind()
 
             // Sets texture parameters
-            glGenerateMipmap(GL_TEXTURE_2D)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.4f)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
             // Uploads image data
             MemoryStack.stackPush().use { stack ->
@@ -136,6 +134,7 @@ object TerrainLoader {
                     else -> throw IllegalArgumentException("Unsupported number of channels: $c")
                 }
                 glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, imageByteBuffer)
+                glGenerateMipmap(GL_TEXTURE_2D)
                 STBImage.stbi_image_free(imageByteBuffer)
             }
 

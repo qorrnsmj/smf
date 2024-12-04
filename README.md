@@ -75,3 +75,4 @@ https://learning.unity3d.jp/tag/post-effect/
 - 不透明テクスチャを描画する時に、描画順を気にしたくない時はOrder-Independent-Transparencyを使う
 - learn openglの項目全部やる
 - モジュール結合度とか意識して、なるべくパッケージ外への依存度を減らす。(SMFが親で、外部を参照するにしてもインターフェースだったり間に何かを挟む)
+- [How scrolling textures gave Super Mario Galaxy 2 its charm](https://youtu.be/8rCRsOLiO7k?si=uRR5I8HatHMF3b37)

@@ -30,19 +30,9 @@ class MasterRenderer : Resizable {
         Logger.info("MasterRenderer initialized!")
     }
 
-    // TEST
-    var testTime = 0f
-    val testEffects1 = listOf<Effect>(NoiseEffect())
-    val testEffects2 = listOf<Effect>(
-        BlurHorizontalEffect().apply { blurStrength = 5f },
-        BlurVerticalEffect().apply { blurStrength = 5f },
-        BlurHorizontalEffect().apply { blurStrength = 3f },
-        BlurVerticalEffect().apply { blurStrength = 3f }
-    )
-
     fun render(scene: Scene) {
         // If there are no effects, render directly to the default frame-buffer
-        /*if (scene.effects.isNotEmpty())*/ postProcessor.bindFrameBuffer()
+        if (scene.effects.isNotEmpty()) postProcessor.bindFrameBuffer()
 
         val skyColor = Vector3f(0.3f, 0.6f, 1f)
         glClearColor(skyColor.x, skyColor.y, skyColor.z, 1f)
@@ -61,11 +51,10 @@ class MasterRenderer : Resizable {
         terrainRenderer.renderTerrains(scene.terrains)
         terrainRenderer.stop()
 
-        //if (scene.effects.isNotEmpty()) {
-            testTime += 0.01f
+        if (scene.effects.isNotEmpty()) {
             postProcessor.unbindFrameBuffer()
-            postProcessor.applyPostProcess(testEffects1)
-        //}
+            postProcessor.applyPostProcess(scene.effects)
+        }
     }
 
     fun cleanup() {
