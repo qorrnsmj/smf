@@ -34,7 +34,7 @@ class MasterRenderer : Resizable {
         // If there are no effects, render directly to the default frame-buffer
         if (scene.effects.isNotEmpty()) postProcessor.bindFrameBuffer()
 
-        val skyColor = Vector3f(0.3f, 0.6f, 1f)
+        val skyColor = scene.skyColor
         glClearColor(skyColor.x, skyColor.y, skyColor.z, 1f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
