@@ -3,7 +3,7 @@ package qorrnsmj.smf.graphic.effect.custom
 import org.lwjgl.opengl.GL33C.glGetUniformLocation
 import qorrnsmj.smf.graphic.effect.Effect
 import qorrnsmj.smf.graphic.effect.shader.BlurHorizontalShaderProgram
-import qorrnsmj.smf.util.Resizable
+import qorrnsmj.smf.util.impl.Resizable
 import qorrnsmj.smf.util.UniformUtils
 
 class BlurHorizontalEffect() : Effect(program), Resizable {

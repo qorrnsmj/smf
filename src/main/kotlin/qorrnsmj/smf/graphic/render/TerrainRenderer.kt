@@ -13,13 +13,13 @@ import org.lwjgl.opengl.GL30C.glBindVertexArray
 import org.lwjgl.opengl.GL33C.glGetUniformLocation
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.model.component.Model
-import qorrnsmj.smf.game.terrain.Terrain
+import qorrnsmj.smf.game.terrain.FlatTerrain
 import qorrnsmj.smf.game.terrain.TerrainModels
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.graphic.render.shader.TerrainShaderProgram
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.smf.util.Resizable
+import qorrnsmj.smf.util.impl.Resizable
 import qorrnsmj.smf.util.UniformUtils
 
 // TODO: 整理する
@@ -41,7 +41,7 @@ class TerrainRenderer : Resizable {
 
     /* Render */
 
-    fun renderTerrains(terrains: List<Terrain>) {
+    fun renderTerrains(terrains: List<FlatTerrain>) {
         UniformUtils.setUniform(locationModel, Matrix4f())
 
         bindModel(TerrainModels.TERRAIN)

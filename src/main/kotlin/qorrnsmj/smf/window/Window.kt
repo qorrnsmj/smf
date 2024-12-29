@@ -7,7 +7,7 @@ import org.lwjgl.opengl.GL11.glGetString
 import org.lwjgl.system.MemoryUtil
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
-import qorrnsmj.smf.util.Resizable
+import qorrnsmj.smf.util.impl.Resizable
 
 class Window(width: Int, height: Int, title: String, vsync: Boolean = true) : Resizable {
     val id: Long

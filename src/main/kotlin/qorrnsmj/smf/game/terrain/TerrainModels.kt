@@ -6,6 +6,6 @@ object TerrainModels {
     lateinit var TERRAIN: Model
 
     fun load() {
-        TERRAIN = TerrainLoader.loadModel(Terrain(0f, 0f))
+        TERRAIN = TerrainLoader.loadModel(FlatTerrain(0f, 0f))
     }
 }

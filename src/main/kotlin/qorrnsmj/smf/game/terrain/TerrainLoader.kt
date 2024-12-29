@@ -9,8 +9,8 @@ import qorrnsmj.smf.game.entity.model.component.Material
 import qorrnsmj.smf.game.entity.model.component.Mesh
 import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
-import qorrnsmj.smf.game.terrain.Terrain.Companion.SIZE
-import qorrnsmj.smf.game.terrain.Terrain.Companion.VERTEX_COUNT
+import qorrnsmj.smf.game.terrain.FlatTerrain.Companion.SIZE
+import qorrnsmj.smf.game.terrain.FlatTerrain.Companion.VERTEX_COUNT
 import qorrnsmj.smf.graphic.`object`.VertexArrayObject
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -23,7 +23,7 @@ object TerrainLoader {
     private val textures = mutableListOf<TextureBufferObject>()
 
     // TODO: EntityLoaderみたいに綺麗にまとめる
-    fun loadModel(terrain: Terrain): Model {
+    fun loadModel(terrain: FlatTerrain): Model {
         val count = VERTEX_COUNT * VERTEX_COUNT
         val positions = FloatArray(count * 3)
         val texCoords = FloatArray(count * 2)

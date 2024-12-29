@@ -9,7 +9,7 @@ import qorrnsmj.smf.graphic.effect.custom.BlurHorizontalEffect
 import qorrnsmj.smf.graphic.effect.custom.BlurVerticalEffect
 import qorrnsmj.smf.graphic.effect.custom.NoiseEffect
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.smf.util.Resizable
+import qorrnsmj.smf.util.impl.Resizable
 
 class MasterRenderer : Resizable {
     private val postProcessor = PostProcessor()
@@ -36,6 +36,7 @@ class MasterRenderer : Resizable {
         // If there are no effects, render directly to the default frame-buffer
         if (scene.effects.isNotEmpty()) postProcessor.bindFrameBuffer()
 
+        // TODO: Implement sky-color handling
         val skyColor = scene.skyColor
         glClearColor(skyColor.x, skyColor.y, skyColor.z, 1f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -53,9 +54,9 @@ class MasterRenderer : Resizable {
         terrainRenderer.renderTerrains(scene.terrains)
         terrainRenderer.stop()
 
-//        skyboxRenderer.start()
-//        skyboxRenderer.loadCamera(scene.camera)
-//        skyboxRenderer.render(SkyboxModels.SKY_1)
+        skyboxRenderer.start()
+        skyboxRenderer.loadCamera(scene.camera)
+        skyboxRenderer.render(SkyboxModels.SKY1)
 
         if (scene.effects.isNotEmpty()) {
             postProcessor.unbindFrameBuffer()
@@ -70,6 +71,7 @@ class MasterRenderer : Resizable {
         postProcessor.cleanup()
         //entityRenderer.cleanup()
         //terrainRenderer.cleanup()
+        //skyboxRenderer.cleanup()
     }
 
     override fun resize(width: Int, height: Int) {
@@ -83,5 +85,9 @@ class MasterRenderer : Resizable {
         terrainRenderer.start()
         terrainRenderer.resize(width, height)
         terrainRenderer.stop()
+
+        skyboxRenderer.start()
+        skyboxRenderer.resize(width, height)
+        skyboxRenderer.stop()
     }
 }
