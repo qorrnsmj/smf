@@ -1,10 +1,10 @@
-package qorrnsmj.smf.graphic.shader.custom
+package qorrnsmj.smf.graphic.effect.shader
 
 import org.lwjgl.opengl.GL33C.glBindAttribLocation
 import org.lwjgl.opengl.GL33C.GL_VERTEX_SHADER
 import org.lwjgl.opengl.GL33C.GL_FRAGMENT_SHADER
-import qorrnsmj.smf.graphic.shader.Shader
-import qorrnsmj.smf.graphic.shader.ShaderProgram
+import qorrnsmj.smf.graphic.`object`.Shader
+import qorrnsmj.smf.graphic.`object`.ShaderProgram
 
 class MonochromeShaderProgram : ShaderProgram(
     Shader(GL_VERTEX_SHADER, "effect/monochrome.vert"),

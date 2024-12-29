@@ -4,7 +4,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33.*
 import qorrnsmj.smf.window.Window
-import qorrnsmj.smf.graphic.shader.ShaderProgram
+import qorrnsmj.smf.graphic.`object`.ShaderProgram
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 

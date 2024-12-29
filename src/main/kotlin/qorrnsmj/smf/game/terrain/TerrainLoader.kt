@@ -72,9 +72,6 @@ object TerrainLoader {
         val model = Model("terrain", mesh, material)
         Logger.info("Terrain loaded (${mesh.vertexCount / 3} faces)")
 
-        // TODO: Terrainとモデルの関係どうにかする
-        terrain.model = model
-
         return model
     }
 

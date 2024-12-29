@@ -6,8 +6,6 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil
-import qorrnsmj.smf.graphic.shader.Shader
-import qorrnsmj.smf.graphic.shader.ShaderProgram
 
 /**
  * ShaderProgramのテスト

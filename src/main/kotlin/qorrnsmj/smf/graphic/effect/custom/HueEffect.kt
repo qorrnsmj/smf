@@ -2,7 +2,7 @@ package qorrnsmj.smf.graphic.effect.custom
 
 import org.lwjgl.opengl.GL33C.glGetUniformLocation
 import qorrnsmj.smf.graphic.effect.Effect
-import qorrnsmj.smf.graphic.shader.custom.HueShaderProgram
+import qorrnsmj.smf.graphic.effect.shader.HueShaderProgram
 import qorrnsmj.smf.util.UniformUtils
 
 class HueEffect() : Effect(program) {

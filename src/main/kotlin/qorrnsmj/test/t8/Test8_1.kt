@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL33.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import qorrnsmj.smf.window.Window
-import qorrnsmj.smf.graphic.shader.ShaderProgram
+import qorrnsmj.smf.graphic.`object`.ShaderProgram
 
 /** テクスチャをはりつける
  * - まずはRendererを使わずに

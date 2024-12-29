@@ -3,7 +3,7 @@ package qorrnsmj.test.t6
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL33.*
-import qorrnsmj.smf.graphic.shader.ShaderProgram
+import qorrnsmj.smf.graphic.`object`.ShaderProgram
 import qorrnsmj.smf.window.Window
 
 /** Test2, Test4をsmfのWindowクラス(GL33)で実装する

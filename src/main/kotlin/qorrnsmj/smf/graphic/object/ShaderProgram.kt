@@ -1,4 +1,4 @@
-package qorrnsmj.smf.graphic.shader
+package qorrnsmj.smf.graphic.`object`
 
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger

@@ -1,6 +1,6 @@
 package qorrnsmj.smf.graphic.effect
 
-import qorrnsmj.smf.graphic.shader.ShaderProgram
+import qorrnsmj.smf.graphic.`object`.ShaderProgram
 
 abstract class Effect(val program: ShaderProgram) {
     open fun use() {

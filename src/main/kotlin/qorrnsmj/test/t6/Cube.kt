@@ -4,13 +4,6 @@ import org.lwjgl.opengl.GL11.GL_FLOAT
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL20.glVertexAttribPointer
 import org.lwjgl.opengl.GL33.*
-import qorrnsmj.smf.graphic.shader.Shader
-import qorrnsmj.smf.graphic.shader.ShaderProgram
-import qorrnsmj.smf.math.Matrix4f
-import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.smf.math.Vector4f
-import kotlin.math.cos
-import kotlin.math.sin
 
 // rotateするならshaderに渡す前にクラス内で回転させとくべき？
 class Cube(

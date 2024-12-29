@@ -1,7 +1,7 @@
 package qorrnsmj.smf.graphic.effect.custom
 
 import qorrnsmj.smf.graphic.effect.Effect
-import qorrnsmj.smf.graphic.shader.custom.MonochromeShaderProgram
+import qorrnsmj.smf.graphic.effect.shader.MonochromeShaderProgram
 
 class MonochromeEffect() : Effect(program) {
     override fun use() {

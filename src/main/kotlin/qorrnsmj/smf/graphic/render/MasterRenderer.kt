@@ -2,6 +2,7 @@ package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
+import qorrnsmj.smf.game.skybox.SkyboxModels
 import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.graphic.effect.*
 import qorrnsmj.smf.graphic.effect.custom.BlurHorizontalEffect
@@ -14,6 +15,7 @@ class MasterRenderer : Resizable {
     private val postProcessor = PostProcessor()
     private val entityRenderer = EntityRenderer()
     private val terrainRenderer = TerrainRenderer()
+    private val skyboxRenderer = SkyboxRenderer()
 
     init {
         Logger.info("MasterRenderer initializing...")
@@ -50,6 +52,10 @@ class MasterRenderer : Resizable {
         terrainRenderer.loadSkyColor(skyColor)
         terrainRenderer.renderTerrains(scene.terrains)
         terrainRenderer.stop()
+
+//        skyboxRenderer.start()
+//        skyboxRenderer.loadCamera(scene.camera)
+//        skyboxRenderer.render(SkyboxModels.SKY_1)
 
         if (scene.effects.isNotEmpty()) {
             postProcessor.unbindFrameBuffer()

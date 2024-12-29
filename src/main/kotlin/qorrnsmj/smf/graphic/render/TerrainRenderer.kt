@@ -16,7 +16,7 @@ import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.game.terrain.Terrain
 import qorrnsmj.smf.game.terrain.TerrainModels
 import qorrnsmj.smf.util.MVP
-import qorrnsmj.smf.graphic.shader.custom.TerrainShaderProgram
+import qorrnsmj.smf.graphic.render.shader.TerrainShaderProgram
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.Resizable

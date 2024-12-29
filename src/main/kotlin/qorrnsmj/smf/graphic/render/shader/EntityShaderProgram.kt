@@ -1,8 +1,8 @@
-package qorrnsmj.smf.graphic.shader.custom
+package qorrnsmj.smf.graphic.render.shader
 
 import org.lwjgl.opengl.GL33C.*
-import qorrnsmj.smf.graphic.shader.Shader
-import qorrnsmj.smf.graphic.shader.ShaderProgram
+import qorrnsmj.smf.graphic.`object`.Shader
+import qorrnsmj.smf.graphic.`object`.ShaderProgram
 
 class EntityShaderProgram : ShaderProgram(
     Shader(GL_VERTEX_SHADER, "entity.vert"),
