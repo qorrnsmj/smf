@@ -8,10 +8,12 @@ Currently under development and inspired by **[ThinMatrix’s Great Tutorial](ht
 ### 🖼️ Preview
 
 <p>
-  <img src="./docs/preview1.png" height="300" />
-  <img src="./docs/preview2.png" height="300" />
-  <img src="./docs/preview3.png" height="300" />
-  <img src="./docs/preview4.png" height="300" />
+  <img src="./docs/preview1.png" height="200" />
+  <img src="./docs/preview2.png" height="200" />
+</p>
+<P>
+  <img src="./docs/preview3.png" height="200" />
+  <img src="./docs/preview4.png" height="200" />
 </p>
 
 ---
