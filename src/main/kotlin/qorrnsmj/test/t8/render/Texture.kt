@@ -7,7 +7,8 @@ import qorrnsmj.smf.util.ResourceUtils
 
 class Texture(file: String) {
     private val id = glGenTextures()
-private lateinit var path: String
+    private lateinit var path: String
+
     init {
         bind()
 

@@ -22,7 +22,7 @@ object SMF : FixedTimestepGame() {
         renderer = MasterRenderer()
         renderer.resize(window.width, window.height)
 
-        Models.load()
+        EntityModels.load()
         TerrainModels.load()
         stateMachine = StateMachine()
         timer = Timer()

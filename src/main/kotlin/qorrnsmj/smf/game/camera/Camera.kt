@@ -9,7 +9,9 @@ import java.lang.Math.*
 import kotlin.math.cos
 import kotlin.math.sin
 
-// TODO: もっと変数とか綺麗にする
+// TODO:
+//  - もっと変数とか綺麗にする
+//  - ムービー用にターゲットに対して視点固定とかできるようにする
 class Camera(
     var position: Vector3f = Vector3f(0.0f, 0.0f, 0.0f),
     var front: Vector3f = Vector3f(0.0f, 0.0f, -1.0f),

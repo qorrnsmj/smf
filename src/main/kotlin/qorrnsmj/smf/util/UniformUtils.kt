@@ -6,7 +6,7 @@ import qorrnsmj.smf.math.*
 
 object UniformUtils {
     fun setUniform(location: Int, value: Int) {
-        glUniform1f(location, value.toFloat())
+        glUniform1i(location, value)
     }
 
     fun setUniform(location: Int, value: Float) {

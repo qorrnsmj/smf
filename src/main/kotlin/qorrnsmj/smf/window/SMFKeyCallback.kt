@@ -35,7 +35,7 @@ class SMFKeyCallback : GLFWKeyCallback() {
             SMF.stateMachine.changeState(States.EXAMPLE1)
 
         if (key == GLFW_KEY_2 && action == GLFW_PRESS)
-            SMF.stateMachine.changeState(States.EXAMPLE2)
+            SMF.stateMachine.changeState(States.SOLAR_SYSTEM)
 
         if (key == GLFW_KEY_F11 && action == GLFW_PRESS)
             SMF.window.toggleFullscreen()

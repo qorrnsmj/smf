@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL30C.glBindVertexArray
 import org.lwjgl.opengl.GL33C.glGetUniformLocation
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.model.component.Model
-import qorrnsmj.smf.game.terrain.FlatTerrain
+import qorrnsmj.smf.game.terrain.Terrain
 import qorrnsmj.smf.game.terrain.TerrainModels
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.graphic.render.shader.TerrainShaderProgram
@@ -24,6 +24,7 @@ import qorrnsmj.smf.util.UniformUtils
 
 // TODO: 整理する
 class TerrainRenderer : Resizable {
+    // TODO: locationはシェーダークラスに書く
     val program = TerrainShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
     val locationView = glGetUniformLocation(program.id, "view")
@@ -41,13 +42,16 @@ class TerrainRenderer : Resizable {
 
     /* Render */
 
-    fun renderTerrains(terrains: List<FlatTerrain>) {
+    fun renderTerrains(terrains: List<Terrain>) {
         UniformUtils.setUniform(locationModel, Matrix4f())
 
-        bindModel(TerrainModels.TERRAIN)
-        prepareTerrain()
-        glDrawElements(GL_TRIANGLES, TerrainModels.TERRAIN.mesh.vertexCount, GL_UNSIGNED_INT, 0)
-        unbindModel()
+        // TODO
+        for (terrain in terrains) {
+            bindModel(TerrainModels.TERRAIN)
+            prepareTerrain()
+            glDrawElements(GL_TRIANGLES, TerrainModels.TERRAIN.mesh.vertexCount, GL_UNSIGNED_INT, 0)
+            unbindModel()
+        }
     }
 
     private fun prepareTerrain() {

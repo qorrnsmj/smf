@@ -63,7 +63,8 @@ void main() {
         float attenuation = 1.0 / (lights[i].constant + lights[i].linear * distance + lights[i].quadratic * (distance * distance));
 
         // Ambient
-        vec3 ambient = lights[i].ambient * material.ambientColor * attenuation;
+        // TODO
+        vec3 ambient = lights[i].ambient; //* material.ambientColor;
 
         // Diffuse
         float diff = max(dot(norm, lightDir), 0.0);
