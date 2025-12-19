@@ -6,6 +6,8 @@ import qorrnsmj.smf.game.entity.custom.NormCubeEntity
 import qorrnsmj.smf.game.entity.custom.StallEntity
 import qorrnsmj.smf.game.entity.custom.TestPlaneEntity
 import qorrnsmj.smf.game.light.PointLight
+import qorrnsmj.smf.game.skybox.SkyboxModels
+import qorrnsmj.smf.game.terrain.Terrain
 import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.state.State
@@ -39,7 +41,9 @@ class ExampleState1 : State() {
 
         // setup
         SMF.window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
-        scene.camera.position = Vector3f(5f, 5f, 0f)
+        scene.camera.position = Vector3f(10f, 10f, -10f)
+        scene.skybox = SkyboxModels.SKY1
+        scene.skyColor = Vector3f(0.3f, 0.6f, 1f)
 
         // transform
         stall.position = Vector3f(0f, 0f, 0f)

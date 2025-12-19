@@ -50,7 +50,8 @@ class MasterRenderer : Resizable {
 
         skyboxRenderer.start()
         skyboxRenderer.loadCamera(scene.camera)
-        skyboxRenderer.render(SkyboxModels.SKY1)
+        skyboxRenderer.renderSkybox(scene.skybox)
+        skyboxRenderer.stop()
 
         if (scene.effects.isNotEmpty()) {
             postProcessor.unbindFrameBuffer()
