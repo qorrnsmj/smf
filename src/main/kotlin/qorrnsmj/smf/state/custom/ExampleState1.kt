@@ -4,11 +4,9 @@ import org.lwjgl.glfw.GLFW
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.entity.custom.NormCubeEntity
 import qorrnsmj.smf.game.entity.custom.StallEntity
+import qorrnsmj.smf.game.entity.custom.TestPlaneEntity
 import qorrnsmj.smf.game.light.PointLight
 import qorrnsmj.smf.graphic.Scene
-import qorrnsmj.smf.game.entity.Entity
-import qorrnsmj.smf.game.entity.custom.TestPlaneEntity
-import qorrnsmj.smf.game.entity.model.Models
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.state.State
 
@@ -30,7 +28,7 @@ class ExampleState1 : State() {
         plane = TestPlaneEntity()
         pointLight1 = PointLight().apply {
             position = Vector3f(0f, 20f, 0f)
-            ambient = Vector3f(1f, 1f, 1f)
+            ambient = Vector3f(0.1f, 0.1f, 0.1f)
             diffuse = Vector3f(1f, 1f, 1f)
             specular = Vector3f(1f, 1f, 1f)
             shininess = 32f
@@ -49,6 +47,7 @@ class ExampleState1 : State() {
         plane.position = Vector3f(20f, 3f, 0f)
 
         // add
+        scene.terrains.add(Terrain("test"))
         scene.lights.add(pointLight1)
         scene.entities.add(stall)
         scene.entities.add(normCube)

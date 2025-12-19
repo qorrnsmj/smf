@@ -2,13 +2,7 @@ package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.skybox.SkyboxModels
 import qorrnsmj.smf.graphic.Scene
-import qorrnsmj.smf.graphic.effect.*
-import qorrnsmj.smf.graphic.effect.custom.BlurHorizontalEffect
-import qorrnsmj.smf.graphic.effect.custom.BlurVerticalEffect
-import qorrnsmj.smf.graphic.effect.custom.NoiseEffect
-import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.impl.Resizable
 
 class MasterRenderer : Resizable {
@@ -19,7 +13,7 @@ class MasterRenderer : Resizable {
 
     init {
         Logger.info("MasterRenderer initializing...")
-        
+
         glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
 

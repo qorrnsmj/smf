@@ -10,5 +10,5 @@ out vec4 fragColor;
 
 void main() {
     fragColor = texture(texImage, texCoord);
-    fragColor = mix(vec4(skyColor, 1.0), fragColor, visibility); // Apply sky color
+//    fragColor = mix(vec4(skyColor, 1.0), fragColor, visibility); // Apply sky color
 }

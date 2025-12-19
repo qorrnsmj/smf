@@ -28,6 +28,7 @@ or uniform loads, it's almost always a good idea to do it.
 - check require assert(VMオプションで切り替え可) の3つを使う (ちなみにkotlinには検査例外がないので注意)
 - アノテーションで呼び出せるクラスを限定する
 - ID -> Idに変更
+- Loggingしっかり実装
 
 [Lighting]
 - gimp-normalmap使ってみる

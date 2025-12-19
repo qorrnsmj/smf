@@ -3,7 +3,7 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.Entity
-import qorrnsmj.smf.game.entity.model.Models
+import qorrnsmj.smf.game.entity.model.EntityModels
 import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.game.light.Light
@@ -13,6 +13,7 @@ import qorrnsmj.smf.util.impl.Resizable
 import qorrnsmj.smf.util.UniformUtils
 
 class EntityRenderer : Resizable {
+    // TODO: locationはシェーダークラスに書く
     val program = EntityShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
     val locationView = glGetUniformLocation(program.id, "view")
@@ -79,7 +80,7 @@ class EntityRenderer : Resizable {
     // TODO: 親のpos, rot, scaleを子にも適用 -> そもそもmodel-matrix共有しとけば？ (同じfbxのモデルならわかるけど、後から別モデルをchildren登録したらどうなる？)
     private fun processEntity(entity: Entity, batchMap: MutableMap<Model, MutableList<Entity>>) {
         // Parent model
-        if (entity.model != Models.EMPTY) {
+        if (entity.model != EntityModels.EMPTY) {
             val batch = batchMap.getOrPut(entity.model) { mutableListOf() }
             batch.add(entity)
         }
