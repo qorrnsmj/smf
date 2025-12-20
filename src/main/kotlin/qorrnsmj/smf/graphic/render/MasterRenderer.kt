@@ -3,9 +3,10 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.util.impl.Cleanable
 import qorrnsmj.smf.util.impl.Resizable
 
-class MasterRenderer : Resizable {
+class MasterRenderer : Resizable, Cleanable {
     private val postProcessor = PostProcessor()
     private val entityRenderer = EntityRenderer()
     private val terrainRenderer = TerrainRenderer()
@@ -54,19 +55,18 @@ class MasterRenderer : Resizable {
         skyboxRenderer.stop()
 
         if (scene.effects.isNotEmpty()) {
-            postProcessor.unbindFrameBuffer()
+            postProcessor.bindDefaultFrameBuffer()
             postProcessor.applyPostProcess(scene.effects)
         }
     }
 
-    fun cleanup() {
-        Logger.info("MasterRenderer cleaned up!")
-
-        // TODO
+    override fun cleanup() {
         postProcessor.cleanup()
-        //entityRenderer.cleanup()
-        //terrainRenderer.cleanup()
-        //skyboxRenderer.cleanup()
+        entityRenderer.cleanup()
+        terrainRenderer.cleanup()
+        skyboxRenderer.cleanup()
+
+        Logger.info("MasterRenderer cleaned up!")
     }
 
     override fun resize(width: Int, height: Int) {

@@ -8,6 +8,5 @@ abstract class Effect(val program: ShaderProgram) {
     }
 
     open fun unuse() {
-        program.unuse()
     }
 }

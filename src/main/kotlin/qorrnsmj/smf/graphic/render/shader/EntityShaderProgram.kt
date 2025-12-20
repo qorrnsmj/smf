@@ -7,11 +7,4 @@ import qorrnsmj.smf.graphic.`object`.ShaderProgram
 class EntityShaderProgram : ShaderProgram(
     Shader(GL_VERTEX_SHADER, "entity.vert"),
     Shader(GL_FRAGMENT_SHADER, "entity.frag")
-) {
-    override fun bindAttributes() {
-        glBindAttribLocation(id, 0, "position")
-        glBindAttribLocation(id, 1, "texCoords")
-        glBindAttribLocation(id, 2, "normal")
-        glBindAttribLocation(id, 3, "tangent")
-    }
-}
+)

@@ -9,10 +9,6 @@ class VertexBufferObject : Object() {
         glBindBuffer(GL_ARRAY_BUFFER, id)
     }
 
-    override fun unbind() {
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-    }
-
     override fun delete() {
         glDeleteBuffers(id)
     }

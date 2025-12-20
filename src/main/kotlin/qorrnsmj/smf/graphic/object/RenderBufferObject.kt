@@ -9,10 +9,6 @@ class RenderBufferObject() : Object() {
         glBindRenderbuffer(GL_RENDERBUFFER, id)
     }
 
-    override fun unbind() {
-        glBindRenderbuffer(GL_RENDERBUFFER, 0)
-    }
-
     override fun delete() {
         glDeleteRenderbuffers(id)
     }

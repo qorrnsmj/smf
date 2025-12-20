@@ -5,7 +5,5 @@ abstract class Object {
 
     abstract fun bind()
 
-    abstract fun unbind()
-
     abstract fun delete()
 }
