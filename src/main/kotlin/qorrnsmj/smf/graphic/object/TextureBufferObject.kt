@@ -9,10 +9,6 @@ class TextureBufferObject() : Object() {
         glBindTexture(GL_TEXTURE_2D, id)
     }
 
-    override fun unbind() {
-        glBindTexture(GL_TEXTURE_2D, 0)
-    }
-
     override fun delete() {
         glDeleteTextures(id)
     }

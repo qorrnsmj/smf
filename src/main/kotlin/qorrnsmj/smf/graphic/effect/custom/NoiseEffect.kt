@@ -14,7 +14,6 @@ class NoiseEffect() : Effect(program) {
     }
 
     override fun unuse() {
-        program.unuse()
     }
 
     companion object {

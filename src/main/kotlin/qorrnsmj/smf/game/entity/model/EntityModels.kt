@@ -34,6 +34,7 @@ object EntityModels {
         STALL = loadModel("stall.fbx")
         NORM_CUBE = loadModel("cube.fbx")
 
+        // TODO: Emptyってのやめたい
         SUN = loadModel("sun.fbx")["sun"] ?: EMPTY
         MERCURY = loadModel("mercury.fbx")["mercury"] ?: EMPTY
         VENUS = loadModel("venus.fbx")["venus"] ?: EMPTY

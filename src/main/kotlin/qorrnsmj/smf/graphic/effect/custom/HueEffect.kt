@@ -14,7 +14,6 @@ class HueEffect() : Effect(program) {
     }
 
     override fun unuse() {
-        program.unuse()
     }
 
     companion object {

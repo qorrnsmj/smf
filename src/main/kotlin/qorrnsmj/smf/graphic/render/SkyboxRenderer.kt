@@ -3,6 +3,7 @@ package qorrnsmj.smf.graphic.render
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import org.lwjgl.opengl.GL33C.*
+import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.graphic.render.shader.SkyboxShaderProgram
@@ -21,19 +22,17 @@ class SkyboxRenderer : Resizable, Cleanable {
     private val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
 
     fun start() {
-        glUseProgram(program.id)
+        program.use()
+
         glDepthMask(false)
-        // disable face culling to avoid showing only half faces when winding is inconsistent
         glDisable(GL_CULL_FACE)
         glDepthFunc(GL_LEQUAL)
     }
 
     fun stop() {
-        glDepthFunc(GL_LESS)
-        // restore culling if other renderers expect it
-        glEnable(GL_CULL_FACE)
         glDepthMask(true)
-        glUseProgram(0)
+        glEnable(GL_CULL_FACE)
+        glDepthFunc(GL_LESS)
     }
 
     fun renderSkybox(model: Model) {
@@ -55,8 +54,6 @@ class SkyboxRenderer : Resizable, Cleanable {
         glDrawElements(GL_TRIANGLES, model.mesh.vertexCount, GL_UNSIGNED_INT, 0)
         glDisableVertexAttribArray(0)
         glBindVertexArray(0)
-
-        tex.unbind()
     }
 
     fun loadCamera(camera: Camera) {
@@ -73,7 +70,8 @@ class SkyboxRenderer : Resizable, Cleanable {
     }
 
     override fun cleanup() {
-        glUseProgram(0)
         glDeleteProgram(program.id)
+
+        Logger.info("SkyboxRenderer cleaned up!")
     }
 }

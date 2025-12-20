@@ -17,8 +17,8 @@ import qorrnsmj.smf.window.Window
 object SMF : FixedTimestepGame() {
     init {
         Logger.info("SMF initializing...")
-        check(glfwInit()) { Logger.error("Failed to initialize GLFW!") }
 
+        check(glfwInit()) { Logger.error("Failed to initialize GLFW!") }
         window = Window(1600, 1600, "SMF", true)
         renderer = MasterRenderer()
         renderer.resize(window.width, window.height)
@@ -44,9 +44,10 @@ object SMF : FixedTimestepGame() {
 
         window.show()
         gameLoop()
-        cleanup()
 
-        Logger.info("SMF terminated!")
+        Logger.info("SMF stopping...")
+        cleanup()
+        Logger.info("SMF stopped!")
     }
 
     @JvmStatic

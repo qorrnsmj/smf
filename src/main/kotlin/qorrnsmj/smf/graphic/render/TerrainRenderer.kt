@@ -1,16 +1,7 @@
 package qorrnsmj.smf.graphic.render
 
-import org.lwjgl.opengl.GL11C.GL_TEXTURE_2D
-import org.lwjgl.opengl.GL11C.GL_TRIANGLES
-import org.lwjgl.opengl.GL11C.GL_UNSIGNED_INT
-import org.lwjgl.opengl.GL11C.glBindTexture
-import org.lwjgl.opengl.GL11C.glDrawElements
-import org.lwjgl.opengl.GL13C.GL_TEXTURE0
-import org.lwjgl.opengl.GL13C.glActiveTexture
-import org.lwjgl.opengl.GL20C.glUniform1i
-import org.lwjgl.opengl.GL20C.glUseProgram
-import org.lwjgl.opengl.GL30C.glBindVertexArray
-import org.lwjgl.opengl.GL33C.glGetUniformLocation
+import org.lwjgl.opengl.GL33C.*
+import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.model.component.Model
 import qorrnsmj.smf.game.terrain.Terrain
@@ -21,9 +12,10 @@ import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.impl.Resizable
 import qorrnsmj.smf.util.UniformUtils
+import qorrnsmj.smf.util.impl.Cleanable
 
 // TODO: 整理する
-class TerrainRenderer : Resizable {
+class TerrainRenderer : Resizable, Cleanable {
     // TODO: locationはシェーダークラスに書く
     val program = TerrainShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
@@ -33,11 +25,10 @@ class TerrainRenderer : Resizable {
     val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
 
     fun start() {
-        glUseProgram(program.id)
+        program.use()
     }
 
     fun stop() {
-        glUseProgram(0)
     }
 
     /* Render */
@@ -115,5 +106,11 @@ class TerrainRenderer : Resizable {
 
     override fun resize(width: Int, height: Int) {
         UniformUtils.setUniform(locationProjection, MVP.getPerspectiveMatrix(width / height.toFloat()))
+    }
+
+    override fun cleanup() {
+        glDeleteProgram(program.id)
+
+        Logger.info("TerrainRenderer cleaned up!")
     }
 }

@@ -3,6 +3,9 @@ package qorrnsmj.smf.game.terrain
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBImage
+import org.lwjgl.stb.STBImage.stbi_failure_reason
+import org.lwjgl.stb.STBImage.stbi_load_from_memory
+import org.lwjgl.stb.STBImage.stbi_set_flip_vertically_on_load
 import org.lwjgl.system.MemoryStack
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.entity.model.component.Material
@@ -12,6 +15,7 @@ import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 import qorrnsmj.smf.game.terrain.FlatTerrain.Companion.SIZE
 import qorrnsmj.smf.game.terrain.FlatTerrain.Companion.VERTEX_COUNT
 import qorrnsmj.smf.graphic.`object`.VertexArrayObject
+import qorrnsmj.smf.util.ResourceUtils.getResourceAsByteBuffer
 import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.use
@@ -70,7 +74,9 @@ object TerrainLoader {
         val mesh = loadMesh(positions, texCoords, normals, indices)
         val material = Material(diffuseTexture = loadTexture("grass.png"), specularTexture = TextureBufferObject(), normalTexture = TextureBufferObject())
         val model = Model("terrain", mesh, material)
-        Logger.info("Terrain loaded (${mesh.vertexCount / 3} faces)")
+
+        val faceCount = mesh.vertexCount.div(3)
+        Logger.info("Terrain \"\" loaded ($faceCount faces)")
 
         return model
     }
@@ -99,50 +105,35 @@ object TerrainLoader {
     }
     
     private fun loadTexture(file: String): TextureBufferObject {
-        try {
-            val texture = TextureBufferObject()
-            texture.bind()
-
-            // Sets texture parameters
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.4f)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-
-            // Uploads image data
-            MemoryStack.stackPush().use { stack ->
-                val width = stack.mallocInt(1)
-                val height = stack.mallocInt(1)
-                val channels = stack.mallocInt(1)
-
-                STBImage.stbi_set_flip_vertically_on_load(false)
-                val buffer = getResourceAsByteBuffer("assets/texture/terrain/$file")
-                val imageByteBuffer = STBImage.stbi_load_from_memory(buffer, width, height, channels, 0)
-                checkNotNull(imageByteBuffer) {
-                    throw IllegalStateException("Failed to load image: \"$file\" (${STBImage.stbi_failure_reason()})")
-                }
-
-                val w = width.get()
-                val h = height.get()
-                val format = when (val c = channels.get()) {
-                    3 -> GL_RGB
-                    4 -> GL_RGBA
-                    else -> throw IllegalArgumentException("Unsupported number of channels: $c")
-                }
-                glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, imageByteBuffer)
-                glGenerateMipmap(GL_TEXTURE_2D)
-                STBImage.stbi_image_free(imageByteBuffer)
-            }
-
-            textures.add(texture)
-            texture.unbind()
-            return texture
-        } catch (e: Exception) {
-            e.printStackTrace()
+        // Create TBO
+        val texture = TextureBufferObject().apply {
+            this.bind()
+            textures.add(this)
         }
 
-        return TextureBufferObject()
+        // Load image
+        MemoryStack.stackPush().use { stack ->
+            val width = stack.mallocInt(1)
+            val height = stack.mallocInt(1)
+            val channel = stack.mallocInt(1)
+            val buffer = getResourceAsByteBuffer("assets/texture/terrain/$file")
+            val imageByteBuffer = stbi_load_from_memory(buffer, width, height, channel, 4)
+                ?: throw RuntimeException("Failed to load image $file: ${stbi_failure_reason()}")
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                width.get(), height.get(), 0, GL_RGBA, GL_UNSIGNED_BYTE, imageByteBuffer)
+            glGenerateMipmap(GL_TEXTURE_2D)
+            STBImage.stbi_image_free(imageByteBuffer)
+        }
+
+        // Set parameter
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT)
+
+        return texture
     }
 
     private fun bindVBO(attribIndex: Int, attribSize: Int, data: FloatArray) {
