@@ -43,7 +43,6 @@ class ExampleState1 : State() {
         SMF.window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
         scene.camera.position = Vector3f(10f, 10f, -10f)
         scene.skybox = SkyboxModels.SKY1
-        scene.skyColor = Vector3f(0.3f, 0.6f, 1f)
 
         // transform
         stall.position = Vector3f(0f, 0f, 0f)

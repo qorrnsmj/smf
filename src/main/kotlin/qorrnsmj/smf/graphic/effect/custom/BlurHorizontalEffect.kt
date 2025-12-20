@@ -17,7 +17,6 @@ class BlurHorizontalEffect() : Effect(program), Resizable {
     }
 
     override fun unuse() {
-        program.unuse()
     }
 
     override fun resize(width: Int, height: Int) {

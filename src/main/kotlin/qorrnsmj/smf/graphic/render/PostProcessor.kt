@@ -1,6 +1,7 @@
 package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
+import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.`object`.FrameBufferObject
 import qorrnsmj.smf.graphic.`object`.VertexArrayObject
 import qorrnsmj.smf.graphic.`object`.VertexBufferObject
@@ -32,17 +33,14 @@ class PostProcessor : Resizable {
 
         glVertexAttribPointer(1, 2, GL_FLOAT, false, 5 * Float.SIZE_BYTES, 3 * Float.SIZE_BYTES.toLong())
         glEnableVertexAttribArray(1)
-
-        quadVbo.unbind()
-        quadVao.unbind()
     }
 
     fun bindFrameBuffer() {
         inFbo.bind()
     }
 
-    fun unbindFrameBuffer() {
-        inFbo.unbind()
+    fun bindDefaultFrameBuffer() {
+        inFbo.bindDefault()
     }
 
     fun applyPostProcess(effects: List<Effect>) {
@@ -83,9 +81,6 @@ class PostProcessor : Resizable {
         // Render the screen quad
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
-
-        inFbo.colorTexture.unbind()
-        quadVao.unbind()
     }
 
     /* Misc */
@@ -93,6 +88,10 @@ class PostProcessor : Resizable {
     fun cleanup() {
         inFbo.delete()
         outFbo.delete()
+        quadVbo.delete()
+        quadVao.delete()
+
+        Logger.info("PostProcessor cleaned up!")
     }
 
     override fun resize(width: Int, height: Int) {

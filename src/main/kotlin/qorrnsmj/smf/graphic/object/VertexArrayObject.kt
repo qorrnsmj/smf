@@ -9,10 +9,6 @@ class VertexArrayObject : Object() {
         glBindVertexArray(id)
     }
 
-    override fun unbind() {
-        glBindVertexArray(0)
-    }
-
     override fun delete() {
         glDeleteVertexArrays(id)
     }
