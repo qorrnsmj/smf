@@ -81,7 +81,7 @@ object SkyboxLoader : Cleanable {
         val material = Material(diffuseTexture = texture)
 
         val faceCount = mesh.vertexCount.div(3)
-        Logger.info("Skybox \"${id}\" loaded ($faceCount faces)")
+        Logger.info("\"${id}\" loaded ($faceCount faces)")
 
         return Model(id, mesh, material)
     }
