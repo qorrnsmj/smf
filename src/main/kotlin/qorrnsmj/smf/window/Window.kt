@@ -2,11 +2,10 @@ package qorrnsmj.smf.window
 
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11.GL_VERSION
-import org.lwjgl.opengl.GL11.glGetString
+import org.lwjgl.opengl.GL33C.GL_VERSION
+import org.lwjgl.opengl.GL33C.glGetString
 import org.lwjgl.system.MemoryUtil
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.SMF
 import qorrnsmj.smf.util.impl.Resizable
 
 class Window(width: Int, height: Int, title: String, vsync: Boolean = true) : Resizable {

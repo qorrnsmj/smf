@@ -14,7 +14,6 @@ abstract class ShaderProgram(
             // Attach shaders and link program
             glAttachShader(id, vertexShader.id)
             glAttachShader(id, fragmentShader.id)
-            bindAttributes()
             glLinkProgram(id)
 
             // Check if linking was successful
@@ -27,16 +26,9 @@ abstract class ShaderProgram(
         }
     }
 
-    // TODO: useに全部変える (glUseProgram使ってるところ)
     fun use() {
         glUseProgram(id)
     }
-
-    fun unuse() {
-        glUseProgram(0)
-    }
-
-    protected abstract fun bindAttributes()
 
     fun delete() {
         vertexShader.delete()

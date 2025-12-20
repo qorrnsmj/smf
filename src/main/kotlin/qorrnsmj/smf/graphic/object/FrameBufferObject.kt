@@ -18,7 +18,6 @@ class FrameBufferObject(val width: Int, val height: Int) : Object() {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-            colorTexture.unbind()
 
             depthTexture.bind()
             glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0)
@@ -26,22 +25,19 @@ class FrameBufferObject(val width: Int, val height: Int) : Object() {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-            depthTexture.unbind()
 
             colorBuffer.bind()
             glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, width, height)
-            colorBuffer.unbind()
 
             depthBuffer.bind()
             glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height)
-            depthBuffer.unbind()
 
             bind()
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture.id, 0)
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture.id, 0)
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_RENDERBUFFER, colorBuffer.id)
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer.id)
-            unbind()
+            bindDefault()
 
             val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
             check (status == GL_FRAMEBUFFER_COMPLETE) { "Frame-buffer is not complete: $status" }
@@ -55,7 +51,7 @@ class FrameBufferObject(val width: Int, val height: Int) : Object() {
         glBindFramebuffer(GL_FRAMEBUFFER, id)
     }
 
-    override fun unbind() {
+    fun bindDefault() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
     }
 

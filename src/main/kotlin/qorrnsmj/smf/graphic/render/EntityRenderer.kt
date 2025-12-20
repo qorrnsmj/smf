@@ -1,6 +1,7 @@
 package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
+import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.model.EntityModels
@@ -11,8 +12,9 @@ import qorrnsmj.smf.graphic.render.shader.EntityShaderProgram
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.impl.Resizable
 import qorrnsmj.smf.util.UniformUtils
+import qorrnsmj.smf.util.impl.Cleanable
 
-class EntityRenderer : Resizable {
+class EntityRenderer : Resizable, Cleanable {
     // TODO: locationはシェーダークラスに書く
     val program = EntityShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
@@ -54,7 +56,6 @@ class EntityRenderer : Resizable {
     }
 
     fun stop() {
-        program.unuse()
     }
 
     /* Render */
@@ -172,5 +173,11 @@ class EntityRenderer : Resizable {
 
     override fun resize(width: Int, height: Int) {
         UniformUtils.setUniform(locationProjection, MVP.getPerspectiveMatrix(width / height.toFloat()))
+    }
+
+    override fun cleanup() {
+        glDeleteProgram(program.id)
+
+        Logger.info("EntityRenderer cleaned up!")
     }
 }

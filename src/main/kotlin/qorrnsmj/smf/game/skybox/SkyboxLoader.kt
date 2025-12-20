@@ -10,7 +10,8 @@ import qorrnsmj.smf.game.entity.model.component.Mesh
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 import qorrnsmj.smf.util.impl.Cleanable
 import qorrnsmj.smf.game.entity.model.component.Model
-import java.io.IOException
+import qorrnsmj.smf.game.terrain.TerrainLoader
+import qorrnsmj.smf.util.ResourceUtils.getResourceAsByteBuffer
 
 object SkyboxLoader : Cleanable {
     private val vaos = mutableListOf<Int>()
@@ -68,7 +69,7 @@ object SkyboxLoader : Cleanable {
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindVertexArray(0)
 
-        val texture = loadCubeMap(
+        val texture = loadTexture(
             "${id}_front.png",
             "${id}_back.png",
             "${id}_top.png",
@@ -76,65 +77,45 @@ object SkyboxLoader : Cleanable {
             "${id}_right.png",
             "${id}_left.png"
         )
-        textures.add(texture)
-
         val mesh = Mesh(vao, indices.size)
         val material = Material(diffuseTexture = texture)
 
-        Logger.info("Loaded skybox model '${id}'")
+        val faceCount = mesh.vertexCount.div(3)
+        Logger.info("Skybox \"${id}\" loaded ($faceCount faces)")
+
         return Model(id, mesh, material)
     }
 
-    private fun loadCubeMap(vararg files: String): TextureBufferObject {
-        val texture = TextureBufferObject()
-        texture.bind()
+    private fun loadTexture(vararg files: String): TextureBufferObject {
+        // Create TBO
+        val texture = TextureBufferObject().apply {
+            this.bind()
+            textures.add(this)
+        }
 
-        // ensure proper row alignment for arbitrary width images
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-
+        // Load image
         for ((i, file) in files.withIndex()) {
-            val resourcePath = "/assets/texture/skybox/$file"
-            val stream = SkyboxLoader::class.java.getResourceAsStream(resourcePath)
-                ?: throw IOException("Failed to find resource: $resourcePath")
-            val bytes = stream.use { it.readAllBytes() }
+            MemoryStack.stackPush().use { stack ->
+                val width = stack.mallocInt(1)
+                val height = stack.mallocInt(1)
+                val channel = stack.mallocInt(1)
+                val buffer = getResourceAsByteBuffer("assets/texture/skybox/$file")
+                val imageByteBuffer = stbi_load_from_memory(buffer, width, height, channel, 4)
+                    ?: throw RuntimeException("Failed to load image $file: ${stbi_failure_reason()}")
 
-            val imageBuffer = MemoryUtil.memAlloc(bytes.size)
-            try {
-                imageBuffer.put(bytes).flip()
-                MemoryStack.stackPush().use { stack ->
-                    val w = stack.mallocInt(1)
-                    val h = stack.mallocInt(1)
-                    val comp = stack.mallocInt(1)
-                    val img = stbi_load_from_memory(imageBuffer, w, h, comp, 4)
-                        ?: throw RuntimeException("Failed to load image $file: ${stbi_failure_reason()}")
-                    try {
-                        glTexImage2D(
-                            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                            0,
-                            GL_RGBA,
-                            w.get(0),
-                            h.get(0),
-                            0,
-                            GL_RGBA,
-                            GL_UNSIGNED_BYTE,
-                            img
-                        )
-                    } finally {
-                        stbi_image_free(img)
-                    }
-                }
-            } finally {
-                MemoryUtil.memFree(imageBuffer)
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA,
+                     width.get(), height.get(), 0, GL_RGBA, GL_UNSIGNED_BYTE, imageByteBuffer)
+                stbi_image_free(imageByteBuffer)
             }
         }
 
+        // Set parameter
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
 
-        texture.unbind()
         return texture
     }
 
