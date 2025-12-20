@@ -76,7 +76,7 @@ object TerrainLoader {
         val model = Model("terrain", mesh, material)
 
         val faceCount = mesh.vertexCount.div(3)
-        Logger.info("Terrain \"\" loaded ($faceCount faces)")
+        Logger.info("\"\" loaded ($faceCount faces)")
 
         return model
     }
