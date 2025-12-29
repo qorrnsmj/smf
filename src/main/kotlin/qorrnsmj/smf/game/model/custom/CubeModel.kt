@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.entity.model.custom
+package qorrnsmj.smf.game.model.custom
 
 //class CubeModel(
 //    val size: Float,

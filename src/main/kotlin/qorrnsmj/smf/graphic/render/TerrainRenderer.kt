@@ -3,7 +3,7 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.entity.model.component.Model
+import qorrnsmj.smf.game.model.component.Model
 import qorrnsmj.smf.game.terrain.Terrain
 import qorrnsmj.smf.game.terrain.TerrainModels
 import qorrnsmj.smf.util.MVP
@@ -55,13 +55,13 @@ class TerrainRenderer : Resizable, Cleanable {
     }
 
     private fun bindModel(model: Model) {
-        glBindVertexArray(model.mesh.vaoID)
+        glBindVertexArray(model.mesh.vao)
 
         val material = model.material
 
         // Diffuse texture
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, material.diffuseTexture.id)
+        glBindTexture(GL_TEXTURE_2D, material.baseColorTexture.id)
         glUniform1i(locationTexImage, 0)
 
         // Specular texture

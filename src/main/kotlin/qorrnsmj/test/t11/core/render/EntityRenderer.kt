@@ -44,7 +44,7 @@ class EntityRenderer {
     }
 
     private fun bindModel(model: Model) {
-        glBindVertexArray(model.mesh.vaoID)
+        glBindVertexArray(model.mesh.vao)
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
         glEnableVertexAttribArray(2)

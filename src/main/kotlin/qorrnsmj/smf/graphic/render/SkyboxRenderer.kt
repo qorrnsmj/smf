@@ -5,7 +5,7 @@ import qorrnsmj.smf.math.Vector3f
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.entity.model.component.Model
+import qorrnsmj.smf.game.model.component.Model
 import qorrnsmj.smf.graphic.render.shader.SkyboxShaderProgram
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.UniformUtils
@@ -40,7 +40,7 @@ class SkyboxRenderer : Resizable, Cleanable {
         UniformUtils.setUniform(locationModel, Matrix4f())
 
         // bind cubemap to unit 0
-        val tex = model.material.diffuseTexture
+        val tex = model.material.baseColorTexture
         glActiveTexture(GL_TEXTURE0)
         tex.bind()
         UniformUtils.setUniform(locationTexImage, 0)
@@ -49,7 +49,7 @@ class SkyboxRenderer : Resizable, Cleanable {
         UniformUtils.setUniform(locationSkyColor, Vector3f(0.5f, 0.7f, 1.0f))
 
         // draw
-        glBindVertexArray(model.mesh.vaoID)
+        glBindVertexArray(model.mesh.vao)
         glEnableVertexAttribArray(0)
         glDrawElements(GL_TRIANGLES, model.mesh.vertexCount, GL_UNSIGNED_INT, 0)
         glDisableVertexAttribArray(0)
