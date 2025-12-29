@@ -1,5 +1,6 @@
 package qorrnsmj.smf.graphic.render
 
+import de.javagl.jgltf.model.v2.MaterialModelV2.AlphaMode
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
@@ -13,6 +14,8 @@ import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.impl.Resizable
 import qorrnsmj.smf.util.UniformUtils.setUniform
 import qorrnsmj.smf.util.impl.Cleanable
+
+data class DrawItem(val model: Model, val entity: PbrEntity, val distanceSq: Float)
 
 class EntityRenderer : Resizable, Cleanable {
     // TODO: locationはシェーダークラスに書く?
@@ -63,23 +66,71 @@ class EntityRenderer : Resizable, Cleanable {
 
     /* Render */
 
-    // TODO:
-    //  基本的にParentの子供は後から追加しない限りテクスチャは同じだから、テクスチャが同じだったらbindTextureしないようにする
-    //  そのためにはbindTexture()作るのと、modelEntityMapの中身を更に同じテクスチャIDでまとめる (今は同じテクスチャでも別のテクスチャIDになっちゃってる)
-    fun renderEntity(entities: List<PbrEntity>) {
+    // TODO: テクスチャキャッシング - 同じテクスチャは再bind しない
+    fun renderEntity(camera: Camera, entities: List<PbrEntity>) {
         val batchMap = mutableMapOf<Model, MutableList<PbrEntity>>()
         for (entity in entities) processEntity(entity, batchMap)
 
+        renderOpaqueAndMask(batchMap)
+        renderBlend(camera, batchMap)
+
+        glDepthMask(true)
+        glDisable(GL_BLEND)
+    }
+
+    private fun renderOpaqueAndMask(batchMap: Map<Model, MutableList<PbrEntity>>) {
+        glDepthMask(true)
+        glDisable(GL_BLEND)
+
         for ((model, targets) in batchMap) {
-            // モデル毎に設定するのはマテリア
+            if (model.material.alphaMode !in listOf(AlphaMode.OPAQUE, AlphaMode.MASK)) continue
+
             bindModel(model)
             for (target in targets) {
-                // エンティティ毎に設定するのはModel行列
                 prepareEntity(target)
                 glDrawElements(GL_TRIANGLES, model.mesh.vertexCount, model.mesh.vertexType, 0)
             }
             unbindModel()
         }
+    }
+
+    private fun renderBlend(camera: Camera, batchMap: Map<Model, MutableList<PbrEntity>>) {
+        glDepthMask(false)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        val blendItems = collectBlendItems(camera, batchMap)
+        var currentModel: Model? = null
+        for (item in blendItems) {
+            if (currentModel != item.model) {
+                if (currentModel != null) unbindModel()
+                bindModel(item.model)
+                currentModel = item.model
+            }
+            prepareEntity(item.entity)
+            glDrawElements(GL_TRIANGLES, item.model.mesh.vertexCount, item.model.mesh.vertexType, 0)
+        }
+        if (currentModel != null) unbindModel()
+    }
+
+    private fun collectBlendItems(camera: Camera, batchMap: Map<Model, MutableList<PbrEntity>>): List<DrawItem> {
+        val items = mutableListOf<DrawItem>()
+
+        for ((model, targets) in batchMap) {
+            if (model.material.alphaMode != AlphaMode.BLEND) continue
+
+            for (entity in targets) {
+                val dx = entity.position.x - camera.position.x
+                val dy = entity.position.y - camera.position.y
+                val dz = entity.position.z - camera.position.z
+                val distSq = dx * dx + dy * dy + dz * dz
+
+                items.add(DrawItem(model, entity, distSq))
+            }
+        }
+
+        items.sortByDescending { it.distanceSq }
+        return items
     }
 
     // TODO: 親のpos, rot, scaleを子にも適用 -> そもそもmodel-matrix共有しとけば？ (同じfbxのモデルならわかるけど、後から別モデルをchildren登録したらどうなる？)

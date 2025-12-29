@@ -75,6 +75,7 @@ void main() {
         * material.baseColorFactor;
 
     // alpha test (MASK)
+    // TODO: ifdef ALPHA_MASK
     if (material.alphaMode == 1) {
         if (baseColor.a < material.alphaCutoff) {
             discard;
