@@ -1,8 +1,8 @@
-package qorrnsmj.smf.game.terrain
+package qorrnsmj.smf.game.terrain.custom
 
 data class FlatTerrain(
     private val gridX: Float,
-    private val gridZ: Float
+    private val gridZ: Float,
 ) {
     val x = gridX * SIZE
     val z = gridZ * SIZE

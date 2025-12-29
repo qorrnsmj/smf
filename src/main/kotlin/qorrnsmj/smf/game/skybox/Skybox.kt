@@ -1,5 +1,3 @@
 package qorrnsmj.smf.game.skybox
 
-data class Skybox(
-    val id: String,
-)
+data class Skybox(val id: String)

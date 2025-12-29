@@ -2,86 +2,143 @@
 
 struct Light {
     vec3 position;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    float constant;
-    float linear;
-    float quadratic;
+    vec3 color;
 };
 
-struct Material {
-    vec3 diffuseColor;
-    vec3 ambientColor;
-    vec3 specularColor;
-    vec3 emissiveColor;
-    float shininess;
-    float opacity;
-    sampler2D diffuseTexture;
-    sampler2D specularTexture;
+struct PbrMaterial {
+    vec4 baseColorFactor;
+    vec3 emissiveFactor;
+    float metallicFactor;
+    float roughnessFactor;
+
+    sampler2D baseColorTexture;
+    sampler2D metallicRoughnessTexture;
     sampler2D normalTexture;
+    sampler2D occlusionTexture;
+    sampler2D emissiveTexture;
+
+    float normalScale;
+    float occlusionStrength;
+
+    // 0: OPAQUE, 1: MASK, 2: BLEND
+    int alphaMode;
+    float alphaCutoff;
+    bool doubleSided; // TODO
 };
 
-uniform vec3 skyColor;
 uniform int lightCount;
 uniform Light lights[30];
-uniform Material material;
+uniform vec3 cameraPosition;
+uniform vec3 skyColor;
+uniform PbrMaterial material;
 
-layout(location = 0) in vec4 vertexColor;
-layout(location = 1) in vec2 texCoord;
-layout(location = 2) in vec3 tangent;
-layout(location = 3) in vec3 worldPosition;
-layout(location = 4) in vec3 worldNormal;
-layout(location = 5) in vec3 viewPosition;
-layout(location = 6) in float visibility;
+layout(location = 0) in vec2 texCoord;
+layout(location = 1) in vec4 tangent;
+layout(location = 2) in vec3 worldPosition;
+layout(location = 3) in vec3 worldNormal;
+layout(location = 4) in vec3 viewPosition;
+layout(location = 5) in float visibility;
 
-layout(location = 0) out vec4 fragColor;
+out vec4 fragColor;
+
+const float PI = 3.14159265359;
+
+/* PBR Utils */
+
+float DistributionGGX(vec3 N, vec3 H, float roughness) {
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float NdotH = max(dot(N, H), 0.0);
+    float denom = (NdotH * NdotH) * (a2 - 1.0) + 1.0;
+    return a2 / (PI * denom * denom);
+}
+
+float GeometrySchlickGGX(float NdotV, float roughness) {
+    float r = roughness + 1.0;
+    float k = (r * r) / 8.0;
+    return NdotV / (NdotV * (1.0 - k) + k);
+}
+
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
+    return GeometrySchlickGGX(max(dot(N, V), 0.0), roughness)
+         * GeometrySchlickGGX(max(dot(N, L), 0.0), roughness);
+}
+
+vec3 FresnelSchlick(float cosTheta, vec3 F0) {
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+/* Main */
 
 void main() {
-    // Discard transparent fragments (TODO)
-    if (texture(material.diffuseTexture, texCoord).a < 0.5) {
-        discard;
+    vec4 baseColor = texture(material.baseColorTexture, texCoord)
+        * material.baseColorFactor;
+
+    // alpha test (MASK)
+    if (material.alphaMode == 1) {
+        if (baseColor.a < material.alphaCutoff) {
+            discard;
+        }
     }
 
-    // Calculate TBN matrix
-    vec3 tang = normalize(tangent);
-    vec3 bitang = normalize(cross(worldNormal, tang));
-    vec3 norm = normalize(worldNormal);
-    mat3 TBN = mat3(tang, bitang, norm);
+    // tangent space to world space
+    vec3 N = normalize(worldNormal);
+    vec3 T = normalize(tangent.xyz);
+    vec3 B = normalize(cross(N, T) * tangent.w);
+    mat3 TBN = mat3(T, B, N);
 
-    // Normal mapping
-    vec3 texNormal = texture(material.normalTexture, texCoord).rgb;
-    texNormal = normalize(texNormal * 2.0 - 1.0); // Convert to [-1, 1] range
-    norm = normalize(TBN * texNormal); // Apply normal mapping using TBN
+    // final normal with normal map
+    vec3 normalMap = texture(material.normalTexture, texCoord).rgb;
+    normalMap = normalMap * 2.0 - 1.0; // [0,1] -> [-1,1]
+    normalMap.xy *= material.normalScale;
+    N = normalize(TBN * normalMap);
 
-    // Process lights
-    vec3 viewDir = normalize(viewPosition - worldPosition);
-    vec3 result = material.emissiveColor; // Start with emissive color
+    // metallic and roughness
+    vec4 mr = texture(material.metallicRoughnessTexture, texCoord);
+    float metallic  = material.metallicFactor  * mr.b;
+    float roughness = material.roughnessFactor * mr.g;
+    vec3 F0 = mix(vec3(0.04), baseColor.rgb, metallic);
+    // if metallic is 1.0, baseColor is treated as reflectance
+    // if metallic is 0.0, baseColor is treated as albedo
+
+    // lighting
+    vec3 Lo = vec3(0.0);
+    vec3 V = normalize(cameraPosition - worldPosition);
     for (int i = 0; i < lightCount; i++) {
-        vec3 lightDir = normalize(lights[i].position - worldPosition);
-        float distance = length(lights[i].position - worldPosition);
-        float attenuation = 1.0 / (lights[i].constant + lights[i].linear * distance + lights[i].quadratic * (distance * distance));
+        // light direction
+        vec3 L = normalize(lights[i].position - worldPosition);
+        vec3 H = normalize(V + L);
 
-        // Ambient
-        // TODO
-        vec3 ambient = lights[i].ambient; //* material.ambientColor;
+        // cook-torrance BRDF
+        float NDF = DistributionGGX(N, H, roughness);
+        float G   = GeometrySmith(N, V, L, roughness);
+        vec3  F   = FresnelSchlick(max(dot(H, V), 0.0), F0);
 
-        // Diffuse
-        float diff = max(dot(norm, lightDir), 0.0);
-        vec3 diffuseTex = texture(material.diffuseTexture, texCoord).rgb;
-        vec3 diffuse = lights[i].diffuse * (material.diffuseColor * diffuseTex) * diff * attenuation;
+        // coefficients of specular and diffuse
+        vec3 kS = F;
+        vec3 kD = (1.0 - kS) * (1.0 - metallic);
 
-        // Specular
-        vec3 reflectDir = reflect(-lightDir, norm);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-        vec3 specularTex = texture(material.specularTexture, texCoord).rgb;
-        vec3 specular = lights[i].specular * (material.specularColor * specularTex) * spec * attenuation;
+        // specular
+        vec3 numerator = NDF * G * kS;
+        float denom = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
+        vec3 specular = numerator / denom;
 
-        // Add to result
-        result += ambient + diffuse + specular;
+        // diffuse and NdotL
+        vec3 diffuse = kD * baseColor.rgb / PI;
+        float NdotL = max(dot(N, L), 0.0);
+
+        Lo += (specular + diffuse) * lights[i].color * NdotL;
     }
 
-    // Final color
-    fragColor = vec4(result, material.opacity); // Apply opacity
-    fragColor = mix(vec4(skyColor, 1.0), fragColor, visibility); // Apply sky color
+    // ambient occlusion
+    float ao = texture(material.occlusionTexture, texCoord).r;
+    ao = mix(1.0, ao, material.occlusionStrength);
+
+    // emissive
+    vec3 emissive = material.emissiveFactor
+        * texture(material.emissiveTexture, texCoord).rgb;
+
+    float exposure = 5.0; // TEST: remove exposure later and use intensity
+    vec3 color = Lo * ao * exposure + emissive;
+    fragColor = mix(vec4(skyColor, 1.0), vec4(color, baseColor.a), visibility);
 }

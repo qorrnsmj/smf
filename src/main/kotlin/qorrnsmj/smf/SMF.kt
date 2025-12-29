@@ -6,9 +6,10 @@ import org.lwjgl.glfw.GLFWFramebufferSizeCallback
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.core.FixedTimestepGame
 import qorrnsmj.smf.core.Timer
-import qorrnsmj.smf.game.entity.model.EntityModels
+import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.skybox.SkyboxModels
 import qorrnsmj.smf.game.terrain.TerrainModels
+import qorrnsmj.smf.game.texture.Textures
 import qorrnsmj.smf.graphic.render.MasterRenderer
 import qorrnsmj.smf.state.StateMachine
 import qorrnsmj.smf.window.SMFKeyCallback
@@ -23,6 +24,7 @@ object SMF : FixedTimestepGame() {
         renderer = MasterRenderer()
         renderer.resize(window.width, window.height)
 
+        Textures.load()
         EntityModels.load()
         TerrainModels.load()
         SkyboxModels.load()

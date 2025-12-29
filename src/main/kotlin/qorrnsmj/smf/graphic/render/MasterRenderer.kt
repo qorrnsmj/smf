@@ -40,7 +40,7 @@ class MasterRenderer : Resizable, Cleanable {
         entityRenderer.loadCamera(scene.camera)
         entityRenderer.loadLights(scene.lights)
         entityRenderer.loadSkyColor(skyColor)
-        entityRenderer.renderEntities(scene.entities)
+        entityRenderer.renderEntity(scene.entities)
         entityRenderer.stop()
 
         terrainRenderer.start()
