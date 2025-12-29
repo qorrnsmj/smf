@@ -15,8 +15,6 @@ import qorrnsmj.smf.util.impl.Resizable
 import qorrnsmj.smf.util.UniformUtils.setUniform
 import qorrnsmj.smf.util.impl.Cleanable
 
-data class DrawItem(val model: Model, val entity: PbrEntity, val distanceSq: Float)
-
 class EntityRenderer : Resizable, Cleanable {
     // TODO: locationはシェーダークラスに書く?
     val program = EntityShaderProgram()
@@ -83,7 +81,8 @@ class EntityRenderer : Resizable, Cleanable {
         glDisable(GL_BLEND)
 
         for ((model, targets) in batchMap) {
-            if (model.material.alphaMode !in listOf(AlphaMode.OPAQUE, AlphaMode.MASK)) continue
+            if (model.material.alphaMode == AlphaMode.BLEND)
+                continue
 
             bindModel(model)
             for (target in targets) {
@@ -99,38 +98,37 @@ class EntityRenderer : Resizable, Cleanable {
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-        val blendItems = collectBlendItems(camera, batchMap)
-        var currentModel: Model? = null
-        for (item in blendItems) {
-            if (currentModel != item.model) {
-                if (currentModel != null) unbindModel()
-                bindModel(item.model)
-                currentModel = item.model
-            }
-            prepareEntity(item.entity)
-            glDrawElements(GL_TRIANGLES, item.model.mesh.vertexCount, item.model.mesh.vertexType, 0)
-        }
-        if (currentModel != null) unbindModel()
-    }
-
-    private fun collectBlendItems(camera: Camera, batchMap: Map<Model, MutableList<PbrEntity>>): List<DrawItem> {
-        val items = mutableListOf<DrawItem>()
-
+        // sort by distance from camera
+        data class DrawItem(val model: Model, val entity: PbrEntity, val distanceSq: Float)
+        val blendItems = mutableListOf<DrawItem>()
         for ((model, targets) in batchMap) {
             if (model.material.alphaMode != AlphaMode.BLEND) continue
 
             for (entity in targets) {
+                // TODO: エンティティとの距離はUtilクラスに
                 val dx = entity.position.x - camera.position.x
                 val dy = entity.position.y - camera.position.y
                 val dz = entity.position.z - camera.position.z
                 val distSq = dx * dx + dy * dy + dz * dz
 
-                items.add(DrawItem(model, entity, distSq))
+                blendItems.add(DrawItem(model, entity, distSq))
             }
         }
+        blendItems.sortByDescending { it.distanceSq }
 
-        items.sortByDescending { it.distanceSq }
-        return items
+        // render
+        var boundModel: Model? = null
+        for (item in blendItems) {
+            if (boundModel != item.model) {
+                unbindModel()
+                bindModel(item.model)
+                boundModel = item.model
+            }
+
+            prepareEntity(item.entity)
+            glDrawElements(GL_TRIANGLES, item.model.mesh.vertexCount, item.model.mesh.vertexType, 0)
+        }
+        unbindModel()
     }
 
     // TODO: 親のpos, rot, scaleを子にも適用 -> そもそもmodel-matrix共有しとけば？ (同じfbxのモデルならわかるけど、後から別モデルをchildren登録したらどうなる？)
