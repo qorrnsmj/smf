@@ -8,9 +8,9 @@ import qorrnsmj.smf.util.impl.Resizable
 
 class MasterRenderer : Resizable, Cleanable {
     private val postProcessor = PostProcessor()
-    private val entityRenderer = EntityRenderer()
-    private val terrainRenderer = TerrainRenderer()
     private val skyboxRenderer = SkyboxRenderer()
+    private val terrainRenderer = TerrainRenderer()
+    private val entityRenderer = EntityRenderer()
 
     init {
         Logger.info("MasterRenderer initializing...")
@@ -36,12 +36,10 @@ class MasterRenderer : Resizable, Cleanable {
         glClearColor(skyColor.x, skyColor.y, skyColor.z, 1f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        entityRenderer.start()
-        entityRenderer.loadCamera(scene.camera)
-        entityRenderer.loadLights(scene.lights)
-        entityRenderer.loadSkyColor(skyColor)
-        entityRenderer.renderEntity(scene.entities)
-        entityRenderer.stop()
+        skyboxRenderer.start()
+        skyboxRenderer.loadCamera(scene.camera)
+        skyboxRenderer.renderSkybox(scene.skybox)
+        skyboxRenderer.stop()
 
         terrainRenderer.start()
         terrainRenderer.loadCamera(scene.camera)
@@ -49,10 +47,12 @@ class MasterRenderer : Resizable, Cleanable {
         terrainRenderer.renderTerrains(scene.terrains)
         terrainRenderer.stop()
 
-        skyboxRenderer.start()
-        skyboxRenderer.loadCamera(scene.camera)
-        skyboxRenderer.renderSkybox(scene.skybox)
-        skyboxRenderer.stop()
+        entityRenderer.start()
+        entityRenderer.loadCamera(scene.camera)
+        entityRenderer.loadLights(scene.lights)
+        entityRenderer.loadSkyColor(skyColor)
+        entityRenderer.renderEntity(scene.camera, scene.entities)
+        entityRenderer.stop()
 
         if (scene.effects.isNotEmpty()) {
             postProcessor.bindDefaultFrameBuffer()
@@ -62,9 +62,9 @@ class MasterRenderer : Resizable, Cleanable {
 
     override fun cleanup() {
         postProcessor.cleanup()
-        entityRenderer.cleanup()
-        terrainRenderer.cleanup()
         skyboxRenderer.cleanup()
+        terrainRenderer.cleanup()
+        entityRenderer.cleanup()
 
         Logger.info("MasterRenderer cleaned up!")
     }
@@ -73,16 +73,16 @@ class MasterRenderer : Resizable, Cleanable {
         glViewport(0, 0, width, height)
         postProcessor.resize(width, height)
 
-        entityRenderer.start()
-        entityRenderer.resize(width, height)
-        entityRenderer.stop()
+        skyboxRenderer.start()
+        skyboxRenderer.resize(width, height)
+        skyboxRenderer.stop()
 
         terrainRenderer.start()
         terrainRenderer.resize(width, height)
         terrainRenderer.stop()
 
-        skyboxRenderer.start()
-        skyboxRenderer.resize(width, height)
-        skyboxRenderer.stop()
+        entityRenderer.start()
+        entityRenderer.resize(width, height)
+        entityRenderer.stop()
     }
 }
