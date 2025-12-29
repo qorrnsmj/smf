@@ -1,5 +1,5 @@
 group = "qorrnsmj"
-version = "0.1.10"
+version = "0.2.0"
 
 plugins {
     kotlin("jvm") version "2.0.0"
@@ -15,6 +15,7 @@ dependencies {
     val nativeTarget = "natives-windows"
 
     implementation(kotlin("stdlib-jdk8"))
+    implementation("de.javagl:jgltf-model:2.0.4")
     implementation("org.tinylog:tinylog-impl:2.7.0")
     implementation("org.tinylog:tinylog-api-kotlin:2.7.0")
 

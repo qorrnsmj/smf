@@ -1,31 +1,29 @@
 package qorrnsmj.smf.util
 
 import org.lwjgl.BufferUtils
-import org.tinylog.kotlin.Logger
 import java.io.InputStream
-import java.lang.Exception
 import java.nio.ByteBuffer
 
-// TODO: Loader.loadと被るからこっちは消す
-// TODO: Assimpに変えて、ResourceUtil消す
 object ResourceUtils {
     fun getResourceAsStream(path: String): InputStream {
-        try {
-            return ClassLoader.getSystemResourceAsStream(path)
-                ?: throw IllegalArgumentException("Resource not found: $path")
-        } catch (e: Exception) {
-            Logger.error(e)
-            return InputStream.nullInputStream()
-        }
+        return ClassLoader.getSystemResourceAsStream(path)
+            ?: error("Resource not found: $path")
     }
 
-    fun getResourceAsByteBuffer(path: String): ByteBuffer {
-        val bytes = getResourceAsStream(path).readAllBytes()
-        val buffer = BufferUtils.createByteBuffer(bytes.size).apply {
-            put(bytes)
-            flip()
-        }
+    fun getResourceAsDirectBuffer(filePath: String): ByteBuffer {
+        val bytes = getResourceAsStream(filePath).readAllBytes()
+        return BufferUtils.createByteBuffer(bytes.size)
+            .put(bytes)
+            .flip()
+    }
 
-        return buffer
+    fun getResourceAsDirectBuffer(byteBuffer: ByteBuffer): ByteBuffer {
+        return if (byteBuffer.isDirect) {
+            byteBuffer
+        } else {
+            BufferUtils.createByteBuffer(byteBuffer.remaining())
+                .put(byteBuffer)
+                .flip()
+        }
     }
 }

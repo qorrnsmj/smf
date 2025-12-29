@@ -57,7 +57,7 @@ class SolarSystemState : State() {
         scene.lights.add(sunLight)
         planets.forEach {
             it.position = Vector3f(it.sunDistance, 0f, 0f)
-            scene.entities.add(it)
+//            scene.entities.add(it)
         }
 
         SMF.window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)

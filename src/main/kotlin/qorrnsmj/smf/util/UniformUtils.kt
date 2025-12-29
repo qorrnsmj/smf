@@ -48,4 +48,10 @@ object UniformUtils {
             glUniformMatrix4fv(location, false, buffer)
         }
     }
+
+    fun setUniform(location: Int, textureId: Int, unit: Int) {
+        glActiveTexture(GL_TEXTURE0 + unit)
+        glBindTexture(GL_TEXTURE_2D, textureId)
+        glUniform1i(location, unit)
+    }
 }

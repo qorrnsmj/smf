@@ -1,8 +1,8 @@
 package qorrnsmj.smf.game.entity.custom.solarsystem
 
-import qorrnsmj.smf.game.entity.model.EntityModels
+import qorrnsmj.smf.game.entity.EntityModels
 
-class UranusEntity : PlanetEntity(EntityModels.URANUS) {
+class UranusEntity : PlanetEntity(EntityModels.EMPTY) {
     override val sunDistance = 6f
     override val spinSpeed = -1f / 0.718f
     override val orbitSpeed = 1f / 84f

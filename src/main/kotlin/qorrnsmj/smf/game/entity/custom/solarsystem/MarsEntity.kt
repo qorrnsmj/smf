@@ -1,8 +1,8 @@
 package qorrnsmj.smf.game.entity.custom.solarsystem
 
-import qorrnsmj.smf.game.entity.model.EntityModels
+import qorrnsmj.smf.game.entity.EntityModels
 
-class MarsEntity : PlanetEntity(EntityModels.MARS) {
+class MarsEntity : PlanetEntity(EntityModels.EMPTY) {
     override val sunDistance = 2.5f
     override val spinSpeed = 1f / 1.03f
     override val orbitSpeed = 1f / 1.88f
