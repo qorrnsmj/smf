@@ -1,8 +1,8 @@
 package qorrnsmj.smf.game.entity.custom.solarsystem
 
-import qorrnsmj.smf.game.entity.model.EntityModels
+import qorrnsmj.smf.game.entity.EntityModels
 
-class JupiterEntity : PlanetEntity(EntityModels.JUPITER) {
+class JupiterEntity : PlanetEntity(EntityModels.EMPTY) {
     override val sunDistance = 4f
     override val spinSpeed = 1f / 0.414f
     override val orbitSpeed = 1f / 11.9f

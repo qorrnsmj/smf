@@ -1,7 +1,7 @@
 package qorrnsmj.smf.game.entity.custom.solarsystem
 
 import qorrnsmj.smf.game.entity.Entity
-import qorrnsmj.smf.game.entity.model.component.Model
+import qorrnsmj.smf.game.model.component.Model
 import qorrnsmj.smf.math.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin

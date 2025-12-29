@@ -13,6 +13,7 @@ class Vector4f {
     var y: Float
     var z: Float
     var w: Float
+    // TODO: rgba
 
     /**
      * Creates a default 4-tuple vector with all values set to 0.
@@ -160,5 +161,9 @@ class Vector4f {
     fun toBuffer(buffer: FloatBuffer) {
         buffer.put(x).put(y).put(z).put(w)
         buffer.flip()
+    }
+
+    override fun toString(): String {
+        return "($x, $y, $z, $w)"
     }
 }
