@@ -1,6 +1,5 @@
 package qorrnsmj.smf.game.entity
 
-import de.javagl.jgltf.model.MeshModel
 import de.javagl.jgltf.model.MeshPrimitiveModel
 import de.javagl.jgltf.model.NodeModel
 import de.javagl.jgltf.model.SceneModel
@@ -37,14 +36,15 @@ object EntityLoader : Cleanable {
 
             gltfModel.sceneModels.forEach { scene: SceneModel ->
                 scene.nodeModels.forEach { node: NodeModel ->
-                    node.meshModels.forEach { mesh: MeshModel ->
+                    loadNode(models, node, scene.name)
+                    /*node.meshModels.forEach { mesh: MeshModel ->
                         mesh.meshPrimitiveModels.forEach { primitive ->
                             val name = node.name ?: mesh.name ?: "mesh"
                             val mesh = loadMesh(primitive)
                             val material = loadMaterial(primitive)
                             models[name] = Model(name, mesh, material)
                         }
-                    }
+                    }*/
                 }
             }
 
@@ -57,6 +57,24 @@ object EntityLoader : Cleanable {
         }
 
         return emptyMap()
+    }
+
+    // TEST: Blenderの親子構造のプラクティスを学ぶ
+    private fun loadNode(models: HashMap<String, Model>, node: NodeModel, parentName: String?) {
+        val nodeName = node.name ?: parentName ?: "node"
+
+        node.meshModels.forEach { meshModel ->
+            meshModel.meshPrimitiveModels.forEach { primitive ->
+                val name = nodeName
+                val mesh = loadMesh(primitive)
+                val material = loadMaterial(primitive)
+                models[name] = Model(name, mesh, material)
+            }
+        }
+
+        node.children.forEach { child ->
+            loadNode(models, child, nodeName)
+        }
     }
 
     private fun loadMesh(primitive: MeshPrimitiveModel): Mesh {

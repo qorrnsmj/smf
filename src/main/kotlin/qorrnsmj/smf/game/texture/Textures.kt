@@ -11,7 +11,11 @@ object Textures {
     lateinit var DEFAULT_8080FF: TextureBufferObject
     lateinit var DEFAULT_FFFFFF: TextureBufferObject
 
+    lateinit var TERRAIN_BLEND_MAP: TextureBufferObject
     lateinit var TERRAIN_GRASS: TextureBufferObject
+    lateinit var TERRAIN_FLOWER: TextureBufferObject
+    lateinit var TERRAIN_DIRT: TextureBufferObject
+    lateinit var TERRAIN_PATH: TextureBufferObject
 
     //lateinit var SKYBOX_SKY1: TextureBufferObject
 
@@ -21,7 +25,11 @@ object Textures {
         DEFAULT_8080FF = loadEntityTexture("_8080FF")
         DEFAULT_FFFFFF = loadEntityTexture("_FFFFFF")
 
+        TERRAIN_BLEND_MAP = loadTerrainTexture("blendmap")
         TERRAIN_GRASS = loadTerrainTexture("grass")
+        TERRAIN_FLOWER = loadTerrainTexture("flower")
+        TERRAIN_DIRT = loadTerrainTexture("dirt")
+        TERRAIN_PATH = loadTerrainTexture("path")
 
         //SKYBOX_SKY1 = loadSkyboxTexture("sky1")
     }

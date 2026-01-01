@@ -3,8 +3,8 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.model.component.Model
 import qorrnsmj.smf.game.terrain.Terrain
+import qorrnsmj.smf.game.terrain.TerrainModel
 import qorrnsmj.smf.game.terrain.TerrainModels
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.graphic.render.shader.TerrainShaderProgram
@@ -21,8 +21,14 @@ class TerrainRenderer : Resizable, Cleanable {
     val locationModel = glGetUniformLocation(program.id, "model")
     val locationView = glGetUniformLocation(program.id, "view")
     val locationProjection = glGetUniformLocation(program.id, "projection")
-    val locationTexImage = glGetUniformLocation(program.id, "texImage")
+    val locationBlendMap = glGetUniformLocation(program.id, "blendMap")
+    val locationTexGrass = glGetUniformLocation(program.id, "texGrass")
+    val locationTexFlower = glGetUniformLocation(program.id, "texFlower")
+    val locationTexDirt = glGetUniformLocation(program.id, "texDirt")
+    val locationTexPath = glGetUniformLocation(program.id, "texPath")
     val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
+    val locationFogDensity = glGetUniformLocation(program.id, "fogDensity")
+    val locationFogGradient = glGetUniformLocation(program.id, "fogGradient")
 
     fun start() {
         program.use()
@@ -54,44 +60,45 @@ class TerrainRenderer : Resizable, Cleanable {
         UniformUtils.setUniform(locationModel, modelMatrix)
     }
 
-    private fun bindModel(model: Model) {
+    private fun bindModel(model: TerrainModel) {
         glBindVertexArray(model.mesh.vao)
 
         val material = model.material
 
-        // Diffuse texture
+        // BlendMap texture (unit 0)
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, material.baseColorTexture.id)
-        glUniform1i(locationTexImage, 0)
+        glBindTexture(GL_TEXTURE_2D, material.blendMap.id)
+        glUniform1i(locationBlendMap, 0)
 
-        // Specular texture
-        /*glActiveTexture(GL_TEXTURE1)
-        glBindTexture(GL_TEXTURE_2D, material.specularTexture.id)
-        glUniform1i(locationMaterials["specularTexture"]!!, 1)*/
+        // Grass texture (unit 1)
+        glActiveTexture(GL_TEXTURE1)
+        glBindTexture(GL_TEXTURE_2D, material.grassTexture.id)
+        glUniform1i(locationTexGrass, 1)
 
-        // Normal texture
-        /*glActiveTexture(GL_TEXTURE2)
-        glBindTexture(GL_TEXTURE_2D, material.normalTexture.id)
-        glUniform1i(locationMaterials["normalTexture"]!!, 2)*/
+        // Flower texture (unit 2)
+        glActiveTexture(GL_TEXTURE2)
+        glBindTexture(GL_TEXTURE_2D, material.flowerTexture.id)
+        glUniform1i(locationTexFlower, 2)
 
-        // Material
-        /*UniformUtils.setUniform(locationMaterials["diffuseColor"]!!, material.diffuseColor)
-        UniformUtils.setUniform(locationMaterials["ambientColor"]!!, material.ambientColor)
-        UniformUtils.setUniform(locationMaterials["specularColor"]!!, material.specularColor)
-        UniformUtils.setUniform(locationMaterials["emissiveColor"]!!, material.emissiveColor)
-        UniformUtils.setUniform(locationMaterials["shininess"]!!, material.shininess)
-        UniformUtils.setUniform(locationMaterials["opacity"]!!, material.opacity)*/
+        // Dirt texture (unit 3)
+        glActiveTexture(GL_TEXTURE3)
+        glBindTexture(GL_TEXTURE_2D, material.dirtTexture.id)
+        glUniform1i(locationTexDirt, 3)
+
+        // Path texture (unit 4)
+        glActiveTexture(GL_TEXTURE4)
+        glBindTexture(GL_TEXTURE_2D, material.pathTexture.id)
+        glUniform1i(locationTexPath, 4)
     }
 
     private fun unbindModel() {
         glBindVertexArray(0)
 
-        /*glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, 0)
-        glActiveTexture(GL_TEXTURE1)
-        glBindTexture(GL_TEXTURE_2D, 0)
-        glActiveTexture(GL_TEXTURE2)
-        glBindTexture(GL_TEXTURE_2D, 0)*/
+        // Unbind all texture units
+        for (i in 0..4) {
+            glActiveTexture(GL_TEXTURE0 + i)
+            glBindTexture(GL_TEXTURE_2D, 0)
+        }
     }
 
     /* Uniforms */
@@ -102,6 +109,11 @@ class TerrainRenderer : Resizable, Cleanable {
 
     fun loadSkyColor(skyColor: Vector3f) {
         UniformUtils.setUniform(locationSkyColor, skyColor)
+    }
+
+    fun loadFog(density: Float, gradient: Float) {
+        UniformUtils.setUniform(locationFogDensity, density)
+        UniformUtils.setUniform(locationFogGradient, gradient)
     }
 
     override fun resize(width: Int, height: Int) {

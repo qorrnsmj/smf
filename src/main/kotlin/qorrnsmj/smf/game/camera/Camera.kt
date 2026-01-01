@@ -27,19 +27,20 @@ class Camera(
 
     fun processKeyboardInput(window: Window) {
         val moveSpeed = speed
+        val horizontalFront = Vector3f(front.x, 0.0f, front.z).normalize()
+        val horizontalRight = horizontalFront.cross(Vector3f(0.0f, 1.0f, 0.0f)).normalize()
 
-        // WASDで移動
         if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS) {
-            position += front * moveSpeed
+            position += horizontalFront * moveSpeed
         }
         if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_S) == GLFW.GLFW_PRESS) {
-            position -= front * moveSpeed
+            position -= horizontalFront * moveSpeed
         }
         if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_A) == GLFW.GLFW_PRESS) {
-            position -= right() * moveSpeed
+            position -= horizontalRight * moveSpeed
         }
         if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_D) == GLFW.GLFW_PRESS) {
-            position += right() * moveSpeed
+            position += horizontalRight * moveSpeed
         }
 
         // SpaceとShiftで上下移動

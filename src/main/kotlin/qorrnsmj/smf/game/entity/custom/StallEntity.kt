@@ -23,6 +23,7 @@ class StallEntity : PbrEntity() {
         ))
     }
 
+    // TODO: children.foreachでやるのって良くなくない？
     fun move() {
         children.forEach { it.rotation.y += 0.2f }
     }

@@ -12,7 +12,7 @@ import qorrnsmj.smf.math.Vector3f
 data class Scene(
     var camera: Camera = Camera(),
     var skybox: Model = SkyboxModels.NONE,
-    var skyColor: Vector3f = Vector3f(0f, 0f, 0f),
+    var skyColor: Vector3f = Vector3f(1f, 1f, 1f),
     val lights: MutableList<Light> = mutableListOf(),
     val entities: MutableList<PbrEntity> = mutableListOf(),
     val terrains: MutableList<Terrain> = mutableListOf(),
