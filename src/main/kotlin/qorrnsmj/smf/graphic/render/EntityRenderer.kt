@@ -25,6 +25,8 @@ class EntityRenderer : Resizable, Cleanable {
     val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
     val locationCameraPosition = glGetUniformLocation(program.id, "cameraPosition")
     val locationLightCount = glGetUniformLocation(program.id, "lightCount")
+    val locationFogDensity = glGetUniformLocation(program.id, "fogDensity")
+    val locationFogGradient = glGetUniformLocation(program.id, "fogGradient")
     val locationLights = mutableMapOf<Int, HashMap<String, Int>>()
     val locationMaterials = hashMapOf<String, Int>()
 
@@ -212,6 +214,11 @@ class EntityRenderer : Resizable, Cleanable {
         setUniform(locationSkyColor, skyColor)
     }
 
+    fun loadFog(density: Float, gradient: Float) {
+        setUniform(locationFogDensity, density)
+        setUniform(locationFogGradient, gradient)
+    }
+
     override fun resize(width: Int, height: Int) {
         setUniform(locationProjection, MVP.getPerspectiveMatrix(width / height.toFloat()))
     }
@@ -221,3 +228,4 @@ class EntityRenderer : Resizable, Cleanable {
         Logger.info("EntityRenderer cleaned up!")
     }
 }
+

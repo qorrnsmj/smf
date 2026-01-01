@@ -10,24 +10,17 @@ import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.state.State
 
-class GltfState : State() {
-    private var elapsedTime = 0f
+class TestState : State() {
     private lateinit var scene: Scene
     private lateinit var stall: StallEntity
-//    private lateinit var normCube: NormCubeEntity
-//    private lateinit var plane: TestPlaneEntity
-    private lateinit var pointLight1: PointLight
-    private lateinit var pointLight2: PointLight
+    private lateinit var pointLight: PointLight
 
     override fun start() {
         // init
-        elapsedTime = 0f
         scene = Scene()
         stall = StallEntity()
-//        normCube = NormCubeEntity()
-//        plane = TestPlaneEntity()
-        pointLight1 = PointLight().apply {
-            position = Vector3f(0f, 20f, 0f)
+        pointLight = PointLight().apply {
+            position = Vector3f(0f, 10f, 0f)
             ambient = Vector3f(0.1f, 0.1f, 0.1f)
             diffuse = Vector3f(1f, 1f, 1f)
             specular = Vector3f(1f, 1f, 1f)
@@ -39,21 +32,17 @@ class GltfState : State() {
 
         // setup
         SMF.window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
-        scene.camera.position = Vector3f(10f, 10f, -10f)
-        scene.camera.front = Vector3f(-1f, 0f, 0f).normalize()
+        scene.camera.position = Vector3f(0f, 5f, -5f)
+        scene.camera.front = Vector3f(0f, 0f, 1f).normalize()
         scene.skybox = SkyboxModels.SKY1
 
         // transform
         stall.position = Vector3f(0f, 0f, 0f)
-//        normCube.position = Vector3f(10f, 3f, 0f)
-//        plane.position = Vector3f(20f, 3f, 0f)
 
         // add
         scene.terrains.add(Terrain("test"))
-        scene.lights.add(pointLight1)
+        scene.lights.add(pointLight)
         scene.entities.add(stall)
-//        scene.entities.add(normCube)
-//        scene.entities.add(plane)
     }
 
     override fun input() {
@@ -62,13 +51,8 @@ class GltfState : State() {
     }
 
     override fun update(delta: Float) {
-        elapsedTime += delta
-
         stall.move()
         stall.fruits.position.y += 0.01f
-//        plane.rotation.y += 1f
-
-        //pointLight2.position = scene.camera.position
     }
 
     override fun render(alpha: Float) {

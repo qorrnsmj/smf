@@ -3,13 +3,10 @@ package qorrnsmj.smf.game.terrain
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.model.component.Material
 import qorrnsmj.smf.game.model.component.Mesh
-import qorrnsmj.smf.game.model.component.Model
 import qorrnsmj.smf.game.terrain.custom.FlatTerrain
 import qorrnsmj.smf.game.terrain.custom.FlatTerrain.Companion.SIZE
 import qorrnsmj.smf.game.terrain.custom.FlatTerrain.Companion.VERTEX_COUNT
-import qorrnsmj.smf.game.texture.Textures
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 import qorrnsmj.smf.graphic.`object`.VertexArrayObject
 
@@ -20,7 +17,7 @@ object TerrainLoader {
     private val textures = mutableListOf<TextureBufferObject>()
 
     // TODO: EntityLoaderみたいに綺麗にまとめる
-    fun loadModel(terrain: FlatTerrain): Model {
+    fun loadModel(terrain: FlatTerrain): TerrainModel {
         val count = VERTEX_COUNT * VERTEX_COUNT
         val positions = FloatArray(count * 3)
         val texCoords = FloatArray(count * 2)
@@ -65,8 +62,8 @@ object TerrainLoader {
         }
 
         val mesh = loadMesh(positions, texCoords, normals, indices)
-        val material = Material(baseColorTexture = Textures.TERRAIN_GRASS)
-        val model = Model("terrain", mesh, material)
+        val material = TerrainMaterial.createDefault()
+        val model = TerrainModel("terrain", mesh, material)
 
         val faceCount = mesh.vertexCount.div(3)
         Logger.info("\"\" loaded ($faceCount faces)")

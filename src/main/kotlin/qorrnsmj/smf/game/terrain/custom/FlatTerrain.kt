@@ -8,7 +8,7 @@ data class FlatTerrain(
     val z = gridZ * SIZE
 
     companion object {
-        const val SIZE = 800
+        const val SIZE = 400
         const val VERTEX_COUNT = 128
     }
 }

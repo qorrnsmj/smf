@@ -140,6 +140,6 @@ void main() {
         * texture(material.emissiveTexture, texCoord).rgb;
 
     float exposure = 5.0; // TEST: remove exposure later and use intensity
-    vec3 color = Lo * ao * exposure + emissive;
-    fragColor = mix(vec4(skyColor, 1.0), vec4(color, baseColor.a), visibility);
+    fragColor = vec4(Lo * ao * exposure + emissive, baseColor.a);
+    fragColor = mix(vec4(skyColor, 1.0), fragColor, visibility);
 }
