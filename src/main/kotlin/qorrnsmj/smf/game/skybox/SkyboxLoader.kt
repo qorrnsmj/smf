@@ -36,7 +36,12 @@ object SkyboxLoader : Cleanable {
         1, 2, 5, 5, 2, 6
     )
 
-    fun loadModel(id: String): Model {
+    fun loadSkybox(id: String): Skybox {
+        val model = loadModel(id)
+        return Skybox(model)
+    }
+
+    private fun loadModel(id: String): Model {
         val mesh = loadMesh()
         val texture = TextureLoader.loadCubemapTexture(
             "assets/texture/skybox/$id",
@@ -47,7 +52,7 @@ object SkyboxLoader : Cleanable {
         val faceCount = mesh.vertexCount.div(3)
         Logger.info("\"${id}\" loaded ($faceCount faces)")
 
-        return Model(id, mesh, material)
+        return Model(mesh, material)
     }
 
     private fun loadMesh(): Mesh {

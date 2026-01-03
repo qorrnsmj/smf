@@ -22,14 +22,6 @@ object TexturePresets {
         GL_REPEAT,
     )
 
-    val TERRAIN_BLENDMAP = TextureParams(
-        GL_LINEAR,
-        GL_LINEAR_MIPMAP_LINEAR,
-        GL_CLAMP_TO_EDGE,
-        GL_CLAMP_TO_EDGE,
-        GL_CLAMP_TO_EDGE,
-    )
-
     val SKYBOX = TextureParams(
         GL_LINEAR,
         GL_LINEAR,

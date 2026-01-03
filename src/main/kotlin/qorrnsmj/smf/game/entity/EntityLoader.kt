@@ -68,7 +68,7 @@ object EntityLoader : Cleanable {
                 val name = nodeName
                 val mesh = loadMesh(primitive)
                 val material = loadMaterial(primitive)
-                models[name] = Model(name, mesh, material)
+                models[name] = Model(mesh, material)
             }
         }
 

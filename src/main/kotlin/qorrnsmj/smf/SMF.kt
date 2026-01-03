@@ -7,8 +7,8 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.core.FixedTimestepGame
 import qorrnsmj.smf.core.Timer
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.skybox.SkyboxModels
-import qorrnsmj.smf.game.terrain.TerrainModels
+import qorrnsmj.smf.game.skybox.Skyboxes
+import qorrnsmj.smf.game.terrain.Terrains
 import qorrnsmj.smf.game.texture.Textures
 import qorrnsmj.smf.graphic.render.MasterRenderer
 import qorrnsmj.smf.state.StateMachine
@@ -26,8 +26,8 @@ object SMF : FixedTimestepGame() {
 
         Textures.load()
         EntityModels.load()
-        TerrainModels.load()
-        SkyboxModels.load()
+        Terrains.load()
+        Skyboxes.load()
         stateMachine = StateMachine()
         timer = Timer()
 
