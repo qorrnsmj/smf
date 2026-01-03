@@ -11,6 +11,7 @@ object Textures {
     lateinit var DEFAULT_8080FF: TextureBufferObject
     lateinit var DEFAULT_FFFFFF: TextureBufferObject
 
+    lateinit var TERRAIN_HEIGHT_MAP: TextureBufferObject
     lateinit var TERRAIN_BLEND_MAP: TextureBufferObject
     lateinit var TERRAIN_GRASS: TextureBufferObject
     lateinit var TERRAIN_FLOWER: TextureBufferObject
@@ -20,29 +21,30 @@ object Textures {
     //lateinit var SKYBOX_SKY1: TextureBufferObject
 
     fun load() {
-        DEFAULT_000000 = loadEntityTexture("_000000")
-        DEFAULT_00FF00 = loadEntityTexture("_00FF00")
-        DEFAULT_8080FF = loadEntityTexture("_8080FF")
-        DEFAULT_FFFFFF = loadEntityTexture("_FFFFFF")
+        DEFAULT_000000 = loadEntityTexture("_000000.png")
+        DEFAULT_00FF00 = loadEntityTexture("_00FF00.png")
+        DEFAULT_8080FF = loadEntityTexture("_8080FF.png")
+        DEFAULT_FFFFFF = loadEntityTexture("_FFFFFF.png")
 
-        TERRAIN_BLEND_MAP = loadTerrainTexture("blendmap")
-        TERRAIN_GRASS = loadTerrainTexture("grass")
-        TERRAIN_FLOWER = loadTerrainTexture("flower")
-        TERRAIN_DIRT = loadTerrainTexture("dirt")
-        TERRAIN_PATH = loadTerrainTexture("path")
+        TERRAIN_HEIGHT_MAP = loadTerrainTexture("heightmap.png")
+        TERRAIN_BLEND_MAP = loadTerrainTexture("blendmap.png")
+        TERRAIN_GRASS = loadTerrainTexture("grass.png")
+        TERRAIN_FLOWER = loadTerrainTexture("flower.png")
+        TERRAIN_DIRT = loadTerrainTexture("dirt.png")
+        TERRAIN_PATH = loadTerrainTexture("path.png")
 
-        //SKYBOX_SKY1 = loadSkyboxTexture("sky1")
+        //SKYBOX_SKY1 = loadSkyboxTexture("sky1.png")
     }
 
     private fun loadEntityTexture(fileName: String): TextureBufferObject {
-        return TextureLoader.loadTexture("assets/texture/entity/$fileName.png", TexturePresets.ENTITY)
+        return TextureLoader.loadTexture("assets/texture/entity/$fileName", TexturePresets.ENTITY)
     }
 
     private fun loadTerrainTexture(fileName: String): TextureBufferObject {
-        return TextureLoader.loadTexture("assets/texture/terrain/$fileName.png", TexturePresets.TERRAIN)
+        return TextureLoader.loadTexture("assets/texture/terrain/$fileName", TexturePresets.TERRAIN)
     }
 
-    // TODO
+    // TODO: skybox一つのテクスチャにする
     private fun loadSkyboxTexture(fileId: String): TextureBufferObject {
         return TextureLoader.loadTexture("assets/texture/skybox/$fileId", TexturePresets.SKYBOX)
     }

@@ -5,12 +5,12 @@ import qorrnsmj.smf.math.Vector3f
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.model.component.Model
 import qorrnsmj.smf.graphic.render.shader.SkyboxShaderProgram
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.UniformUtils
 import qorrnsmj.smf.util.impl.Cleanable
 import qorrnsmj.smf.util.impl.Resizable
+import qorrnsmj.smf.game.skybox.Skybox
 
 class SkyboxRenderer : Resizable, Cleanable {
     // TODO: locationはProgramクラスの中にしまえない？
@@ -35,7 +35,9 @@ class SkyboxRenderer : Resizable, Cleanable {
         glDepthFunc(GL_LESS)
     }
 
-    fun renderSkybox(model: Model) {
+    fun renderSkybox(skybox: Skybox) {
+        val model = skybox.model
+
         // identity model
         UniformUtils.setUniform(locationModel, Matrix4f())
 

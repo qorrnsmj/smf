@@ -4,12 +4,13 @@ import qorrnsmj.smf.game.model.component.Material
 import qorrnsmj.smf.game.model.component.Mesh
 import qorrnsmj.smf.game.model.component.Model
 
-object SkyboxModels {
-    lateinit var SKY1: Model
-    lateinit var NONE: Model
+// TODO: Skyboxes
+object Skyboxes {
+    lateinit var NONE: Skybox
+    lateinit var SKY1: Skybox
 
     fun load() {
-        SKY1 = SkyboxLoader.loadModel("sky1")
-        NONE = Model("none", Mesh(), Material())
+        NONE = Skybox(Model(Mesh(), Material()))
+        SKY1 = SkyboxLoader.loadSkybox("sky1")
     }
 }

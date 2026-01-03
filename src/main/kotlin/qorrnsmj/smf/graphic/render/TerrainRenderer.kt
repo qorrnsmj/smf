@@ -3,12 +3,12 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.terrain.Terrain
-import qorrnsmj.smf.game.terrain.TerrainModel
-import qorrnsmj.smf.game.terrain.TerrainModels
+import qorrnsmj.smf.game.terrain.*
+import qorrnsmj.smf.game.terrain.component.BlendedTexture
+import qorrnsmj.smf.game.terrain.component.SingleTexture
+import qorrnsmj.smf.game.terrain.component.TerrainTextureMode
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.graphic.render.shader.TerrainShaderProgram
-import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.impl.Resizable
 import qorrnsmj.smf.util.UniformUtils
@@ -21,6 +21,7 @@ class TerrainRenderer : Resizable, Cleanable {
     val locationModel = glGetUniformLocation(program.id, "model")
     val locationView = glGetUniformLocation(program.id, "view")
     val locationProjection = glGetUniformLocation(program.id, "projection")
+    val locationUseSingleTexture = glGetUniformLocation(program.id, "useSingleTexture")
     val locationBlendMap = glGetUniformLocation(program.id, "blendMap")
     val locationTexGrass = glGetUniformLocation(program.id, "texGrass")
     val locationTexFlower = glGetUniformLocation(program.id, "texFlower")
@@ -40,65 +41,70 @@ class TerrainRenderer : Resizable, Cleanable {
     /* Render */
 
     fun renderTerrains(terrains: List<Terrain>) {
-        UniformUtils.setUniform(locationModel, Matrix4f())
-
-        // TODO
         for (terrain in terrains) {
-            bindModel(TerrainModels.TERRAIN)
-            prepareTerrain()
-            glDrawElements(GL_TRIANGLES, TerrainModels.TERRAIN.mesh.vertexCount, GL_UNSIGNED_INT, 0)
-            unbindModel()
+            bindTextures(terrain.model.material.textureMode)
+            prepareTerrain(terrain)
+            glDrawElements(GL_TRIANGLES, terrain.model.mesh.vertexCount, GL_UNSIGNED_INT, 0)
+            unbindTextures()
         }
     }
 
-    private fun prepareTerrain() {
+    private fun prepareTerrain(terrain: Terrain) {
+        val mesh = terrain.model.mesh
+        glBindVertexArray(mesh.vao)
+
         val modelMatrix = MVP.getModelMatrix(
-            position = Vector3f(-100f, 0f, -100f),
-            rotation = Vector3f(0f, 0f, 0f),
-            scale = Vector3f(1f, 1f, 1f)
+            position = terrain.position,
+            rotation = terrain.rotation,
+            scale = terrain.scale,
         )
         UniformUtils.setUniform(locationModel, modelMatrix)
     }
 
-    private fun bindModel(model: TerrainModel) {
-        glBindVertexArray(model.mesh.vao)
+    private fun bindTextures(mode: TerrainTextureMode) {
+        when (mode) {
+            is SingleTexture -> {
+                // Single texture mode: only bind one texture
+                glUniform1i(locationUseSingleTexture, 1)
 
-        val material = model.material
+                glActiveTexture(GL_TEXTURE0)
+                glBindTexture(GL_TEXTURE_2D, mode.baseTexture.id)
+                glUniform1i(locationTexGrass, 0)
+                // No need to bind other textures
+            }
+            is BlendedTexture -> {
+                // Blended texture mode: bind blend map and 4 textures
+                glUniform1i(locationUseSingleTexture, 0)
 
-        // BlendMap texture (unit 0)
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, material.blendMap.id)
-        glUniform1i(locationBlendMap, 0)
+                glActiveTexture(GL_TEXTURE0)
+                glBindTexture(GL_TEXTURE_2D, mode.blendMap.id)
+                glUniform1i(locationBlendMap, 0)
 
-        // Grass texture (unit 1)
-        glActiveTexture(GL_TEXTURE1)
-        glBindTexture(GL_TEXTURE_2D, material.grassTexture.id)
-        glUniform1i(locationTexGrass, 1)
+                glActiveTexture(GL_TEXTURE1)
+                glBindTexture(GL_TEXTURE_2D, mode.baseTexture.id)
+                glUniform1i(locationTexGrass, 1)
 
-        // Flower texture (unit 2)
-        glActiveTexture(GL_TEXTURE2)
-        glBindTexture(GL_TEXTURE_2D, material.flowerTexture.id)
-        glUniform1i(locationTexFlower, 2)
+                glActiveTexture(GL_TEXTURE2)
+                glBindTexture(GL_TEXTURE_2D, mode.gTexture.id)
+                glUniform1i(locationTexFlower, 2)
 
-        // Dirt texture (unit 3)
-        glActiveTexture(GL_TEXTURE3)
-        glBindTexture(GL_TEXTURE_2D, material.dirtTexture.id)
-        glUniform1i(locationTexDirt, 3)
+                glActiveTexture(GL_TEXTURE3)
+                glBindTexture(GL_TEXTURE_2D, mode.rTexture.id)
+                glUniform1i(locationTexDirt, 3)
 
-        // Path texture (unit 4)
-        glActiveTexture(GL_TEXTURE4)
-        glBindTexture(GL_TEXTURE_2D, material.pathTexture.id)
-        glUniform1i(locationTexPath, 4)
+                glActiveTexture(GL_TEXTURE4)
+                glBindTexture(GL_TEXTURE_2D, mode.bTexture.id)
+                glUniform1i(locationTexPath, 4)
+            }
+        }
     }
 
-    private fun unbindModel() {
+    private fun unbindTextures() {
         glBindVertexArray(0)
 
-        // Unbind all texture units
-        for (i in 0..4) {
-            glActiveTexture(GL_TEXTURE0 + i)
-            glBindTexture(GL_TEXTURE_2D, 0)
-        }
+        // Unbind only active texture units
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, 0)
     }
 
     /* Uniforms */

@@ -4,7 +4,7 @@ import de.javagl.jgltf.model.v2.MaterialModelV2.AlphaMode
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.entity.PbrEntity
+import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.model.component.Model
 import qorrnsmj.smf.util.MVP
@@ -67,8 +67,8 @@ class EntityRenderer : Resizable, Cleanable {
     /* Render */
 
     // TODO: テクスチャキャッシング - 同じテクスチャは再bind しない
-    fun renderEntity(camera: Camera, entities: List<PbrEntity>) {
-        val batchMap = mutableMapOf<Model, MutableList<PbrEntity>>()
+    fun renderEntity(camera: Camera, entities: List<Entity>) {
+        val batchMap = mutableMapOf<Model, MutableList<Entity>>()
         for (entity in entities) processEntity(entity, batchMap)
 
         renderOpaqueAndMask(batchMap)
@@ -78,7 +78,7 @@ class EntityRenderer : Resizable, Cleanable {
         glDisable(GL_BLEND)
     }
 
-    private fun renderOpaqueAndMask(batchMap: Map<Model, MutableList<PbrEntity>>) {
+    private fun renderOpaqueAndMask(batchMap: Map<Model, MutableList<Entity>>) {
         glDepthMask(true)
         glDisable(GL_BLEND)
 
@@ -95,13 +95,13 @@ class EntityRenderer : Resizable, Cleanable {
         }
     }
 
-    private fun renderBlend(camera: Camera, batchMap: Map<Model, MutableList<PbrEntity>>) {
+    private fun renderBlend(camera: Camera, batchMap: Map<Model, MutableList<Entity>>) {
         glDepthMask(false)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         // sort by distance from camera
-        data class DrawItem(val model: Model, val entity: PbrEntity, val distanceSq: Float)
+        data class DrawItem(val model: Model, val entity: Entity, val distanceSq: Float)
         val blendItems = mutableListOf<DrawItem>()
         for ((model, targets) in batchMap) {
             if (model.material.alphaMode != AlphaMode.BLEND) continue
@@ -134,7 +134,7 @@ class EntityRenderer : Resizable, Cleanable {
     }
 
     // TODO: 親のpos, rot, scaleを子にも適用 -> そもそもmodel-matrix共有しとけば？ (同じfbxのモデルならわかるけど、後から別モデルをchildren登録したらどうなる？)
-    private fun processEntity(entity: PbrEntity, batchMap: MutableMap<Model, MutableList<PbrEntity>>) {
+    private fun processEntity(entity: Entity, batchMap: MutableMap<Model, MutableList<Entity>>) {
         // parent model
         if (entity.model != EntityModels.EMPTY) {
             val batch = batchMap.getOrPut(entity.model) { mutableListOf() }
@@ -147,7 +147,7 @@ class EntityRenderer : Resizable, Cleanable {
         }
     }
 
-    private fun prepareEntity(entity: PbrEntity) {
+    private fun prepareEntity(entity: Entity) {
         setUniform(locationModel, MVP.getModelMatrix(entity.position, entity.rotation, entity.scale))
     }
 

@@ -4,8 +4,8 @@ import org.lwjgl.glfw.GLFW
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.entity.custom.StallEntity
 import qorrnsmj.smf.game.light.PointLight
-import qorrnsmj.smf.game.skybox.SkyboxModels
-import qorrnsmj.smf.game.terrain.Terrain
+import qorrnsmj.smf.game.skybox.Skyboxes
+import qorrnsmj.smf.game.terrain.Terrains
 import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.state.State
@@ -34,13 +34,14 @@ class TestState : State() {
         SMF.window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
         scene.camera.position = Vector3f(0f, 5f, -5f)
         scene.camera.front = Vector3f(0f, 0f, 1f).normalize()
-        scene.skybox = SkyboxModels.SKY1
-
-        // transform
-        stall.position = Vector3f(0f, 0f, 0f)
+        scene.skybox = Skyboxes.SKY1
 
         // add
-        scene.terrains.add(Terrain("test"))
+        scene.terrains.add(Terrains.DEFAULT.apply {
+            position.x = -200f
+            position.y = -20f
+            position.z = -200f
+        })
         scene.lights.add(pointLight)
         scene.entities.add(stall)
     }
@@ -51,8 +52,6 @@ class TestState : State() {
     }
 
     override fun update(delta: Float) {
-        stall.move()
-        stall.fruits.position.y += 0.01f
     }
 
     override fun render(alpha: Float) {

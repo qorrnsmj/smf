@@ -10,8 +10,8 @@ object ResourceUtils {
             ?: error("Resource not found: $path")
     }
 
-    fun getResourceAsDirectBuffer(filePath: String): ByteBuffer {
-        val bytes = getResourceAsStream(filePath).readAllBytes()
+    fun getResourceAsDirectBuffer(path: String): ByteBuffer {
+        val bytes = getResourceAsStream(path).readAllBytes()
         return BufferUtils.createByteBuffer(bytes.size)
             .put(bytes)
             .flip()

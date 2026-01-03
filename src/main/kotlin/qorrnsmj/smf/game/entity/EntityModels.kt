@@ -4,13 +4,14 @@ import qorrnsmj.smf.game.model.component.Mesh
 import qorrnsmj.smf.game.model.component.Material
 import qorrnsmj.smf.game.model.component.Model
 
+// TODO: Entities
 object EntityModels {
     lateinit var EMPTY: Model
 
     lateinit var STALL: Map<String, Model>
 
     fun load() {
-        EMPTY = Model("empty", Mesh(), Material())
+        EMPTY = Model(Mesh(), Material())
 
         STALL = EntityLoader.loadModel("stall.glb")
     }
