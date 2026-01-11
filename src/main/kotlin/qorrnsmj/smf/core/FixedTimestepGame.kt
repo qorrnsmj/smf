@@ -6,7 +6,7 @@ import org.lwjgl.glfw.GLFW.glfwWindowShouldClose
 abstract class FixedTimestepGame : Game() {
     lateinit var timer: Timer
 
-    override fun gameLoop() {
+    override fun gameloop() {
         var alpha: Float
         var delta: Float
         var accumulator = 0f

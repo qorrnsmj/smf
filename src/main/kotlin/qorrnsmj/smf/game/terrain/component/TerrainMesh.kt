@@ -8,4 +8,6 @@ data class TerrainMesh(
     val vertexCount: Int = 0,
     val vertexType: Int = GL_UNSIGNED_INT,
     val size: Vector2f,
+    val gridResolution: Int,
+    val heights: Array<FloatArray>,
 )

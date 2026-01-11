@@ -8,8 +8,8 @@ import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.graphic.render.shader.SkyboxShaderProgram
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.UniformUtils
-import qorrnsmj.smf.util.impl.Cleanable
-import qorrnsmj.smf.util.impl.Resizable
+import qorrnsmj.smf.util.Cleanable
+import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.game.skybox.Skybox
 
 class SkyboxRenderer : Resizable, Cleanable {

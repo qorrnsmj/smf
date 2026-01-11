@@ -6,7 +6,7 @@ import qorrnsmj.smf.graphic.`object`.FrameBufferObject
 import qorrnsmj.smf.graphic.`object`.VertexArrayObject
 import qorrnsmj.smf.graphic.`object`.VertexBufferObject
 import qorrnsmj.smf.graphic.effect.Effect
-import qorrnsmj.smf.util.impl.Resizable
+import qorrnsmj.smf.util.Resizable
 
 class PostProcessor : Resizable {
     private var width = 0

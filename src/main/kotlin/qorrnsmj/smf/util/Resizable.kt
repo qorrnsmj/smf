@@ -1,4 +1,4 @@
-package qorrnsmj.smf.util.impl
+package qorrnsmj.smf.util
 
 interface Resizable {
     fun resize(width: Int, height: Int)

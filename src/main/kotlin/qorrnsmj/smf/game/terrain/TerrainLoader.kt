@@ -14,7 +14,7 @@ import qorrnsmj.smf.game.terrain.component.TerrainMesh
 import qorrnsmj.smf.game.terrain.component.TerrainModel
 import qorrnsmj.smf.game.terrain.component.TerrainTextureMode
 import qorrnsmj.smf.util.ResourceUtils
-import qorrnsmj.smf.util.impl.Cleanable
+import qorrnsmj.smf.util.Cleanable
 
 object TerrainLoader : Cleanable {
     private val vaos = mutableListOf<Int>()
@@ -39,29 +39,34 @@ object TerrainLoader : Cleanable {
 
     private fun loadMesh(
         size: Vector2f,
-        vertexCount: Int,
+        gridResolution: Int,
         heightmapFile: String? = null,
+        heightScale: Float = 50f,
+        minHeight: Float = 1f,
     ): TerrainMesh {
-        val count = vertexCount * vertexCount
+        val count = gridResolution * gridResolution
         val positions = FloatArray(count * 3)
         val texCoords = FloatArray(count * 2)
         val normals = FloatArray(count * 3)
-        val indices = IntArray(6 * (vertexCount - 1) * (vertexCount - 1))
+        val indices = IntArray(6 * (gridResolution - 1) * (gridResolution - 1))
+        val heights = Array(gridResolution) { FloatArray(gridResolution) }
 
         if (heightmapFile != null) {
             val heightmapData = extractHeightmapPixelData(heightmapFile)
             generateHeightmapTerrain(
-                vertexCount, size, heightmapData,
-                positions, texCoords, normals, indices
+                gridResolution, size, heightmapData, heightScale, minHeight,
+                positions, texCoords, normals, indices,
+                heights,
             )
         } else {
             generateFlatTerrain(
-                vertexCount, size,
-                positions, texCoords, normals, indices
+                gridResolution, size,
+                positions, texCoords, normals, indices,
+                heights,
             )
         }
 
-        val mesh = loadMeshInternal(size, positions, texCoords, normals, indices)
+        val mesh = loadMeshInternal(size, positions, texCoords, normals, indices, gridResolution, heights)
         val faceCount = mesh.vertexCount.div(3)
         Logger.info("Terrain loaded ($faceCount faces)")
 
@@ -69,37 +74,39 @@ object TerrainLoader : Cleanable {
     }
 
     private fun generateFlatTerrain(
-        vertexCount: Int,
+        gridResolution: Int,
         size: Vector2f,
         positions: FloatArray,
         texCoords: FloatArray,
         normals: FloatArray,
         indices: IntArray,
+        heights: Array<FloatArray>,
     ) {
         var vertexPointer = 0
-        for (i in 0 until vertexCount) {
-            for (j in 0 until vertexCount) {
-                positions[vertexPointer * 3] = j.toFloat() / (vertexCount - 1) * size.x
+        for (z in 0 until gridResolution) {
+            for (x in 0 until gridResolution) {
+                positions[vertexPointer * 3] = x.toFloat() / (gridResolution - 1) * size.x
                 positions[vertexPointer * 3 + 1] = 0f
-                positions[vertexPointer * 3 + 2] = i.toFloat() / (vertexCount - 1) * size.y
+                positions[vertexPointer * 3 + 2] = z.toFloat() / (gridResolution - 1) * size.y
 
                 normals[vertexPointer * 3] = 0f
                 normals[vertexPointer * 3 + 1] = 1f
                 normals[vertexPointer * 3 + 2] = 0f
 
-                texCoords[vertexPointer * 2] = j.toFloat() / (vertexCount - 1)
-                texCoords[vertexPointer * 2 + 1] = i.toFloat() / (vertexCount - 1)
+                texCoords[vertexPointer * 2] = x.toFloat() / (gridResolution - 1)
+                texCoords[vertexPointer * 2 + 1] = z.toFloat() / (gridResolution - 1)
 
+                heights[x][z] = 0f
                 vertexPointer++
             }
         }
 
         var pointer = 0
-        for (gz in 0 until vertexCount - 1) {
-            for (gx in 0 until vertexCount - 1) {
-                val topLeft = (gz * vertexCount) + gx
+        for (gz in 0 until gridResolution - 1) {
+            for (gx in 0 until gridResolution - 1) {
+                val topLeft = (gz * gridResolution) + gx
                 val topRight = topLeft + 1
-                val bottomLeft = ((gz + 1) * vertexCount) + gx
+                val bottomLeft = ((gz + 1) * gridResolution) + gx
                 val bottomRight = bottomLeft + 1
 
                 indices[pointer++] = topLeft
@@ -113,36 +120,40 @@ object TerrainLoader : Cleanable {
     }
 
     private fun generateHeightmapTerrain(
-        vertexCount: Int,
+        gridResolution: Int,
         size: Vector2f,
         heightmapData: HeightmapData,
+        heightScale: Float,
+        minHeight: Float,
         positions: FloatArray,
         texCoords: FloatArray,
         normals: FloatArray,
         indices: IntArray,
+        heights: Array<FloatArray>,
     ) {
         var vertexPointer = 0
-        for (i in 0 until vertexCount) {
-            for (j in 0 until vertexCount) {
-                val heightValue = sampleHeightmap(j, i, vertexCount, heightmapData)
+        for (z in 0 until gridResolution) {
+            for (x in 0 until gridResolution) {
+                val heightValue = sampleHeightmap(x, z, gridResolution, heightmapData, heightScale, minHeight)
 
-                positions[vertexPointer * 3] = j.toFloat() / (vertexCount - 1) * size.x
+                positions[vertexPointer * 3] = x.toFloat() / (gridResolution - 1) * size.x
                 positions[vertexPointer * 3 + 1] = heightValue
-                positions[vertexPointer * 3 + 2] = i.toFloat() / (vertexCount - 1) * size.y
+                positions[vertexPointer * 3 + 2] = z.toFloat() / (gridResolution - 1) * size.y
 
-                texCoords[vertexPointer * 2] = j.toFloat() / (vertexCount - 1)
-                texCoords[vertexPointer * 2 + 1] = i.toFloat() / (vertexCount - 1)
+                texCoords[vertexPointer * 2] = x.toFloat() / (gridResolution - 1)
+                texCoords[vertexPointer * 2 + 1] = z.toFloat() / (gridResolution - 1)
 
+                heights[x][z] = heightValue
                 vertexPointer++
             }
         }
 
         var pointer = 0
-        for (gz in 0 until vertexCount - 1) {
-            for (gx in 0 until vertexCount - 1) {
-                val topLeft = (gz * vertexCount) + gx
+        for (gz in 0 until gridResolution - 1) {
+            for (gx in 0 until gridResolution - 1) {
+                val topLeft = (gz * gridResolution) + gx
                 val topRight = topLeft + 1
-                val bottomLeft = ((gz + 1) * vertexCount) + gx
+                val bottomLeft = ((gz + 1) * gridResolution) + gx
                 val bottomRight = bottomLeft + 1
 
                 indices[pointer++] = topLeft
@@ -159,16 +170,18 @@ object TerrainLoader : Cleanable {
 
     private fun sampleHeightmap(
         x: Int,
-        y: Int,
+        z: Int,
         vertexCount: Int,
         heightmapData: HeightmapData,
+        heightScale: Float,
+        minHeight: Float,
     ): Float {
         val pixelX = (x * heightmapData.width) / vertexCount
-        val pixelY = (y * heightmapData.height) / vertexCount
-        val pixelIndex = (pixelY * heightmapData.width + pixelX) * 4
+        val pixelZ = (z * heightmapData.height) / vertexCount
+        val pixelIndex = (pixelZ * heightmapData.width + pixelX) * 4
 
         if (pixelIndex < heightmapData.pixels.size) {
-            return (heightmapData.pixels[pixelIndex].toInt() and 0xFF).toFloat() / 255f * 50
+            return ((heightmapData.pixels[pixelIndex].toInt() and 0xFF).toFloat() / 255f * heightScale) + minHeight
         }
 
         return 0f
@@ -256,12 +269,13 @@ object TerrainLoader : Cleanable {
         texCoords: FloatArray,
         normals: FloatArray,
         indices: IntArray,
+        gridResolution: Int,
+        heights: Array<FloatArray>,
     ): TerrainMesh {
         val vao = VertexArrayObject()
         vaos.add(vao.id)
         vao.bind()
 
-        // bind
         bindVBO(0, 3, positions)
         bindVBO(1, 2, texCoords)
         bindVBO(2, 3, normals)
@@ -271,7 +285,6 @@ object TerrainLoader : Cleanable {
         glEnableVertexAttribArray(1)
         glEnableVertexAttribArray(2)
 
-        // unbind
         glBindVertexArray(0)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
@@ -280,6 +293,8 @@ object TerrainLoader : Cleanable {
             vao = vao.id,
             vertexCount = indices.size,
             size = size,
+            gridResolution = gridResolution,
+            heights = heights,
         )
     }
 

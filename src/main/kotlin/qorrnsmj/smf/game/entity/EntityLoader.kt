@@ -16,7 +16,7 @@ import qorrnsmj.smf.game.texture.TextureLoader.loadTexture
 import qorrnsmj.smf.game.texture.TexturePresets
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
-import qorrnsmj.smf.util.impl.Cleanable
+import qorrnsmj.smf.util.Cleanable
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer

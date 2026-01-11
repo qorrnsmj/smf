@@ -10,9 +10,9 @@ import qorrnsmj.smf.game.terrain.component.TerrainTextureMode
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.graphic.render.shader.TerrainShaderProgram
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.smf.util.impl.Resizable
+import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils
-import qorrnsmj.smf.util.impl.Cleanable
+import qorrnsmj.smf.util.Cleanable
 
 // TODO: 整理する
 class TerrainRenderer : Resizable, Cleanable {
@@ -40,13 +40,11 @@ class TerrainRenderer : Resizable, Cleanable {
 
     /* Render */
 
-    fun renderTerrains(terrains: List<Terrain>) {
-        for (terrain in terrains) {
-            bindTextures(terrain.model.material.textureMode)
-            prepareTerrain(terrain)
-            glDrawElements(GL_TRIANGLES, terrain.model.mesh.vertexCount, GL_UNSIGNED_INT, 0)
-            unbindTextures()
-        }
+    fun renderTerrains(terrain: Terrain) {
+        bindTextures(terrain.model.material.textureMode)
+        prepareTerrain(terrain)
+        glDrawElements(GL_TRIANGLES, terrain.model.mesh.vertexCount, GL_UNSIGNED_INT, 0)
+        unbindTextures()
     }
 
     private fun prepareTerrain(terrain: Terrain) {
@@ -55,8 +53,8 @@ class TerrainRenderer : Resizable, Cleanable {
 
         val modelMatrix = MVP.getModelMatrix(
             position = terrain.position,
-            rotation = terrain.rotation,
-            scale = terrain.scale,
+            rotation = Vector3f(0f, 0f, 0f),
+            scale = Vector3f(1f, 1f, 1f)
         )
         UniformUtils.setUniform(locationModel, modelMatrix)
     }

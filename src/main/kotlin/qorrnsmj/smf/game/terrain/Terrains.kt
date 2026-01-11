@@ -6,13 +6,15 @@ import qorrnsmj.smf.game.texture.Textures
 object Terrains {
     lateinit var DEFAULT: Terrain
     lateinit var FLAT: Terrain
+    lateinit var PLANE: Terrain
 
     fun load() {
-        DEFAULT = TerrainLoader.loadModel(
+        //DEFAULT = TerrainLoader.loadModel() // TODO
+
+        FLAT = TerrainLoader.loadModel(
             sizeX = 400f,
             sizeY = 400f,
-            vertexCount = 64,
-            heightmapFile = "heightmap.png",
+            vertexCount = 2,
             textureMode = BlendedTexture(
                 blendMap = Textures.TERRAIN_BLEND_MAP,
                 baseTexture = Textures.TERRAIN_GRASS,
@@ -22,10 +24,13 @@ object Terrains {
             )
         )
 
-        FLAT = TerrainLoader.loadModel(
+        DEFAULT = FLAT
+
+        PLANE = TerrainLoader.loadModel(
             sizeX = 400f,
             sizeY = 400f,
-            vertexCount = 2,
+            vertexCount = 64,
+            heightmapFile = "heightmap.png",
             textureMode = BlendedTexture(
                 blendMap = Textures.TERRAIN_BLEND_MAP,
                 baseTexture = Textures.TERRAIN_GRASS,
