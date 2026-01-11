@@ -6,7 +6,7 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.model.component.Material
 import qorrnsmj.smf.game.model.component.Mesh
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
-import qorrnsmj.smf.util.impl.Cleanable
+import qorrnsmj.smf.util.Cleanable
 import qorrnsmj.smf.game.model.component.Model
 import qorrnsmj.smf.game.texture.TextureLoader
 import qorrnsmj.smf.game.texture.TexturePresets

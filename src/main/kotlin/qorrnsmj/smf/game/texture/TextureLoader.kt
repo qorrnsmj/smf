@@ -1,7 +1,6 @@
 package qorrnsmj.smf.game.texture
 
 import de.javagl.jgltf.model.TextureModel
-import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.GL_RGBA
 import org.lwjgl.opengl.GL33C.GL_TEXTURE_2D
 import org.lwjgl.opengl.GL33C.GL_TEXTURE_MAG_FILTER
@@ -19,7 +18,7 @@ import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 import qorrnsmj.smf.util.ResourceUtils
-import qorrnsmj.smf.util.impl.Cleanable
+import qorrnsmj.smf.util.Cleanable
 import java.nio.ByteBuffer
 import kotlin.use
 

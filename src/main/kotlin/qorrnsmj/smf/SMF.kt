@@ -12,6 +12,7 @@ import qorrnsmj.smf.game.terrain.Terrains
 import qorrnsmj.smf.game.texture.Textures
 import qorrnsmj.smf.graphic.render.MasterRenderer
 import qorrnsmj.smf.state.StateMachine
+import qorrnsmj.smf.state.States
 import qorrnsmj.smf.window.SMFKeyCallback
 import qorrnsmj.smf.window.Window
 
@@ -23,11 +24,6 @@ object SMF : FixedTimestepGame() {
         window = Window(1600, 1600, "SMF", true)
         renderer = MasterRenderer()
         renderer.resize(window.width, window.height)
-
-        Textures.load()
-        EntityModels.load()
-        Terrains.load()
-        Skyboxes.load()
         stateMachine = StateMachine()
         timer = Timer()
 
@@ -42,11 +38,19 @@ object SMF : FixedTimestepGame() {
     }
 
     override fun start() {
-        Logger.info("SMF started!")
+        Logger.info("SMF starting...")
 
+        Textures.load()
+        EntityModels.load()
+        Terrains.load()
+        Skyboxes.load()
+
+        stateMachine.changeState(States.TEST)
+        window.toggleFullscreen()
         window.show()
-        gameLoop()
 
+        Logger.info("SMF started!")
+        gameloop()
         Logger.info("SMF stopping...")
         cleanup()
         Logger.info("SMF stopped!")

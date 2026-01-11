@@ -3,8 +3,8 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.Scene
-import qorrnsmj.smf.util.impl.Cleanable
-import qorrnsmj.smf.util.impl.Resizable
+import qorrnsmj.smf.util.Cleanable
+import qorrnsmj.smf.util.Resizable
 
 class MasterRenderer : Resizable, Cleanable {
     private val postProcessor = PostProcessor()
@@ -45,7 +45,7 @@ class MasterRenderer : Resizable, Cleanable {
         terrainRenderer.loadCamera(scene.camera)
         terrainRenderer.loadSkyColor(skyColor)
         terrainRenderer.loadFog(0.007f, 1.5f)
-        terrainRenderer.renderTerrains(scene.terrains)
+        terrainRenderer.renderTerrains(scene.terrain)
         terrainRenderer.stop()
 
         entityRenderer.start()

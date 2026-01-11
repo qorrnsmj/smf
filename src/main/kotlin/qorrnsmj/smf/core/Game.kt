@@ -21,7 +21,7 @@ abstract class Game {
 
     protected abstract fun start()
 
-    protected abstract fun gameLoop()
+    protected abstract fun gameloop()
 
     protected fun input() {
         stateMachine.input()

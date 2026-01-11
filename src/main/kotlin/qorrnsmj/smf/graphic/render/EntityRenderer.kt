@@ -11,9 +11,9 @@ import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.game.light.Light
 import qorrnsmj.smf.graphic.render.shader.EntityShaderProgram
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.smf.util.impl.Resizable
+import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils.setUniform
-import qorrnsmj.smf.util.impl.Cleanable
+import qorrnsmj.smf.util.Cleanable
 
 class EntityRenderer : Resizable, Cleanable {
     // TODO: locationはシェーダークラスに書く?
