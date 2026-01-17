@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.texture
+package qorrnsmj.smf.graphic.texture
 
 import de.javagl.jgltf.model.TextureModel
 import org.lwjgl.opengl.GL33C.GL_RGBA
@@ -113,3 +113,4 @@ object TextureLoader : Cleanable {
         textures.forEach { it.delete() }
     }
 }
+

@@ -6,7 +6,7 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.model.component.Model
+import qorrnsmj.smf.graphic.`object`.Model
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.game.light.Light
 import qorrnsmj.smf.graphic.render.shader.EntityShaderProgram

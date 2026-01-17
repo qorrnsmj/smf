@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.model.component
+package qorrnsmj.smf.graphic.`object`
 
 open class Model(
     val mesh: Mesh,
