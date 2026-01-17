@@ -1,6 +1,6 @@
-package qorrnsmj.smf.game.terrain
+package qorrnsmj.smf.graphic.terrain
 
-import qorrnsmj.smf.game.terrain.component.TerrainModel
+import qorrnsmj.smf.graphic.terrain.component.TerrainModel
 import qorrnsmj.smf.math.Vector3f
 
 open class Terrain(

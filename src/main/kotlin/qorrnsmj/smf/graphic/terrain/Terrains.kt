@@ -1,6 +1,6 @@
-package qorrnsmj.smf.game.terrain
+package qorrnsmj.smf.graphic.terrain
 
-import qorrnsmj.smf.game.terrain.component.BlendedTexture
+import qorrnsmj.smf.graphic.terrain.component.BlendedTexture
 import qorrnsmj.smf.graphic.texture.Textures
 
 object Terrains {

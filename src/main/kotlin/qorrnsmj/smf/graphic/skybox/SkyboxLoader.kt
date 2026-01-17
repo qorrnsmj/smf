@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.skybox
+package qorrnsmj.smf.graphic.skybox
 
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil

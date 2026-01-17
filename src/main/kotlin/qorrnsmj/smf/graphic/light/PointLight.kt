@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.light
+package qorrnsmj.smf.graphic.light
 
 import qorrnsmj.smf.math.Vector3f
 

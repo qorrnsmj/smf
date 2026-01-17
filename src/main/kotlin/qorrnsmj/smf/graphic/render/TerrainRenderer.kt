@@ -3,10 +3,10 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.terrain.*
-import qorrnsmj.smf.game.terrain.component.BlendedTexture
-import qorrnsmj.smf.game.terrain.component.SingleTexture
-import qorrnsmj.smf.game.terrain.component.TerrainTextureMode
+import qorrnsmj.smf.graphic.terrain.*
+import qorrnsmj.smf.graphic.terrain.component.BlendedTexture
+import qorrnsmj.smf.graphic.terrain.component.SingleTexture
+import qorrnsmj.smf.graphic.terrain.component.TerrainTextureMode
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.graphic.render.shader.TerrainShaderProgram
 import qorrnsmj.smf.math.Vector3f

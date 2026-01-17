@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.terrain
+package qorrnsmj.smf.graphic.terrain
 
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
@@ -9,10 +9,10 @@ import qorrnsmj.smf.math.Vector2f
 import qorrnsmj.smf.math.Vector3f
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
-import qorrnsmj.smf.game.terrain.component.TerrainMaterial
-import qorrnsmj.smf.game.terrain.component.TerrainMesh
-import qorrnsmj.smf.game.terrain.component.TerrainModel
-import qorrnsmj.smf.game.terrain.component.TerrainTextureMode
+import qorrnsmj.smf.graphic.terrain.component.TerrainMaterial
+import qorrnsmj.smf.graphic.terrain.component.TerrainMesh
+import qorrnsmj.smf.graphic.terrain.component.TerrainModel
+import qorrnsmj.smf.graphic.terrain.component.TerrainTextureMode
 import qorrnsmj.smf.util.ResourceUtils
 import qorrnsmj.smf.util.Cleanable
 

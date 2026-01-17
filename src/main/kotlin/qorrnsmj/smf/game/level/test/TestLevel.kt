@@ -7,10 +7,10 @@ import qorrnsmj.smf.game.entity.player.Player
 import qorrnsmj.smf.game.level.Level
 import qorrnsmj.smf.game.task.cutscene.IntroductionCutscene
 import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
-import qorrnsmj.smf.game.light.PointLight
-import qorrnsmj.smf.game.skybox.Skyboxes
-import qorrnsmj.smf.game.terrain.HeightProvider
-import qorrnsmj.smf.game.terrain.Terrains
+import qorrnsmj.smf.graphic.light.PointLight
+import qorrnsmj.smf.graphic.skybox.Skyboxes
+import qorrnsmj.smf.graphic.terrain.HeightProvider
+import qorrnsmj.smf.graphic.terrain.Terrains
 import qorrnsmj.smf.math.Vector3f
 
 class TestLevel : Level() {

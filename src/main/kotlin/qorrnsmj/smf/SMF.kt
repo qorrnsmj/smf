@@ -7,8 +7,8 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.core.FixedTimestepGame
 import qorrnsmj.smf.core.Timer
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.skybox.Skyboxes
-import qorrnsmj.smf.game.terrain.Terrains
+import qorrnsmj.smf.graphic.skybox.Skyboxes
+import qorrnsmj.smf.graphic.terrain.Terrains
 import qorrnsmj.smf.graphic.texture.Textures
 import qorrnsmj.smf.graphic.render.MasterRenderer
 import qorrnsmj.smf.state.StateMachine

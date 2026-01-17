@@ -2,7 +2,7 @@ package qorrnsmj.smf.game.entity.player
 
 import org.lwjgl.glfw.GLFW
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.terrain.HeightProvider
+import qorrnsmj.smf.graphic.terrain.HeightProvider
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.window.Window
 

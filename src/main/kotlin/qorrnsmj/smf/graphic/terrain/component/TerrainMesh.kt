@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.terrain.component
+package qorrnsmj.smf.graphic.terrain.component
 
 import org.lwjgl.opengl.GL11C.GL_UNSIGNED_INT
 import qorrnsmj.smf.math.Vector2f

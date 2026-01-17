@@ -10,7 +10,7 @@ import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.UniformUtils
 import qorrnsmj.smf.util.Cleanable
 import qorrnsmj.smf.util.Resizable
-import qorrnsmj.smf.game.skybox.Skybox
+import qorrnsmj.smf.graphic.skybox.Skybox
 
 class SkyboxRenderer : Resizable, Cleanable {
     // TODO: locationはProgramクラスの中にしまえない？
