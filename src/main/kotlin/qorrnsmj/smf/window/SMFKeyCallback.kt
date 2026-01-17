@@ -32,7 +32,7 @@ class SMFKeyCallback : GLFWKeyCallback() {
             SMF.stateMachine.changeState(States.EMPTY)
 
         if (key == GLFW_KEY_1 && action == GLFW_PRESS)
-            SMF.stateMachine.changeState(States.TEST)
+            SMF.stateMachine.changeState(States.IN_GAME)
 
         if (key == GLFW_KEY_F11 && action == GLFW_PRESS)
             SMF.window.toggleFullscreen()
