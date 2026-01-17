@@ -2,11 +2,11 @@ package qorrnsmj.smf.graphic
 
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.Entity
-import qorrnsmj.smf.game.light.Light
-import qorrnsmj.smf.game.skybox.Skybox
-import qorrnsmj.smf.game.skybox.Skyboxes
-import qorrnsmj.smf.game.terrain.Terrain
-import qorrnsmj.smf.game.terrain.Terrains
+import qorrnsmj.smf.graphic.light.Light
+import qorrnsmj.smf.graphic.skybox.Skybox
+import qorrnsmj.smf.graphic.skybox.Skyboxes
+import qorrnsmj.smf.graphic.terrain.Terrain
+import qorrnsmj.smf.graphic.terrain.Terrains
 import qorrnsmj.smf.graphic.effect.Effect
 import qorrnsmj.smf.math.Vector3f
 

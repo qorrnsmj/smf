@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.terrain.component
+package qorrnsmj.smf.graphic.terrain.component
 
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 

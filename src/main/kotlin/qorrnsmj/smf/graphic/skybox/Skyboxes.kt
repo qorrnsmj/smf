@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.skybox
+package qorrnsmj.smf.graphic.skybox
 
 import qorrnsmj.smf.graphic.`object`.Material
 import qorrnsmj.smf.graphic.`object`.Mesh
