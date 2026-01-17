@@ -21,7 +21,7 @@ object SMF : FixedTimestepGame() {
         Logger.info("SMF initializing...")
 
         check(glfwInit()) { Logger.error("Failed to initialize GLFW!") }
-        window = Window(1600, 1600, "SMF", true)
+        window = Window(1920, 1080, "SMF", true)
         renderer = MasterRenderer()
         renderer.resize(window.width, window.height)
         stateMachine = StateMachine()
@@ -45,9 +45,8 @@ object SMF : FixedTimestepGame() {
         Terrains.load()
         Skyboxes.load()
 
-        stateMachine.changeState(States.TEST)
-        window.toggleFullscreen()
         window.show()
+        stateMachine.changeState(States.IN_GAME)
 
         Logger.info("SMF started!")
         gameloop()

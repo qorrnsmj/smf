@@ -14,7 +14,7 @@ object Terrains {
         FLAT = TerrainLoader.loadModel(
             sizeX = 400f,
             sizeY = 400f,
-            vertexCount = 2,
+            vertexCount = 64,
             textureMode = BlendedTexture(
                 blendMap = Textures.TERRAIN_BLEND_MAP,
                 baseTexture = Textures.TERRAIN_GRASS,

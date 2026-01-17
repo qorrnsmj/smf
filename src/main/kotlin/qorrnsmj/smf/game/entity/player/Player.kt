@@ -7,25 +7,28 @@ import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.window.Window
 
 class Player(
-    startPos: Vector3f = Vector3f(0f, 5f, 0f),
     private val eyeHeight: Float = 5f,
     private val moveSpeed: Float = 0.5f,
     private val jumpSpeed: Float = 2f,
     private val gravity: Float = 0.1f,
 ) {
-    val camera = Camera(position = startPos)
+    var camera = Camera()
     private var verticalVelocity = 0f
     private var grounded = false
 
-    fun handleInput(window: Window, delta: Float, heightProvider: HeightProvider) {
+    fun handleInput(window: Window, delta: Float) {
         camera.processMouseMovement(window)
         moveHorizontal(window, delta)
-        applyGravity(delta, heightProvider)
         handleJump(window)
     }
 
+    fun update(delta: Float, heightProvider: HeightProvider) {
+        applyGravity(delta, heightProvider)
+    }
+
     private fun moveHorizontal(window: Window, delta: Float) {
-        val forward = Vector3f(camera.front.x, 0f, camera.front.z).normalize()
+        val front = camera.getFront()
+        val forward = Vector3f(front.x, 0f, front.z).normalize()
         val right = forward.cross(Vector3f(0f, 1f, 0f)).normalize()
         val velocity = moveSpeed * delta
         var move = Vector3f()
@@ -39,7 +42,7 @@ class Player(
 
     private fun applyGravity(delta: Float, heightProvider: HeightProvider) {
         verticalVelocity -= gravity * delta
-        camera.position.y += verticalVelocity * delta
+        camera.position.y += verticalVelocity
 
         val groundY = heightProvider.getHeight(camera.position.x, camera.position.z) + eyeHeight
         if (camera.position.y <= groundY) {
