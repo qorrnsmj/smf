@@ -9,7 +9,7 @@ import qorrnsmj.smf.core.Timer
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.skybox.Skyboxes
 import qorrnsmj.smf.game.terrain.Terrains
-import qorrnsmj.smf.game.texture.Textures
+import qorrnsmj.smf.graphic.texture.Textures
 import qorrnsmj.smf.graphic.render.MasterRenderer
 import qorrnsmj.smf.state.StateMachine
 import qorrnsmj.smf.state.States

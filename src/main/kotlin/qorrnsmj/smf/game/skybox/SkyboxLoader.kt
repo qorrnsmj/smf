@@ -3,13 +3,13 @@ package qorrnsmj.smf.game.skybox
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.model.component.Material
-import qorrnsmj.smf.game.model.component.Mesh
+import qorrnsmj.smf.graphic.`object`.Material
+import qorrnsmj.smf.graphic.`object`.Mesh
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 import qorrnsmj.smf.util.Cleanable
-import qorrnsmj.smf.game.model.component.Model
-import qorrnsmj.smf.game.texture.TextureLoader
-import qorrnsmj.smf.game.texture.TexturePresets
+import qorrnsmj.smf.graphic.`object`.Model
+import qorrnsmj.smf.graphic.texture.TextureLoader
+import qorrnsmj.smf.graphic.texture.TexturePresets
 
 object SkyboxLoader : Cleanable {
     private val vaos = mutableListOf<Int>()
@@ -47,7 +47,13 @@ object SkyboxLoader : Cleanable {
             "assets/texture/skybox/$id",
             TexturePresets.SKYBOX
         )
-        val material = Material(baseColorTexture = texture)
+        val material = Material(
+            baseColorTexture = texture,
+            metallicRoughnessTexture = texture,
+            normalTexture = texture,
+            occlusionTexture = texture,
+            emissiveTexture = texture,
+        )
 
         val faceCount = mesh.vertexCount.div(3)
         Logger.info("\"${id}\" loaded ($faceCount faces)")

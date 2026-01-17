@@ -1,8 +1,6 @@
-package qorrnsmj.smf.game.model.component
+package qorrnsmj.smf.graphic.`object`
 
 import de.javagl.jgltf.model.v2.MaterialModelV2.AlphaMode
-import qorrnsmj.smf.game.texture.Textures
-import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
 
@@ -14,11 +12,11 @@ data class Material(
     val roughnessFactor: Float = 1f,
 
     // textures
-    val baseColorTexture: TextureBufferObject = Textures.DEFAULT_000000,
-    val metallicRoughnessTexture: TextureBufferObject = Textures.DEFAULT_00FF00,
-    val normalTexture: TextureBufferObject = Textures.DEFAULT_8080FF,
-    val occlusionTexture: TextureBufferObject = Textures.DEFAULT_FFFFFF,
-    val emissiveTexture: TextureBufferObject = Textures.DEFAULT_000000,
+    val baseColorTexture: TextureBufferObject,
+    val metallicRoughnessTexture: TextureBufferObject,
+    val normalTexture: TextureBufferObject,
+    val occlusionTexture: TextureBufferObject,
+    val emissiveTexture: TextureBufferObject,
 
     // texture params
     val normalScale: Float = 1f,
@@ -30,3 +28,4 @@ data class Material(
     val alphaCutoff: Float = 0.5f,
     val doubleSided: Boolean = false,
 )
+

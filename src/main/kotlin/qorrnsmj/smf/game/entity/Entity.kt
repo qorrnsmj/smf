@@ -1,6 +1,6 @@
 package qorrnsmj.smf.game.entity
 
-import qorrnsmj.smf.game.model.component.Model
+import qorrnsmj.smf.graphic.`object`.Model
 import qorrnsmj.smf.math.Vector3f
 
 open class Entity(

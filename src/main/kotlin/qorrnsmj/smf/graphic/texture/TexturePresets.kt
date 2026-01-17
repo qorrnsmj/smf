@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.texture
+package qorrnsmj.smf.graphic.texture
 
 import org.lwjgl.opengl.GL33C.GL_LINEAR
 import org.lwjgl.opengl.GL33C.GL_LINEAR_MIPMAP_LINEAR
@@ -30,3 +30,4 @@ object TexturePresets {
         GL_CLAMP_TO_EDGE,
     )
 }
+

@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.texture
+package qorrnsmj.smf.graphic.texture
 
 data class TextureParams(
     val magFilter: Int,

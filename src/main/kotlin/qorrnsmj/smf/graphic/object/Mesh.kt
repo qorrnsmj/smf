@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.model.component
+package qorrnsmj.smf.graphic.`object`
 
 import org.lwjgl.opengl.GL33C.GL_UNSIGNED_INT
 
@@ -10,3 +10,4 @@ data class Mesh(
     val vertexCount: Int = 0,
     val vertexType: Int = GL_UNSIGNED_INT
 )
+

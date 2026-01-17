@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.texture
+package qorrnsmj.smf.graphic.texture
 
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 
@@ -49,3 +49,4 @@ object Textures {
         return TextureLoader.loadTexture("assets/texture/skybox/$fileId", TexturePresets.SKYBOX)
     }
 }
+

@@ -1,7 +1,7 @@
 package qorrnsmj.smf.game.terrain
 
 import qorrnsmj.smf.game.terrain.component.BlendedTexture
-import qorrnsmj.smf.game.texture.Textures
+import qorrnsmj.smf.graphic.texture.Textures
 
 object Terrains {
     lateinit var DEFAULT: Terrain
