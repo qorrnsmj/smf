@@ -3,6 +3,8 @@ package qorrnsmj.smf.game.entity.custom
 import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.EntityModels.STALL
+import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.physics.PhysicsComponent
 
 class StallEntity : Entity() {
     val cover = Entity(model = EntityModels.getModel(STALL, "Cover"))
@@ -21,6 +23,12 @@ class StallEntity : Entity() {
             glass1, glass2, glass3,
             woodPole1, woodPole2, woodTable, woodTray
         ))
+        
+        // Add collision to stall (static object, no gravity)
+        physics = PhysicsComponent(
+            useGravity = false,
+            collisionBounds = Vector3f(2f, 2f, 2f)
+        )
     }
 
     // TODO: children.foreachでやるのって良くなくない？

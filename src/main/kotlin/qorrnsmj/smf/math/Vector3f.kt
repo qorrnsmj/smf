@@ -173,4 +173,11 @@ class Vector3f {
     override fun toString(): String {
         return "($x, $y, $z)"
     }
+
+    // Operator overloads for Kotlin-idiomatic code
+    operator fun plus(other: Vector3f): Vector3f = add(other)
+    operator fun minus(other: Vector3f): Vector3f = subtract(other)
+    operator fun times(scalar: Float): Vector3f = scale(scalar)
+    operator fun div(scalar: Float): Vector3f = divide(scalar)
+    operator fun unaryMinus(): Vector3f = negate()
 }

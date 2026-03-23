@@ -104,17 +104,4 @@ class Camera(
     fun getViewMatrix(): Matrix4f {
         return MVP.getViewMatrix(position, position + getFront(), up)
     }
-
-    // TODO: Vectorクラスに実装する
-    operator fun Vector3f.plus(other: Vector3f): Vector3f {
-        return Vector3f(this.x + other.x, this.y + other.y, this.z + other.z)
-    }
-
-    operator fun Vector3f.minus(other: Vector3f): Vector3f {
-        return Vector3f(this.x - other.x, this.y - other.y, this.z - other.z)
-    }
-
-    operator fun Vector3f.times(scalar: Float): Vector3f {
-        return Vector3f(this.x * scalar, this.y * scalar, this.z * scalar)
-    }
 }
