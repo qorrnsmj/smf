@@ -58,10 +58,11 @@ Example: `feat: add user authentication module`
 
 ## Workflow
 
-1. Create a feature branch using the naming convention above
+1. **Create a feature branch FIRST** using the naming convention above (before adding any files)
 2. Implement changes with appropriate tests
-3. Create a Pull Request when work is complete
-4. Wait for user review and approval
+3. Commit changes to the branch
+4. **Ask user to review and test** the implementation
+5. **Do NOT create Pull Requests automatically** - user will create PR manually after testing
 
 ## Testing
 
