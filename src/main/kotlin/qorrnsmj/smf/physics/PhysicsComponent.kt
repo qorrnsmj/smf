@@ -81,13 +81,6 @@ data class PhysicsComponent(
     }
     
     /**
-     * Set velocity directly (useful for kinematic objects)
-     */
-    fun setVelocity(newVelocity: Vector3f) {
-        velocity = newVelocity
-    }
-    
-    /**
      * Add velocity (useful for impulses)
      */
     fun addVelocity(deltaVelocity: Vector3f) {
