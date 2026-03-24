@@ -53,9 +53,9 @@ class BoxCollider(val width: Float, val height: Float, val depth: Float) : Colli
             val minOverlap = minOf(overlapX, overlapY, overlapZ)
             
             val normal = when (minOverlap) {
-                overlapX -> Vector3f(if (pos1.x < pos2.x) -1f else 1f, 0f, 0f)
-                overlapY -> Vector3f(0f, if (pos1.y < pos2.y) -1f else 1f, 0f)
-                else -> Vector3f(0f, 0f, if (pos1.z < pos2.z) -1f else 1f)
+                overlapX -> Vector3f(if (pos1.x < pos2.x) 1f else -1f, 0f, 0f)
+                overlapY -> Vector3f(0f, if (pos1.y < pos2.y) 1f else -1f, 0f)
+                else -> Vector3f(0f, 0f, if (pos1.z < pos2.z) 1f else -1f)
             }
             
             // Contact point is the center of the overlap region

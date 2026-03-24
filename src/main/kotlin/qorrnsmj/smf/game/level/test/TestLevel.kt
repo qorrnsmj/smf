@@ -3,8 +3,6 @@ package qorrnsmj.smf.game.level.test
 import org.lwjgl.glfw.GLFW.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
-import qorrnsmj.smf.physics.PhysicsWorld
-import qorrnsmj.smf.physics.debug.PhysicsDebugRenderer
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.custom.StallEntity
 import qorrnsmj.smf.game.entity.player.Player
@@ -16,19 +14,53 @@ import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.graphic.terrain.HeightProvider
 import qorrnsmj.smf.graphic.terrain.Terrains
 import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.physics.PhysicsWorld
+import qorrnsmj.smf.physics.collision.CollisionDetection
 
 class TestLevel : Level() {
-    private lateinit var stall: StallEntity
+    private lateinit var collisionStallA: StallEntity
+    private lateinit var collisionStallB: StallEntity
     private lateinit var pointLight: PointLight
     private val triggers: MutableList<AreaEnterTrigger> = mutableListOf()
     private val keyPressState: MutableMap<Int, Boolean> = mutableMapOf()
     private lateinit var introductionCutscene: IntroductionCutscene
     private lateinit var cutsceneCamera: Camera
+    private var collisionPairOverlapping = false
+    private var useSideCollisionScenario = false
+
+    private val collisionStartA = Vector3f(80f, 45f, 80f)
+    private val collisionStartB = Vector3f(80f, 35f, 80f)
+    private val collisionSideStartA = Vector3f(72f, 35f, 80f)
 
     override fun load() {
         player = Player().apply { camera.position = Vector3f(100f, 37f, 100f) }
-        stall = StallEntity()
-        scene.entities.add(stall)
+
+        collisionStallA = StallEntity().apply {
+            position = Vector3f(collisionStartA.x, collisionStartA.y, collisionStartA.z)
+            physicsComponent?.apply {
+                useGravity = false
+                isStatic = false
+                restitution = 0.1f
+                friction = 0.2f
+                drag = 0.02f
+                stop()
+            }
+        }
+
+        collisionStallB = StallEntity().apply {
+            position = Vector3f(collisionStartB.x, collisionStartB.y, collisionStartB.z)
+            physicsComponent?.apply {
+                useGravity = false
+                isStatic = true
+                restitution = 0f
+                friction = 0.8f
+                drag = 0f
+                stop()
+            }
+        }
+
+        scene.entities.add(collisionStallA)
+        scene.entities.add(collisionStallB)
 
         pointLight = PointLight().apply {
             position = Vector3f(0f, 10f, 0f)
@@ -65,9 +97,6 @@ class TestLevel : Level() {
             scene.camera = this
         }
 
-        // Initialize physics debug renderer
-        PhysicsDebugRenderer.initialize()
-
         introductionCutscene = IntroductionCutscene(
             camera = cutsceneCamera,
             questAreaPosition = player.camera.position
@@ -86,75 +115,21 @@ class TestLevel : Level() {
     private fun handlePhysicsInput() {
         val window = SMF.window.id
 
-        // Physics debug visualization toggle
-        if (isKeyJustPressed(window, GLFW_KEY_P)) {
-            PhysicsDebugRenderer.toggleDebug()
-            Logger.info("Physics debug visualization toggled")
+        // Launch collision test (upper Stall A -> lower Stall B)
+        if (isKeyJustPressed(window, GLFW_KEY_C)) {
+            useSideCollisionScenario = false
+            launchCollisionTest()
         }
 
-        // Reset stall position (for testing gravity)
-        if (isKeyJustPressed(window, GLFW_KEY_R)) {
-            stall.children.forEach { it.position = Vector3f(80f, 50f, 80f) }
-            stall.physicsComponent?.stop()
-            Logger.info("Reset stall position for gravity test")
+        // Launch collision test (left Stall A -> right Stall B)
+        if (isKeyJustPressed(window, GLFW_KEY_X)) {
+            useSideCollisionScenario = true
+            launchCollisionTest()
         }
 
-        // Toggle stall physics
-        if (isKeyJustPressed(window, GLFW_KEY_T)) {
-            stall.physicsComponent?.let { physics ->
-                physics.useGravity = !physics.useGravity
-                Logger.info("Stall gravity: ${if (physics.useGravity) "ENABLED" else "DISABLED"}")
-            }
-        }
-
-        // Apply upward impulse to stall
-        if (isKeyJustPressed(window, GLFW_KEY_U)) {
-            stall.physicsComponent?.applyImpulse(Vector3f(0f, 5f, 0f))
-            Logger.info("Applied upward impulse to stall")
-        }
-
-        // Apply forward impulse (towards +Z)
-        if (isKeyJustPressed(window, GLFW_KEY_J)) {
-            stall.physicsComponent?.applyImpulse(Vector3f(0f, 0f, 5f))
-            Logger.info("Applied forward impulse to stall")
-        }
-
-        // Apply sideways impulse (towards +X)
-        if (isKeyJustPressed(window, GLFW_KEY_K)) {
-            stall.physicsComponent?.applyImpulse(Vector3f(5f, 0f, 0f))
-            Logger.info("Applied sideways impulse to stall")
-        }
-
-        // Hard stop to verify friction and resting behavior
-        if (isKeyJustPressed(window, GLFW_KEY_Y)) {
-            stall.physicsComponent?.stop()
-            Logger.info("Stopped stall velocity")
-        }
-
-        // Debug options toggle
-        if (isKeyJustPressed(window, GLFW_KEY_D)) {
-            PhysicsDebugRenderer.setDebugOptions(
-                colliders = true,
-                velocity = true,
-                forces = true
-            )
-            Logger.info("Physics debug options updated (colliders, velocity, forces all enabled)")
-        }
-
-        // Physics system status
-        if (isKeyJustPressed(window, GLFW_KEY_O)) {
-            val stats = PhysicsWorld.getStats()
-            val physics = stall.physicsComponent
-            Logger.info("=== Physics System Status ===")
-            Logger.info("Initialized: ${stats.isInitialized}")
-            Logger.info("Active Entities: ${stats.activeEntities}")
-            Logger.info("Update Count: ${stats.updateCount}")
-            Logger.info("Last Update Time: ${stats.lastUpdateTimeMs}ms")
-            Logger.info("Stall Position: ${stall.position}")
-            Logger.info("Stall Velocity: ${physics?.velocity}")
-            Logger.info("Stall Grounded: ${physics?.isGrounded}")
-            Logger.info("Stall Gravity: ${physics?.useGravity}")
-            Logger.info("============================")
+        // Reset collision test pair
+        if (isKeyJustPressed(window, GLFW_KEY_V)) {
+            resetCollisionTestPair()
         }
     }
 
@@ -163,6 +138,37 @@ class TestLevel : Level() {
         val wasPressed = keyPressState[key] ?: false
         keyPressState[key] = pressed
         return pressed && !wasPressed
+    }
+
+    private fun launchCollisionTest() {
+        collisionStallA.physicsComponent?.stop()
+        collisionStallA.position = if (useSideCollisionScenario) {
+            Vector3f(collisionSideStartA.x, collisionSideStartA.y, collisionSideStartA.z)
+        } else {
+            Vector3f(collisionStartA.x, collisionStartA.y, collisionStartA.z)
+        }
+        collisionStallB.position = Vector3f(collisionStartB.x, collisionStartB.y, collisionStartB.z)
+
+        val impulse = if (useSideCollisionScenario) Vector3f(8f, 0f, 0f) else Vector3f(0f, -6f, 0f)
+        collisionStallA.physicsComponent?.applyImpulse(impulse)
+
+        if (useSideCollisionScenario) {
+            Logger.info("Collision test launched: StallA (left) -> StallB (right) (press V to reset)")
+        } else {
+            Logger.info("Collision test launched: StallA (top) -> StallB (bottom) (press V to reset)")
+        }
+    }
+
+    private fun resetCollisionTestPair() {
+        collisionStallA.physicsComponent?.stop()
+        collisionStallA.position = if (useSideCollisionScenario) {
+            Vector3f(collisionSideStartA.x, collisionSideStartA.y, collisionSideStartA.z)
+        } else {
+            Vector3f(collisionStartA.x, collisionStartA.y, collisionStartA.z)
+        }
+        collisionStallB.position = Vector3f(collisionStartB.x, collisionStartB.y, collisionStartB.z)
+        collisionPairOverlapping = false
+        Logger.info("Collision test pair reset")
     }
 
     override fun update(delta: Float) {
@@ -184,41 +190,22 @@ class TestLevel : Level() {
         for (trigger in triggers) {
             trigger.update(delta)
         }
-        
-        // Render debug visualization after scene update
-        if (scene.entities.any { it.physicsComponent != null }) {
-            PhysicsDebugRenderer.renderDebug(scene.entities.filter { it.physicsComponent != null })
+
+        val collisions = CollisionDetection.detectCollisions(scene.entities)
+        val currentOverlap = collisions.any {
+            (it.entity1 == collisionStallA && it.entity2 == collisionStallB) ||
+                (it.entity1 == collisionStallB && it.entity2 == collisionStallA)
         }
 
-        // TEST: Entity hierarchy physics system
-        Logger.debug("Stall World: ${stall.position}, Local: ${stall.localPosition}")
-        if (stall.children.isNotEmpty()) {
-            val cover = stall.children[0]  // cover entity
-            Logger.debug("Cover World: ${cover.getWorldPosition()}, Local: ${cover.localPosition}")
+        if (currentOverlap && !collisionPairOverlapping) {
+            val pair = collisions.first {
+                (it.entity1 == collisionStallA && it.entity2 == collisionStallB) ||
+                    (it.entity1 == collisionStallB && it.entity2 == collisionStallA)
+            }
+            Logger.info("Collision ENTER: depth=${pair.result.penetrationDepth}, normal=${pair.result.collisionNormal}, contact=${pair.result.contactPoint}")
+        } else if (!currentOverlap && collisionPairOverlapping) {
+            Logger.info("Collision EXIT: StallA and StallB")
         }
-        
-        // Test: Add a dynamic cargo to the stall every 5 seconds
-        testTimer += delta
-        if (testTimer > 5f && !cargoAdded) {
-            val cargo = Entity(
-                localPosition = Vector3f(0f, 1.2f, 0.2f),  // On top of table
-                localScale = Vector3f(0.1f, 0.1f, 0.1f),   // Small cargo
-                model = EntityModels.getModel(EntityModels.STALL, "Fruits")  // Reuse fruits model
-            )
-            stall.addCargo(cargo, Vector3f(0.5f, 1.2f, 0f))
-            Logger.info("Added cargo to stall at local position ${cargo.localPosition}")
-            cargoAdded = true
-        }
-    }
-
-    // Test timer for dynamic cargo addition
-    private var testTimer = 0f
-    private var cargoAdded = false
-    }
-
-    override fun unload() {
-        scene.entities.clear()
-        scene.lights.clear()
-        PhysicsDebugRenderer.cleanup()
+        collisionPairOverlapping = currentOverlap
     }
 }

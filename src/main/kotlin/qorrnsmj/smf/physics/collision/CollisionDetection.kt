@@ -71,6 +71,11 @@ object CollisionDetection {
         
         val physics1 = entity1.physicsComponent!!
         val physics2 = entity2.physicsComponent!!
+        val invMass1 = inverseMass(physics1)
+        val invMass2 = inverseMass(physics2)
+        val invMassSum = invMass1 + invMass2
+
+        if (invMassSum <= 0f) return
         
         // Calculate relative velocity
         val relativeVelocity = physics2.velocity.subtract(physics1.velocity)
@@ -80,11 +85,10 @@ object CollisionDetection {
         if (velocityAlongNormal > 0) return
         
         // Calculate restitution (bounciness)
-        val restitution = (physics1.restitution + physics2.restitution) * 0.5f
-        
-        // Calculate impulse scalar
-        val impulseScalar = -(1 + restitution) * velocityAlongNormal / 
-                          (1/physics1.mass + 1/physics2.mass)
+        // val restitution = (physics1.restitution + physics2.restitution) * 0.5f
+
+        // Calculate impulse scalar (bounce disabled)
+        val impulseScalar = -velocityAlongNormal / invMassSum
         
         // Apply impulse
         val impulse = result.collisionNormal.scale(impulseScalar)
@@ -102,17 +106,23 @@ object CollisionDetection {
         val correctionSlop = 0.01f    // Usually 1cm
         
         val correctionMagnitude = maxOf(result.penetrationDepth - correctionSlop, 0f) /
-                                (1/physics1.mass + 1/physics2.mass) * correctionPercent
+                                invMassSum * correctionPercent
         
         val correction = result.collisionNormal.scale(correctionMagnitude)
         
         if (!physics1.isStatic && !physics1.isKinematic) {
-            entity1.position = entity1.position.subtract(correction.scale(1/physics1.mass))
+            entity1.position = entity1.position.subtract(correction.scale(invMass1))
         }
         
         if (!physics2.isStatic && !physics2.isKinematic) {
-            entity2.position = entity2.position.add(correction.scale(1/physics2.mass))
+            entity2.position = entity2.position.add(correction.scale(invMass2))
         }
+    }
+
+    private fun inverseMass(physics: qorrnsmj.smf.physics.PhysicsComponent): Float {
+        if (physics.isStatic || physics.isKinematic) return 0f
+        if (physics.mass <= 0f) return 0f
+        return 1f / physics.mass
     }
 }
 

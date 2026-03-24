@@ -14,7 +14,8 @@ import qorrnsmj.smf.physics.collision.CollisionDetection
 object PhysicsWorld {
     
     // Physics constants
-    const val GRAVITY_STRENGTH = 9.81f
+    const val GRAVITY_STRENGTH = 9.8f
+    const val GRAVITY_EFFECT_SCALE = 0.01f
     val GRAVITY_VECTOR = Vector3f(0f, -GRAVITY_STRENGTH, 0f)
     
     private var isInitialized = false
@@ -92,7 +93,7 @@ object PhysicsWorld {
             
             // Apply gravity
             if (physics.useGravity) {
-                physics.applyForce(GRAVITY_VECTOR.scale(physics.mass))
+                physics.applyForce(GRAVITY_VECTOR.scale(physics.mass * GRAVITY_EFFECT_SCALE))
             }
             
             // Apply drag force (air resistance)
