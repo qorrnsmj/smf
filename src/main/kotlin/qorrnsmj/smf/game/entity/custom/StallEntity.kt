@@ -18,43 +18,16 @@ class StallEntity : Entity(
         collider = BoxCollider(2f, 3f, 2f)  // Box collider (width, height, depth)
     )
 ) {
-    // Child entities with local positions relative to stall center
-    val cover = Entity(
-        localPosition = Vector3f(0f, 1.5f, 0f),  // Above the stall
-        model = EntityModels.getModel(STALL, "Cover")
-    )
-    val fruits = Entity(
-        localPosition = Vector3f(0f, 0.8f, 0.5f),  // On the table
-        model = EntityModels.getModel(STALL, "Fruits")
-    )
-    val glass1 = Entity(
-        localPosition = Vector3f(-0.3f, 0.8f, 0.3f),  // Left side of table
-        model = EntityModels.getModel(STALL, "Glass1")
-    )
-    val glass2 = Entity(
-        localPosition = Vector3f(0f, 0.8f, 0.3f),  // Center of table
-        model = EntityModels.getModel(STALL, "Glass2")
-    )
-    val glass3 = Entity(
-        localPosition = Vector3f(0.3f, 0.8f, 0.3f),  // Right side of table
-        model = EntityModels.getModel(STALL, "Glass3")
-    )
-    val woodPole1 = Entity(
-        localPosition = Vector3f(-0.8f, 0f, -0.8f),  // Back left corner
-        model = EntityModels.getModel(STALL, "WoodPole1")
-    )
-    val woodPole2 = Entity(
-        localPosition = Vector3f(0.8f, 0f, -0.8f),   // Back right corner
-        model = EntityModels.getModel(STALL, "WoodPole2")
-    )
-    val woodTable = Entity(
-        localPosition = Vector3f(0f, 0.4f, 0f),      // Center, table height
-        model = EntityModels.getModel(STALL, "WoodTable")
-    )
-    val woodTray = Entity(
-        localPosition = Vector3f(0f, 0.82f, -0.2f),  // Slightly behind fruits on table
-        model = EntityModels.getModel(STALL, "WoodTray")
-    )
+    // Keep imported model-origin local transform (0,0,0) for all stall children.
+    val cover = Entity(model = EntityModels.getModel(STALL, "Cover"))
+    val fruits = Entity(model = EntityModels.getModel(STALL, "Fruits"))
+    val glass1 = Entity(model = EntityModels.getModel(STALL, "Glass1"))
+    val glass2 = Entity(model = EntityModels.getModel(STALL, "Glass2"))
+    val glass3 = Entity(model = EntityModels.getModel(STALL, "Glass3"))
+    val woodPole1 = Entity(model = EntityModels.getModel(STALL, "WoodPole1"))
+    val woodPole2 = Entity(model = EntityModels.getModel(STALL, "WoodPole2"))
+    val woodTable = Entity(model = EntityModels.getModel(STALL, "WoodTable"))
+    val woodTray = Entity(model = EntityModels.getModel(STALL, "WoodTray"))
 
     init {
         // Use new addChild method for proper parent-child relationship
@@ -77,7 +50,7 @@ class StallEntity : Entity(
         // Rotate each child around its local Y axis
         children.forEach { child ->
             val currentRotation = child.localRotation
-            child.setLocalRotation(Vector3f(currentRotation.x, currentRotation.y + 0.2f, currentRotation.z))
+            child.localRotation = Vector3f(currentRotation.x, currentRotation.y + 0.2f, currentRotation.z)
         }
     }
     
@@ -85,7 +58,7 @@ class StallEntity : Entity(
      * Example: Add cargo to the stall (dynamic entity grouping)
      */
     fun addCargo(cargo: Entity, localPos: Vector3f = Vector3f(0f, 1f, 0f)) {
-        cargo.setLocalPosition(localPos)
+        cargo.localPosition = localPos
         addChild(cargo)
     }
     
