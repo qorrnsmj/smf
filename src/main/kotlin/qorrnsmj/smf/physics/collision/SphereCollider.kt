@@ -1,7 +1,6 @@
 package qorrnsmj.smf.physics.collision
 
 import qorrnsmj.smf.math.Vector3f
-import kotlin.math.sqrt
 
 /**
  * Sphere collider implementation

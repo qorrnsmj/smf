@@ -105,6 +105,7 @@ object PhysicsWorld {
     
     /**
      * Integrate motion using semi-implicit Euler method
+     * Now supports hierarchical physics propagation
      */
     private fun integrateMotion(entities: List<Entity>, delta: Float) {
         for (entity in entities) {
@@ -121,11 +122,50 @@ object PhysicsWorld {
                 physics.velocity = physics.velocity.add(physics.acceleration.scale(delta))
             }
             
-            // Update position: p = p + v * dt
-            entity.position = entity.position.add(physics.velocity.scale(delta))
+            // Update position: p = p + v * dt (root entities only)
+            if (entity.parent == null) {
+                val newPosition = entity.position.add(physics.velocity.scale(delta))
+                entity.position = newPosition
+                
+                // Propagate physics result to all children
+                propagatePhysicsToChildren(entity, physics.velocity, delta)
+            }
             
             // Update angular motion (basic rotation)
             entity.rotation = entity.rotation.add(physics.angularVelocity.scale(delta))
+        }
+    }
+    
+    /**
+     * Propagate parent's physics motion to all child entities recursively
+     */
+    private fun propagatePhysicsToChildren(parent: Entity, parentVelocity: Vector3f, delta: Float) {
+        for (child in parent.children) {
+            // If child has its own physics, blend with parent motion
+            if (child.physicsComponent != null) {
+                val childPhysics = child.physicsComponent!!
+                
+                if (!childPhysics.isStatic) {
+                    // Child inherits parent velocity plus its own relative motion
+                    val inheritedVelocity = if (childPhysics.isKinematic) {
+                        parentVelocity // Kinematic children just follow parent
+                    } else {
+                        parentVelocity.add(childPhysics.velocity) // Dynamic children add their own motion
+                    }
+                    
+                    // Update child's world position based on inherited motion
+                    val childWorldPos = child.getWorldPosition()
+                    val newChildWorldPos = childWorldPos.add(inheritedVelocity.scale(delta))
+                    child.applyPhysicsTransform(newChildWorldPos)
+                }
+            } else {
+                // Child without physics just follows parent transform
+                // No additional position update needed - transform hierarchy handles this automatically
+                child.updateTransform()
+            }
+            
+            // Recursively propagate to grandchildren
+            propagatePhysicsToChildren(child, parentVelocity, delta)
         }
     }
     
