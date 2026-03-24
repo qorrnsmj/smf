@@ -11,6 +11,7 @@ CHANGELOG.md
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
+.idea/dictionaries/
 .idea/copilot.data.migration*.xml
 *.iws
 *.iml
