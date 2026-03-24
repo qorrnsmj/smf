@@ -98,6 +98,17 @@ class Vector3f {
     }
 
     /**
+     * Calculates the distance between this vector and another vector.
+     *
+     * @param other The other vector
+     *
+     * @return Euclidean distance between this and other
+     */
+    fun distanceTo(other: Vector3f): Float {
+        return subtract(other).length()
+    }
+
+    /**
      * Multiplies a vector by a scalar.
      *
      * @param scalar Scalar to multiply
@@ -158,6 +169,28 @@ class Vector3f {
      */
     fun lerp(other: Vector3f, alpha: Float): Vector3f {
         return scale(1f - alpha).add(other.scale(alpha))
+    }
+    
+    /**
+     * Component-wise multiplication with another vector
+     *
+     * @param other The other vector
+     *
+     * @return New vector with multiplied components
+     */
+    fun multiply(other: Vector3f): Vector3f {
+        return Vector3f(x * other.x, y * other.y, z * other.z)
+    }
+    
+    /**
+     * Component-wise division by another vector
+     *
+     * @param other The other vector
+     *
+     * @return New vector with divided components
+     */
+    fun divide(other: Vector3f): Vector3f {
+        return Vector3f(x / other.x, y / other.y, z / other.z)
     }
 
     /**
