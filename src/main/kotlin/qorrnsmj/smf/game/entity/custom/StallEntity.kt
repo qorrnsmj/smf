@@ -3,8 +3,21 @@ package qorrnsmj.smf.game.entity.custom
 import qorrnsmj.smf.game.entity.Entity
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.EntityModels.STALL
+import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.physics.PhysicsComponent
+import qorrnsmj.smf.physics.collision.BoxCollider
 
-class StallEntity : Entity() {
+class StallEntity : Entity(
+    position = Vector3f(80f, 35f, 80f),  // Start above ground
+    physicsComponent = PhysicsComponent(
+        mass = 50f,           // Heavy stall
+        useGravity = true,    // Enable gravity
+        restitution = 0.1f,   // Low bounce
+        friction = 0.8f,      // High friction
+        drag = 0.05f,         // Some air resistance
+        collider = BoxCollider(2f, 3f, 2f)  // Box collider (width, height, depth)
+    )
+) {
     val cover = Entity(model = EntityModels.getModel(STALL, "Cover"))
     val fruits = Entity(model = EntityModels.getModel(STALL, "Fruits"))
     val glass1 = Entity(model = EntityModels.getModel(STALL, "Glass1"))
