@@ -40,9 +40,6 @@ class TestLevel : Level() {
             physicsComponent?.apply {
                 useGravity = false
                 isStatic = false
-                restitution = 0.1f
-                friction = 0.2f
-                drag = 0.02f
                 stop()
             }
         }
@@ -52,9 +49,6 @@ class TestLevel : Level() {
             physicsComponent?.apply {
                 useGravity = false
                 isStatic = true
-                restitution = 0f
-                friction = 0.8f
-                drag = 0f
                 stop()
             }
         }

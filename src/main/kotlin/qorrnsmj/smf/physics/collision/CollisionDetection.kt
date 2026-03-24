@@ -84,21 +84,18 @@ object CollisionDetection {
         // Don't resolve if objects are separating
         if (velocityAlongNormal > 0) return
         
-        // Calculate restitution (bounciness)
-        // val restitution = (physics1.restitution + physics2.restitution) * 0.5f
-
         // Calculate impulse scalar (bounce disabled)
         val impulseScalar = -velocityAlongNormal / invMassSum
         
         // Apply impulse
         val impulse = result.collisionNormal.scale(impulseScalar)
         
-        if (!physics1.isStatic && !physics1.isKinematic) {
-            physics1.velocity = physics1.velocity.subtract(impulse.scale(1/physics1.mass))
+        if (!physics1.isStatic) {
+            physics1.velocity = physics1.velocity.subtract(impulse.scale(invMass1))
         }
         
-        if (!physics2.isStatic && !physics2.isKinematic) {
-            physics2.velocity = physics2.velocity.add(impulse.scale(1/physics2.mass))
+        if (!physics2.isStatic) {
+            physics2.velocity = physics2.velocity.add(impulse.scale(invMass2))
         }
         
         // Position correction to prevent sinking
@@ -110,19 +107,18 @@ object CollisionDetection {
         
         val correction = result.collisionNormal.scale(correctionMagnitude)
         
-        if (!physics1.isStatic && !physics1.isKinematic) {
+        if (!physics1.isStatic) {
             entity1.position = entity1.position.subtract(correction.scale(invMass1))
         }
         
-        if (!physics2.isStatic && !physics2.isKinematic) {
+        if (!physics2.isStatic) {
             entity2.position = entity2.position.add(correction.scale(invMass2))
         }
     }
 
     private fun inverseMass(physics: qorrnsmj.smf.physics.PhysicsComponent): Float {
-        if (physics.isStatic || physics.isKinematic) return 0f
-        if (physics.mass <= 0f) return 0f
-        return 1f / physics.mass
+        if (physics.isStatic) return 0f
+        return 1f
     }
 }
 

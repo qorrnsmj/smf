@@ -88,19 +88,19 @@ object PhysicsWorld {
         for (entity in entities) {
             val physics = entity.physicsComponent ?: continue
             
-            // Skip static and kinematic objects for force application
-            if (physics.isStatic || physics.isKinematic) continue
+            // Skip static objects for force application
+            if (physics.isStatic) continue
             
             // Apply gravity
             if (physics.useGravity) {
-                physics.applyForce(GRAVITY_VECTOR.scale(physics.mass * GRAVITY_EFFECT_SCALE))
+                physics.applyForce(GRAVITY_VECTOR.scale(GRAVITY_EFFECT_SCALE))
             }
             
-            // Apply drag force (air resistance)
-            if (physics.drag > 0f && physics.velocity.length() > 0f) {
-                val dragForce = physics.velocity.normalize().scale(-physics.drag * physics.velocity.length() * physics.velocity.length())
-                physics.applyForce(dragForce)
-            }
+            // Drag is disabled in simple physics mode.
+            // if (physics.drag > 0f && physics.velocity.length() > 0f) {
+            //     val dragForce = physics.velocity.normalize().scale(-physics.drag * physics.velocity.length() * physics.velocity.length())
+            //     physics.applyForce(dragForce)
+            // }
         }
     }
     
@@ -119,9 +119,7 @@ object PhysicsWorld {
             physics.calculateAcceleration()
             
             // Update velocity: v = v + a * dt
-            if (!physics.isKinematic) {
-                physics.velocity = physics.velocity.add(physics.acceleration.scale(delta))
-            }
+            physics.velocity = physics.velocity.add(physics.acceleration.scale(delta))
             
             // Update position: p = p + v * dt (root entities only)
             if (entity.parent == null) {
@@ -132,8 +130,8 @@ object PhysicsWorld {
                 propagatePhysicsToChildren(entity, physics.velocity, delta)
             }
             
-            // Update angular motion (basic rotation)
-            entity.rotation = entity.rotation.add(physics.angularVelocity.scale(delta))
+            // Angular motion is disabled in simple physics mode.
+            // entity.rotation = entity.rotation.add(physics.angularVelocity.scale(delta))
         }
     }
     
@@ -147,12 +145,8 @@ object PhysicsWorld {
                 val childPhysics = child.physicsComponent!!
                 
                 if (!childPhysics.isStatic) {
-                    // Child inherits parent velocity plus its own relative motion
-                    val inheritedVelocity = if (childPhysics.isKinematic) {
-                        parentVelocity // Kinematic children just follow parent
-                    } else {
-                        parentVelocity.add(childPhysics.velocity) // Dynamic children add their own motion
-                    }
+                    // Child inherits parent velocity plus its own relative motion.
+                    val inheritedVelocity = parentVelocity.add(childPhysics.velocity)
                     
                     // Update child's world position based on inherited motion
                     val childWorldPos = child.getWorldPosition()
@@ -195,26 +189,9 @@ object PhysicsWorld {
                 // Ground contact response
                 physics.isGrounded = true
                 
-                // Apply restitution (bounce) if moving downward
+                // Ground stop only in simple physics mode.
                 if (physics.velocity.y < 0f) {
-                    physics.velocity.y = -physics.velocity.y * physics.restitution
-                    
-                    // Stop very small bounces to prevent jittering
-                    if (kotlin.math.abs(physics.velocity.y) < 0.1f) {
-                        physics.velocity.y = 0f
-                    }
-                }
-                
-                // Apply friction to horizontal movement
-                if (physics.isGrounded) {
-                    val horizontalVelocity = Vector3f(physics.velocity.x, 0f, physics.velocity.z)
-                    val frictionMagnitude = physics.friction * kotlin.math.min(1f, horizontalVelocity.length())
-                    
-                    if (horizontalVelocity.length() > 0f) {
-                        val frictionForce = horizontalVelocity.normalize().scale(-frictionMagnitude)
-                        physics.velocity.x += frictionForce.x * deltaTime
-                        physics.velocity.z += frictionForce.z * deltaTime
-                    }
+                    physics.velocity.y = 0f
                 }
             } else {
                 physics.isGrounded = false

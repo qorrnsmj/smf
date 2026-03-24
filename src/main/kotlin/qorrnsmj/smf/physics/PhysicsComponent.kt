@@ -9,7 +9,7 @@ import qorrnsmj.smf.physics.collision.Collider
  */
 data class PhysicsComponent(
     // Basic physical properties
-    var mass: Float = 1.0f,
+    // var mass: Float = 1.0f,
     var velocity: Vector3f = Vector3f(0f, 0f, 0f),
     var acceleration: Vector3f = Vector3f(0f, 0f, 0f),
     
@@ -18,13 +18,13 @@ data class PhysicsComponent(
     
     // Physics behavior flags
     var useGravity: Boolean = true,
-    var isStatic: Boolean = false,
+    var isStatic: Boolean = true,
     var isKinematic: Boolean = false,
     
     // Physical material properties
-    var restitution: Float = 0.3f,  // Bounce factor (0 = no bounce, 1 = perfect bounce)
-    var friction: Float = 0.5f,     // Friction coefficient
-    var drag: Float = 0.01f,        // Air resistance
+    // var restitution: Float = 0.3f,  // Bounce factor (0 = no bounce, 1 = perfect bounce)
+    // var friction: Float = 0.5f,     // Friction coefficient
+    // var drag: Float = 0.01f,        // Air resistance
     
     // Rotation properties
     var angularVelocity: Vector3f = Vector3f(0f, 0f, 0f),
@@ -42,7 +42,7 @@ data class PhysicsComponent(
      * Apply a force to this physics component
      */
     fun applyForce(force: Vector3f) {
-        if (!isStatic && !isKinematic) {
+        if (!isStatic) {
             forces.add(force)
         }
     }
@@ -51,8 +51,8 @@ data class PhysicsComponent(
      * Apply an impulse (immediate velocity change)
      */
     fun applyImpulse(impulse: Vector3f) {
-        if (!isStatic && !isKinematic) {
-            velocity = velocity.add(impulse.scale(1f / mass))
+        if (!isStatic) {
+            velocity = velocity.add(impulse)
         }
     }
     
@@ -72,35 +72,30 @@ data class PhysicsComponent(
     }
     
     /**
-     * Calculate acceleration from current forces (F = ma)
+     * Calculate acceleration from current forces (simple unit-mass mode)
      */
     fun calculateAcceleration() {
-        if (!isStatic && !isKinematic && mass > 0f) {
-            acceleration = getTotalForce().scale(1f / mass)
+        if (!isStatic) {
+            acceleration = getTotalForce()
         }
     }
-    
-    /**
-     * Add velocity (useful for impulses)
-     */
-    fun addVelocity(deltaVelocity: Vector3f) {
-        if (!isStatic && !isKinematic) {
-            velocity = velocity.add(deltaVelocity)
-        }
-    }
-    
-    /**
-     * Check if the physics component has significant movement
-     */
-    fun isMoving(threshold: Float = 0.01f): Boolean {
-        return velocity.length() > threshold
-    }
+
+    // Non-essential helpers are disabled in simple physics mode.
+    // fun addVelocity(deltaVelocity: Vector3f) {
+    //     if (!isStatic) {
+    //         velocity = velocity.add(deltaVelocity)
+    //     }
+    // }
+
+    // fun isMoving(threshold: Float = 0.01f): Boolean {
+    //     return velocity.length() > threshold
+    // }
     
     /**
      * Stop all movement (set velocity to zero)
      */
     fun stop() {
         velocity = Vector3f(0f, 0f, 0f)
-        angularVelocity = Vector3f(0f, 0f, 0f)
+        // angularVelocity = Vector3f(0f, 0f, 0f)
     }
 }
