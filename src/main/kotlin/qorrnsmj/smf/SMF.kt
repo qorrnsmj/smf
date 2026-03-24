@@ -7,6 +7,7 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.audio.Audio
 import qorrnsmj.smf.audio.AudioContext
 import qorrnsmj.smf.audio.AudioManager
+import qorrnsmj.smf.physics.PhysicsWorld
 import qorrnsmj.smf.core.FixedTimestepGame
 import qorrnsmj.smf.core.Timer
 import qorrnsmj.smf.game.entity.EntityModels
@@ -33,6 +34,9 @@ object SMF : FixedTimestepGame() {
         // Initialize audio system
         AudioContext.initialize()
         AudioManager.initialize()
+        
+        // Initialize physics system
+        PhysicsWorld.initialize()
 
         errorCallback = GLFWErrorCallback.createPrint().set()
         resizeCallback = GLFWFramebufferSizeCallback.create { _, width, height ->

@@ -133,22 +133,27 @@ class EntityRenderer : Resizable, Cleanable {
         unbindModel()
     }
 
-    // TODO: 親のpos, rot, scaleを子にも適用 -> そもそもmodel-matrix共有しとけば？ (同じfbxのモデルならわかるけど、後から別モデルをchildren登録したらどうなる？)
+    // Transform hierarchy support: render with world coordinates
     private fun processEntity(entity: Entity, batchMap: MutableMap<Model, MutableList<Entity>>) {
-        // parent model
+        // parent model (use world coordinates for rendering)
         if (entity.model != EntityModels.EMPTY) {
             val batch = batchMap.getOrPut(entity.model) { mutableListOf() }
             batch.add(entity)
         }
 
-        // children model
+        // children model (also use world coordinates - transform hierarchy is handled automatically)
         for (child in entity.children) {
             processEntity(child, batchMap)
         }
     }
 
     private fun prepareEntity(entity: Entity) {
-        setUniform(locationModel, MVP.getModelMatrix(entity.position, entity.rotation, entity.scale))
+        // Use world coordinates for rendering (resolves TODO: 親のpos, rot, scaleを子にも適用)
+        val worldPos = entity.getWorldPosition()
+        val worldRot = entity.getWorldRotation()
+        val worldScale = entity.getWorldScale()
+        
+        setUniform(locationModel, MVP.getModelMatrix(worldPos, worldRot, worldScale))
     }
 
     private fun bindModel(model: Model) {
