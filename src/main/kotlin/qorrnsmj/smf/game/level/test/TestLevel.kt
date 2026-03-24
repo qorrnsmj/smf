@@ -1,6 +1,10 @@
 package qorrnsmj.smf.game.level.test
 
+import org.lwjgl.glfw.GLFW.*
+import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
+import qorrnsmj.smf.audio.Audio
+import qorrnsmj.smf.audio.AudioManager
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.custom.StallEntity
 import qorrnsmj.smf.game.entity.player.Player
@@ -70,6 +74,61 @@ class TestLevel : Level() {
         if (!introductionCutscene.isFinished()) return
 
         player.handleInput(SMF.window, delta)
+        
+        // Audio testing controls
+        handleAudioInput()
+    }
+
+    private fun handleAudioInput() {
+        val window = SMF.window.id
+        
+        // BGM Controls
+        if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS) {
+            Audio.playBGM("test_bgm") // test_bgm.ogg
+            Logger.info("Playing BGM: test_bgm")
+        }
+        
+        // SFX Controls
+        if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
+            Audio.playSFX("test_se") // test_se.ogg
+            Logger.info("Playing SFX: test_se")
+        }
+        
+        // Volume Controls
+        if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS) { // + key
+            val newVolume = (AudioManager.getMasterVolume() + 0.1f).coerceAtMost(1.0f)
+            AudioManager.setMasterVolume(newVolume)
+            Logger.info("Master volume: ${(newVolume * 100).toInt()}%")
+        }
+        if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS) {
+            val newVolume = (AudioManager.getMasterVolume() - 0.1f).coerceAtLeast(0.0f)
+            AudioManager.setMasterVolume(newVolume)
+            Logger.info("Master volume: ${(newVolume * 100).toInt()}%")
+        }
+        
+        // BGM Volume Controls
+        if (glfwGetKey(window, GLFW_KEY_LEFT_BRACKET) == GLFW_PRESS) { // [ key
+            val newVolume = (AudioManager.getBGMVolume() - 0.1f).coerceAtLeast(0.0f)
+            AudioManager.setBGMVolume(newVolume)
+            Logger.info("BGM volume: ${(newVolume * 100).toInt()}%")
+        }
+        if (glfwGetKey(window, GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS) { // ] key
+            val newVolume = (AudioManager.getBGMVolume() + 0.1f).coerceAtMost(1.0f)
+            AudioManager.setBGMVolume(newVolume)
+            Logger.info("BGM volume: ${(newVolume * 100).toInt()}%")
+        }
+        
+        // Audio System Info
+        if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
+            val stats = AudioManager.getStats()
+            Logger.info("=== Audio System Status ===")
+            Logger.info("Master Volume: ${(stats.masterVolume * 100).toInt()}%")
+            Logger.info("BGM Volume: ${(stats.bgmVolume * 100).toInt()}%")
+            Logger.info("SFX Volume: ${(stats.sfxVolume * 100).toInt()}%")
+            Logger.info("BGM Playing: ${stats.isBGMPlaying}")
+            Logger.info("Active Sources: ${stats.activeSources}/${stats.totalSources}")
+            Logger.info("===========================")
+        }
     }
 
     override fun update(delta: Float) {

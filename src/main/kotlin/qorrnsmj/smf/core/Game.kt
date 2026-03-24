@@ -5,6 +5,8 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback
 import org.lwjgl.glfw.GLFWKeyCallback
 import org.tinylog.kotlin.Logger
+import qorrnsmj.smf.audio.AudioContext
+import qorrnsmj.smf.audio.AudioManager
 import qorrnsmj.smf.graphic.render.MasterRenderer
 import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.state.StateMachine
@@ -29,6 +31,7 @@ abstract class Game {
 
     protected fun update() {
         stateMachine.update()
+        AudioManager.update()
     }
 
     protected fun render() {
@@ -46,6 +49,10 @@ abstract class Game {
         stateMachine.changeState(EMPTY)
         renderer.cleanup()
         window.cleanup()
+
+        // Cleanup audio system
+        AudioManager.cleanup()
+        AudioContext.cleanup()
 
         glfwTerminate()
         Logger.info("Game cleaned up!")
