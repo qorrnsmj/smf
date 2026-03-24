@@ -7,6 +7,7 @@ import org.lwjgl.glfw.GLFWKeyCallback
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.audio.AudioContext
 import qorrnsmj.smf.audio.AudioManager
+import qorrnsmj.smf.physics.PhysicsWorld
 import qorrnsmj.smf.graphic.render.MasterRenderer
 import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.state.StateMachine
@@ -53,6 +54,9 @@ abstract class Game {
         // Cleanup audio system
         AudioManager.cleanup()
         AudioContext.cleanup()
+        
+        // Cleanup physics system
+        PhysicsWorld.cleanup()
 
         glfwTerminate()
         Logger.info("Game cleaned up!")
