@@ -10,11 +10,7 @@ import qorrnsmj.smf.physics.collision.BoxCollider
 class StallEntity : Entity(
     localPosition = Vector3f(80f, 35f, 80f),  // Start above ground
     physicsComponent = PhysicsComponent(
-        mass = 50f,           // Heavy stall
         useGravity = true,    // Enable gravity
-        restitution = 0.1f,   // Low bounce
-        friction = 0.8f,      // High friction
-        drag = 0.05f,         // Some air resistance
         collider = BoxCollider(2f, 3f, 2f)  // Box collider (width, height, depth)
     )
 ) {
