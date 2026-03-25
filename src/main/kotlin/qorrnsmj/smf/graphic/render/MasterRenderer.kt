@@ -3,6 +3,7 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.graphic.text.TextRenderer
 import qorrnsmj.smf.util.Cleanable
 import qorrnsmj.smf.util.Resizable
 
@@ -11,6 +12,7 @@ class MasterRenderer : Resizable, Cleanable {
     private val skyboxRenderer = SkyboxRenderer()
     private val terrainRenderer = TerrainRenderer()
     private val entityRenderer = EntityRenderer()
+    private val textRenderer = TextRenderer()
 
     init {
         Logger.info("MasterRenderer initializing...")
@@ -31,13 +33,13 @@ class MasterRenderer : Resizable, Cleanable {
         // If there are no effects, render directly to the default frame-buffer
         if (scene.effects.isNotEmpty()) postProcessor.bindFrameBuffer()
 
-        // TODO: Implement sky-color handling
         val skyColor = scene.skyColor
         glClearColor(skyColor.x, skyColor.y, skyColor.z, 1f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         skyboxRenderer.start()
         skyboxRenderer.loadCamera(scene.camera)
+        skyboxRenderer.loadSkyColor(skyColor)
         skyboxRenderer.renderSkybox(scene.skybox)
         skyboxRenderer.stop()
 
@@ -60,9 +62,16 @@ class MasterRenderer : Resizable, Cleanable {
             postProcessor.bindDefaultFrameBuffer()
             postProcessor.applyPostProcess(scene.effects)
         }
+
+        if (scene.textElements.isNotEmpty()) {
+            textRenderer.start()
+            textRenderer.renderText(scene.textElements)
+            textRenderer.stop()
+        }
     }
 
     override fun cleanup() {
+        textRenderer.cleanup()
         postProcessor.cleanup()
         skyboxRenderer.cleanup()
         terrainRenderer.cleanup()
@@ -73,6 +82,8 @@ class MasterRenderer : Resizable, Cleanable {
 
     override fun resize(width: Int, height: Int) {
         glViewport(0, 0, width, height)
+        
+        textRenderer.resize(width, height)
         postProcessor.resize(width, height)
 
         skyboxRenderer.start()

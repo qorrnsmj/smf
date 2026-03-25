@@ -8,6 +8,7 @@ import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.graphic.terrain.Terrain
 import qorrnsmj.smf.graphic.terrain.Terrains
 import qorrnsmj.smf.graphic.effect.Effect
+import qorrnsmj.smf.graphic.text.TextElement
 import qorrnsmj.smf.math.Vector3f
 
 data class Scene(
@@ -18,4 +19,5 @@ data class Scene(
     val lights: MutableList<Light> = mutableListOf(),
     val entities: MutableList<Entity> = mutableListOf(),
     val effects: MutableList<Effect> = mutableListOf(),
+    val textElements: MutableList<TextElement> = mutableListOf()
 )
