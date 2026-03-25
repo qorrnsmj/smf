@@ -81,6 +81,6 @@ abstract class FixedTimestepGame : Game() {
 
     companion object {
         const val TARGET_FPS = 60
-        const val TARGET_UPS = 30
+        const val TARGET_UPS = 60
     }
 }

@@ -1,5 +1,9 @@
 package qorrnsmj.smf.game.level.test
 
+import org.lwjgl.glfw.GLFW.GLFW_KEY_F6
+import org.lwjgl.glfw.GLFW.GLFW_PRESS
+import org.lwjgl.glfw.GLFW.glfwGetKey
+import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.player.Player
@@ -20,6 +24,13 @@ class TestLevel : Level() {
     private lateinit var introductionCutscene: IntroductionCutscene
     private lateinit var cutsceneCamera: Camera
     private val debugTextManager = DebugTextManager()
+    private val skyColorTestPalette = listOf(
+        Vector3f(0.55f, 0.72f, 0.98f),
+        Vector3f(0.95f, 0.55f, 0.35f),
+        Vector3f(0.22f, 0.28f, 0.45f)
+    )
+    private var skyColorPaletteIndex = 0
+    private var skyColorTogglePressed = false
 
     override fun load() {
         player = Player().apply { camera.position = Vector3f(100f, 37f, 100f) }
@@ -41,6 +52,7 @@ class TestLevel : Level() {
 
         scene.terrain = Terrains.PLANE
         scene.skybox = Skyboxes.SKY1
+        scene.skyColor = skyColorTestPalette[skyColorPaletteIndex]
 
         triggers.add(
             object : AreaEnterTrigger(
@@ -50,6 +62,8 @@ class TestLevel : Level() {
             ) {
                 override fun fire() {
                     scene.skybox = Skyboxes.DEFAULT
+                    scene.skyColor = skyColorTestPalette[1]
+                    Logger.info("Sky/Fog color test trigger fired: {}", scene.skyColor)
                 }
             }
         )
@@ -69,9 +83,24 @@ class TestLevel : Level() {
     }
 
     override fun input(delta: Float) {
-        if (!introductionCutscene.isFinished()) return
+        if (!introductionCutscene.isFinished()) {
+            handleSkyColorTestInput()
+            return
+        }
 
         player.handleInput(SMF.window, delta)
+        handleSkyColorTestInput()
+    }
+
+    private fun handleSkyColorTestInput() {
+        val isPressed = glfwGetKey(SMF.window.id, GLFW_KEY_F6) == GLFW_PRESS
+        if (isPressed && !skyColorTogglePressed) {
+            skyColorPaletteIndex = (skyColorPaletteIndex + 1) % skyColorTestPalette.size
+            scene.skyColor = skyColorTestPalette[skyColorPaletteIndex]
+            Logger.info("Sky/Fog color switched to {}", scene.skyColor)
+        }
+
+        skyColorTogglePressed = isPressed
     }
 
     override fun update(delta: Float) {

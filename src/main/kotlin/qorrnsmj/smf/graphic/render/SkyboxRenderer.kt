@@ -47,15 +47,16 @@ class SkyboxRenderer : Resizable, Cleanable {
         tex.bind()
         UniformUtils.setUniform(locationTexImage, 0)
 
-        // sky color fallback
-        UniformUtils.setUniform(locationSkyColor, Vector3f(0.5f, 0.7f, 1.0f))
-
         // draw
         glBindVertexArray(model.mesh.vao)
         glEnableVertexAttribArray(0)
         glDrawElements(GL_TRIANGLES, model.mesh.vertexCount, GL_UNSIGNED_INT, 0)
         glDisableVertexAttribArray(0)
         glBindVertexArray(0)
+    }
+
+    fun loadSkyColor(skyColor: Vector3f) {
+        UniformUtils.setUniform(locationSkyColor, skyColor)
     }
 
     fun loadCamera(camera: Camera) {
