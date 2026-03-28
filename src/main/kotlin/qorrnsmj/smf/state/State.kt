@@ -6,7 +6,7 @@ import qorrnsmj.smf.game.level.LevelManager
 
 abstract class State {
     protected val levelManager: LevelManager = LevelManager()
-    protected var delta: Float = 1f / 60f
+    protected var delta: Float = 1f
 
     open fun start() {
         SMF.window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)

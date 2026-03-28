@@ -93,7 +93,7 @@ object PhysicsWorld {
             
             // Apply gravity
             if (physics.useGravity) {
-                physics.applyForce(GRAVITY_VECTOR.scale(GRAVITY_EFFECT_SCALE))
+                physics.applyForce(GRAVITY_VECTOR.scale(physics.mass * GRAVITY_EFFECT_SCALE))
             }
             
             // Drag is disabled in simple physics mode.

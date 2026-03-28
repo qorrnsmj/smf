@@ -3,16 +3,18 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.graphic.render.debug.DebugRenderer
 import qorrnsmj.smf.graphic.text.TextRenderer
 import qorrnsmj.smf.util.Cleanable
 import qorrnsmj.smf.util.Resizable
 
 class MasterRenderer : Resizable, Cleanable {
-    private val postProcessor = PostProcessor()
-    private val skyboxRenderer = SkyboxRenderer()
-    private val terrainRenderer = TerrainRenderer()
-    private val entityRenderer = EntityRenderer()
-    private val textRenderer = TextRenderer()
+    val postProcessor = PostProcessor()
+    val skyboxRenderer = SkyboxRenderer()
+    val terrainRenderer = TerrainRenderer()
+    val entityRenderer = EntityRenderer()
+    val debugRenderer = DebugRenderer()
+    val textRenderer = TextRenderer()
 
     init {
         Logger.info("MasterRenderer initializing...")
@@ -63,6 +65,9 @@ class MasterRenderer : Resizable, Cleanable {
             postProcessor.applyPostProcess(scene.effects)
         }
 
+        // Render debug visualizations after post-processing, before text
+        debugRenderer.render(scene.entities, scene.camera.getViewMatrix())
+
         if (scene.textElements.isNotEmpty()) {
             textRenderer.start()
             textRenderer.renderText(scene.textElements)
@@ -71,31 +76,33 @@ class MasterRenderer : Resizable, Cleanable {
     }
 
     override fun cleanup() {
-        textRenderer.cleanup()
-        postProcessor.cleanup()
-        skyboxRenderer.cleanup()
-        terrainRenderer.cleanup()
         entityRenderer.cleanup()
+        terrainRenderer.cleanup()
+        skyboxRenderer.cleanup()
+        postProcessor.cleanup()
+        debugRenderer.cleanup()
+        textRenderer.cleanup()
 
         Logger.info("MasterRenderer cleaned up!")
     }
 
     override fun resize(width: Int, height: Int) {
         glViewport(0, 0, width, height)
-        
-        textRenderer.resize(width, height)
-        postProcessor.resize(width, height)
 
-        skyboxRenderer.start()
-        skyboxRenderer.resize(width, height)
-        skyboxRenderer.stop()
+        entityRenderer.start()
+        entityRenderer.resize(width, height)
+        entityRenderer.stop()
 
         terrainRenderer.start()
         terrainRenderer.resize(width, height)
         terrainRenderer.stop()
 
-        entityRenderer.start()
-        entityRenderer.resize(width, height)
-        entityRenderer.stop()
+        skyboxRenderer.start()
+        skyboxRenderer.resize(width, height)
+        skyboxRenderer.stop()
+
+        postProcessor.resize(width, height)
+        debugRenderer.resize(width, height)
+        textRenderer.resize(width, height)
     }
 }

@@ -76,12 +76,28 @@ object CollisionDetection {
         val invMassSum = invMass1 + invMass2
 
         if (invMassSum <= 0f) return
-        
+
+        // Resolve overlap first so objects do not remain interpenetrated.
+        val correctionPercent = 1.0f
+        val correctionSlop = 0f
+        val skin = 0.001f
+        val correctionMagnitude = (maxOf(result.penetrationDepth - correctionSlop, 0f) + skin) /
+            invMassSum * correctionPercent
+        val correction = result.collisionNormal.scale(correctionMagnitude)
+
+        if (!physics1.isStatic) {
+            entity1.position = entity1.position.subtract(correction.scale(invMass1))
+        }
+
+        if (!physics2.isStatic) {
+            entity2.position = entity2.position.add(correction.scale(invMass2))
+        }
+
         // Calculate relative velocity
         val relativeVelocity = physics2.velocity.subtract(physics1.velocity)
         val velocityAlongNormal = relativeVelocity.dot(result.collisionNormal)
         
-        // Don't resolve if objects are separating
+        // Skip impulse when objects are already separating.
         if (velocityAlongNormal > 0) return
         
         // Calculate impulse scalar (bounce disabled)
@@ -96,23 +112,6 @@ object CollisionDetection {
         
         if (!physics2.isStatic) {
             physics2.velocity = physics2.velocity.add(impulse.scale(invMass2))
-        }
-        
-        // Position correction to prevent sinking
-        val correctionPercent = 0.8f  // Usually 80%
-        val correctionSlop = 0.01f    // Usually 1cm
-        
-        val correctionMagnitude = maxOf(result.penetrationDepth - correctionSlop, 0f) /
-                                invMassSum * correctionPercent
-        
-        val correction = result.collisionNormal.scale(correctionMagnitude)
-        
-        if (!physics1.isStatic) {
-            entity1.position = entity1.position.subtract(correction.scale(invMass1))
-        }
-        
-        if (!physics2.isStatic) {
-            entity2.position = entity2.position.add(correction.scale(invMass2))
         }
     }
 

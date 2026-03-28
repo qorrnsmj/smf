@@ -41,7 +41,7 @@ class Timer {
      * Updates FPS and UPS if a whole second has passed.
      */
     fun update() {
-        if (timeCount > 1f) {
+        if (timeCount >= 1f) {
             fps = fpsCount
             fpsCount = 0
 

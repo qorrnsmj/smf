@@ -3,35 +3,21 @@ package qorrnsmj.smf.game.entity
 import qorrnsmj.smf.graphic.`object`.Model
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.PhysicsComponent
+import kotlin.jvm.JvmName
 import kotlin.math.*
 
 open class Entity(
     // Local transform (relative to parent)
-    localPosition: Vector3f = Vector3f(0f, 0f, 0f),
-    localRotation: Vector3f = Vector3f(0f, 0f, 0f),
-    localScale: Vector3f = Vector3f(1f, 1f, 1f),
+    @set:JvmName("setLocalPositionValue")
+    var localPosition: Vector3f = Vector3f(0f, 0f, 0f),
+    @set:JvmName("setLocalRotationValue")
+    var localRotation: Vector3f = Vector3f(0f, 0f, 0f),
+    @set:JvmName("setLocalScaleValue")
+    var localScale: Vector3f = Vector3f(1f, 1f, 1f),
     val model: Model = EntityModels.EMPTY,
     val children: MutableList<Entity> = mutableListOf(),
     var physicsComponent: PhysicsComponent? = null  // Optional physics component
 ) {
-    var localPosition: Vector3f = localPosition
-        set(value) {
-            field = value
-            markTransformDirty()
-        }
-
-    var localRotation: Vector3f = localRotation
-        set(value) {
-            field = value
-            markTransformDirty()
-        }
-
-    var localScale: Vector3f = localScale
-        set(value) {
-            field = value
-            markTransformDirty()
-        }
-
     // Legacy properties for backward compatibility
     var position: Vector3f
         get() = if (parent == null) localPosition else computeWorldPosition()
@@ -105,6 +91,30 @@ open class Entity(
             cachedWorldScale = computeWorldScale()
         }
         return cachedWorldScale!!
+    }
+    
+    /**
+     * Set local position and mark transform as dirty
+     */
+    fun setLocalPosition(position: Vector3f) {
+        this.localPosition = position
+        markTransformDirty()
+    }
+    
+    /**
+     * Set local rotation and mark transform as dirty
+     */
+    fun setLocalRotation(rotation: Vector3f) {
+        this.localRotation = rotation
+        markTransformDirty()
+    }
+    
+    /**
+     * Set local scale and mark transform as dirty
+     */
+    fun setLocalScale(scale: Vector3f) {
+        this.localScale = scale
+        markTransformDirty()
     }
     
     /**
