@@ -36,5 +36,8 @@ class SMFKeyCallback : GLFWKeyCallback() {
 
         if (key == GLFW_KEY_F11 && action == GLFW_PRESS)
             SMF.window.toggleFullscreen()
+
+        if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
+            SMF.renderer.debugRenderer.toggleCollisionDebug()
     }
 }

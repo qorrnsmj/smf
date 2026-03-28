@@ -21,7 +21,7 @@ class DebugTextManager : Cleanable {
     /**
      * Update debug information for this frame
      */
-    fun updateDebugInfo(cameraPosition: Vector3f, fps: Int, ups: Int) {
+    fun updateDebugInfo(cameraPosition: Vector3f, fps: Int, ups: Int, collisionDebugEnabled: Boolean = false) {
         val currentFont = font ?: return
         val textColor = Vector3f(0.3f, 0.3f, 0.3f)
         
@@ -50,13 +50,26 @@ class DebugTextManager : Cleanable {
             )
         )
         
+        // Add collision debug status
+        val collisionText = if (collisionDebugEnabled) "Collision Debug: ON (F1 to toggle)" else "Collision Debug: OFF (F1 to toggle)"
+        val collisionColor = if (collisionDebugEnabled) Vector3f(0.2f, 0.8f, 0.2f) else textColor
+        debugElements.add(
+            TextElement(
+                text = collisionText,
+                font = currentFont,
+                x = 10f,
+                y = 75f,
+                color = collisionColor
+            )
+        )
+        
         // Add instructions
         debugElements.add(
             TextElement(
                 text = "Controls: WASD - Move, Space - Jump, Mouse - Look",
                 font = currentFont,
                 x = 10f,
-                y = 75f,
+                y = 100f,
                 color = textColor
             )
         )

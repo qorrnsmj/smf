@@ -9,7 +9,7 @@ import qorrnsmj.smf.physics.collision.Collider
  */
 data class PhysicsComponent(
     // Basic physical properties
-    // var mass: Float = 1.0f,
+    var mass: Float = 1.0f,
     var velocity: Vector3f = Vector3f(0f, 0f, 0f),
     var acceleration: Vector3f = Vector3f(0f, 0f, 0f),
     
@@ -18,13 +18,13 @@ data class PhysicsComponent(
     
     // Physics behavior flags
     var useGravity: Boolean = true,
-    var isStatic: Boolean = true,
+    var isStatic: Boolean = false,
     var isKinematic: Boolean = false,
     
     // Physical material properties
-    // var restitution: Float = 0.3f,  // Bounce factor (0 = no bounce, 1 = perfect bounce)
-    // var friction: Float = 0.5f,     // Friction coefficient
-    // var drag: Float = 0.01f,        // Air resistance
+    var restitution: Float = 0.3f,  // Bounce factor (0 = no bounce, 1 = perfect bounce)
+    var friction: Float = 0.5f,     // Friction coefficient
+    var drag: Float = 0.01f,        // Air resistance
     
     // Rotation properties
     var angularVelocity: Vector3f = Vector3f(0f, 0f, 0f),
@@ -52,7 +52,7 @@ data class PhysicsComponent(
      */
     fun applyImpulse(impulse: Vector3f) {
         if (!isStatic) {
-            velocity = velocity.add(impulse)
+            velocity = velocity.add(impulse.scale(1f / mass))
         }
     }
     
@@ -72,11 +72,11 @@ data class PhysicsComponent(
     }
     
     /**
-     * Calculate acceleration from current forces (simple unit-mass mode)
+     * Calculate acceleration from current forces (F = ma)
      */
     fun calculateAcceleration() {
-        if (!isStatic) {
-            acceleration = getTotalForce()
+        if (!isStatic && mass > 0f) {
+            acceleration = getTotalForce().scale(1f / mass)
         }
     }
 

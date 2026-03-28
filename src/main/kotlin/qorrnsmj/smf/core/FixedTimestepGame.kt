@@ -5,6 +5,7 @@ import org.lwjgl.glfw.GLFW.glfwWindowShouldClose
 // TODO: 手直し
 abstract class FixedTimestepGame : Game() {
     lateinit var timer: Timer
+    private val simulationTimeScale = TARGET_UPS.toFloat()
 
     override fun gameloop() {
         var alpha: Float
@@ -29,7 +30,7 @@ abstract class FixedTimestepGame : Game() {
             // Updates game and timer UPS if enough time has passed
             // Calculates alpha value for interpolation
             while (accumulator >= interval) {
-                update()
+                update(interval * simulationTimeScale)
                 timer.updateUPS()
                 accumulator -= interval
             }

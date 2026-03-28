@@ -48,14 +48,23 @@ class BoxCollider(val width: Float, val height: Float, val depth: Float) : Colli
             val overlapX = minOf(bounds1.max.x - bounds2.min.x, bounds2.max.x - bounds1.min.x)
             val overlapY = minOf(bounds1.max.y - bounds2.min.y, bounds2.max.y - bounds1.min.y)
             val overlapZ = minOf(bounds1.max.z - bounds2.min.z, bounds2.max.z - bounds1.min.z)
+
+            // Touching faces (zero overlap) are treated as non-penetrating contact.
+            // This avoids sticky collision response and visual jitter.
+            if (overlapX <= 0f || overlapY <= 0f || overlapZ <= 0f) {
+                return null
+            }
             
             // Find the axis with minimum overlap (separation axis)
-            val minOverlap = minOf(overlapX, overlapY, overlapZ)
-            
-            val normal = when (minOverlap) {
-                overlapX -> Vector3f(if (pos1.x < pos2.x) 1f else -1f, 0f, 0f)
-                overlapY -> Vector3f(0f, if (pos1.y < pos2.y) 1f else -1f, 0f)
-                else -> Vector3f(0f, 0f, if (pos1.z < pos2.z) 1f else -1f)
+            val delta = pos2.subtract(pos1)
+            val minOverlap = minOf(overlapX, minOf(overlapY, overlapZ))
+
+            val normal = if (overlapX <= overlapY && overlapX <= overlapZ) {
+                Vector3f(if (delta.x >= 0f) 1f else -1f, 0f, 0f)
+            } else if (overlapY <= overlapZ) {
+                Vector3f(0f, if (delta.y >= 0f) 1f else -1f, 0f)
+            } else {
+                Vector3f(0f, 0f, if (delta.z >= 0f) 1f else -1f)
             }
             
             // Contact point is the center of the overlap region
