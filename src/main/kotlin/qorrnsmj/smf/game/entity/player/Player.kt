@@ -2,19 +2,41 @@ package qorrnsmj.smf.game.entity.player
 
 import org.lwjgl.glfw.GLFW
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.graphic.terrain.HeightProvider
+import qorrnsmj.smf.game.entity.EntityModels
+import qorrnsmj.smf.game.entity.custom.LivingEntity
+import qorrnsmj.smf.game.entity.custom.Transform
 import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.physics.component.DynamicPhysics
 import qorrnsmj.smf.window.Window
 
 class Player(
     private val eyeHeight: Float = 5f,
     private val moveSpeed: Float = 0.5f,
     private val jumpSpeed: Float = 2f,
-    private val gravity: Float = 0.1f,
+    collisionHalfWidth: Float = 0.5f,
+    collisionHeight: Float = eyeHeight,
+    collisionHalfDepth: Float = 0.5f,
+    groundProbeDistance: Float = 0.05f,
+) : LivingEntity(
+    transform = Transform(position = Vector3f(0f, 0f, 0f)),
+    model = EntityModels.EMPTY,
+    physicsComponent = DynamicPhysics(collider = null),
+    collisionHalfWidth = collisionHalfWidth,
+    collisionHeight = collisionHeight,
+    collisionHalfDepth = collisionHalfDepth,
+    groundProbeDistance = groundProbeDistance
 ) {
     var camera = Camera()
-    private var verticalVelocity = 0f
-    private var grounded = false
+
+    init {
+        syncCameraWithEntity()
+    }
+
+    fun setEyePosition(eyePosition: Vector3f) {
+        localTransform = localTransform.copy(position = Vector3f(eyePosition.x, eyePosition.y - eyeHeight, eyePosition.z))
+        physicsComponent.velocity = Vector3f(0f, 0f, 0f)
+        syncCameraWithEntity()
+    }
 
     fun handleInput(window: Window, delta: Float) {
         camera.processMouseMovement(window)
@@ -22,8 +44,8 @@ class Player(
         handleJump(window)
     }
 
-    fun update(delta: Float, heightProvider: HeightProvider) {
-        applyGravity(delta, heightProvider)
+    fun update() {
+        syncCameraWithEntity()
     }
 
     private fun moveHorizontal(window: Window, delta: Float) {
@@ -37,27 +59,20 @@ class Player(
         if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_A) == GLFW.GLFW_PRESS) move = move.add(right.scale(-velocity))
         if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_D) == GLFW.GLFW_PRESS) move = move.add(right.scale(velocity))
 
-        camera.position = camera.position.add(move)
-    }
-
-    private fun applyGravity(delta: Float, heightProvider: HeightProvider) {
-        verticalVelocity -= gravity * delta
-        camera.position.y += verticalVelocity
-
-        val groundY = heightProvider.getHeight(camera.position.x, camera.position.z) + eyeHeight
-        if (camera.position.y <= groundY) {
-            camera.position.y = groundY
-            verticalVelocity = 0f
-            grounded = true
-        } else {
-            grounded = false
-        }
+        localTransform = localTransform.copy(position = localTransform.position.add(move))
+        syncCameraWithEntity()
     }
 
     private fun handleJump(window: Window) {
-        if (grounded && GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_SPACE) == GLFW.GLFW_PRESS) {
-            verticalVelocity = jumpSpeed
-            grounded = false
+        val physics = physicsComponent
+        if (physics.isGrounded && GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_SPACE) == GLFW.GLFW_PRESS) {
+            physics.velocity = Vector3f(physics.velocity.x, jumpSpeed, physics.velocity.z)
+            physics.isGrounded = false
         }
+    }
+
+    private fun syncCameraWithEntity() {
+        val feet = worldTransform.position
+        camera.position = Vector3f(feet.x, feet.y + eyeHeight, feet.z)
     }
 }

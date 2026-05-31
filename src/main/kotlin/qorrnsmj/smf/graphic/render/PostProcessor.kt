@@ -85,15 +85,6 @@ class PostProcessor : Resizable {
 
     /* Misc */
 
-    fun cleanup() {
-        inFbo.delete()
-        outFbo.delete()
-        quadVbo.delete()
-        quadVao.delete()
-
-        Logger.info("PostProcessor cleaned up!")
-    }
-
     override fun resize(width: Int, height: Int) {
         this.width = width
         this.height = height

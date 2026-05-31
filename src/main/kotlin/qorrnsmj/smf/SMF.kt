@@ -35,8 +35,6 @@ object SMF : FixedTimestepGame() {
         AudioContext.initialize()
         AudioManager.initialize()
         
-        // Initialize physics system
-        PhysicsWorld.initialize()
 
         errorCallback = GLFWErrorCallback.createPrint().set()
         resizeCallback = GLFWFramebufferSizeCallback.create { _, width, height ->
@@ -51,19 +49,17 @@ object SMF : FixedTimestepGame() {
     override fun start() {
         Logger.info("SMF starting...")
 
+        Audio.load()
         Textures.load()
         EntityModels.load()
         Terrains.load()
         Skyboxes.load()
-        Audio.load()
 
         window.show()
         stateMachine.changeState(States.IN_GAME)
 
         Logger.info("SMF started!")
         gameloop()
-        Logger.info("SMF stopping...")
-        cleanup()
         Logger.info("SMF stopped!")
     }
 

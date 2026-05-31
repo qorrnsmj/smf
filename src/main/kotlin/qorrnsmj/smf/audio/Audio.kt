@@ -33,7 +33,6 @@ object Audio {
             Logger.info("Audio resources loaded successfully (BGM: ${bgmBuffers.size}, SFX: ${sfxBuffers.size})")
         } catch (e: Exception) {
             Logger.error(e, "Failed to load audio resources")
-            cleanup() // Cleanup any partially loaded resources
             throw e
         }
     }
@@ -184,22 +183,6 @@ object Audio {
             totalBuffers = bgmBuffers.size + sfxBuffers.size,
             isLoaded = isLoaded
         )
-    }
-
-    /**
-     * Cleanup all loaded audio resources
-     */
-    fun cleanup() {
-        Logger.info("Cleaning up audio resources...")
-        
-        bgmBuffers.values.forEach { it.dispose() }
-        bgmBuffers.clear()
-        
-        sfxBuffers.values.forEach { it.dispose() }
-        sfxBuffers.clear()
-        
-        isLoaded = false
-        Logger.info("Audio resources cleaned up")
     }
 
     /**

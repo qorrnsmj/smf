@@ -61,12 +61,4 @@ object Loader {
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
-    }
-
-    fun cleanUp() {
-        vaos.forEach { glDeleteVertexArrays(it) }
-        vbos.forEach { glDeleteBuffers(it) }
-        ebos.forEach { glDeleteBuffers(it) }
-        textures.forEach { it.delete() }
-    }
-}
+    }}

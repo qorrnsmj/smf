@@ -94,16 +94,7 @@ class Window(width: Int, height: Int, title: String, vsync: Boolean = true) : Re
 
     /**
      * Destroys the window and releases its callbacks.
-     */
-    fun cleanup() {
-        glfwDestroyWindow(id)
-        MemoryUtil.memFree(widthBuffer)
-        MemoryUtil.memFree(heightBuffer)
-
-        Logger.info("Window cleaned up!")
-    }
-
-    fun shouldClose(): Boolean {
+     */    fun shouldClose(): Boolean {
         return glfwWindowShouldClose(id)
     }
 

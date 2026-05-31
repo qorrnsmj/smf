@@ -76,8 +76,6 @@ object Test10_2 {
 
         init()
         loop()
-
-        window.cleanup()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()
     }

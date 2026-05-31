@@ -39,8 +39,6 @@ object Test7_2 {
 
         Renderer.init()
         loop()
-
-        window.cleanup()
         Renderer.dispose()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()

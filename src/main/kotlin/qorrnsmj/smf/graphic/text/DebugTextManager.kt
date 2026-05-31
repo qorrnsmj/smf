@@ -4,12 +4,11 @@ import qorrnsmj.smf.graphic.text.FontLoader
 import qorrnsmj.smf.graphic.text.Font
 import qorrnsmj.smf.graphic.text.TextElement
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.smf.util.Cleanable
 
 /**
  * Manages debug text display for FPS and coordinate information
  */
-class DebugTextManager : Cleanable {
+class DebugTextManager  {
     
     private var font: Font? = null
     private val debugElements = mutableListOf<TextElement>()
@@ -78,10 +77,4 @@ class DebugTextManager : Cleanable {
     /**
      * Get current debug text elements for rendering
      */
-    fun getDebugElements(): List<TextElement> = debugElements
-    
-    override fun cleanup() {
-        font?.cleanup()
-        debugElements.clear()
-    }
-}
+    fun getDebugElements(): List<TextElement> = debugElements}

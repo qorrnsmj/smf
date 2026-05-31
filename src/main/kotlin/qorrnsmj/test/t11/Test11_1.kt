@@ -91,7 +91,6 @@
 //        init()
 //        loop()
 //
-//        window.cleanup()
 //        GLFW.glfwTerminate()
 //        GLFW.glfwSetErrorCallback(null)!!.free()
 //    }

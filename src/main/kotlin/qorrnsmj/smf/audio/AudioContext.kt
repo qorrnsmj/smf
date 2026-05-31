@@ -60,35 +60,7 @@ object AudioContext {
 
     /**
      * Cleanup OpenAL context and device
-     */
-    fun cleanup() {
-        if (!isInitialized) {
-            Logger.warn("AudioContext not initialized")
-            return
-        }
-
-        Logger.info("Cleaning up OpenAL context...")
-
-        // Make no context current
-        alcMakeContextCurrent(NULL)
-
-        // Destroy context
-        if (context != NULL) {
-            alcDestroyContext(context)
-            context = NULL
-        }
-
-        // Close device
-        if (device != NULL) {
-            alcCloseDevice(device)
-            device = NULL
-        }
-
-        isInitialized = false
-        Logger.info("OpenAL context cleaned up successfully")
-    }
-
-    /**
+     */    /**
      * Check if OpenAL context is initialized
      */
     fun isReady(): Boolean = isInitialized

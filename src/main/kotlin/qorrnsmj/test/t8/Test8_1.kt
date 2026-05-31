@@ -133,7 +133,6 @@ object Test8_1 {
         program.delete()
 //        vao.delete()
 //        vbo.delete()
-        window.cleanup()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()
     }

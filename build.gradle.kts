@@ -1,5 +1,5 @@
 group = "qorrnsmj"
-version = "0.3.3"
+version = "0.3.4"
 
 plugins {
     kotlin("jvm") version "2.0.0"
@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    val lwjglVersion = "3.3.3"
+    val lwjglVersion = "3.3.ds w dasdwasdw    "
     val nativeTarget = "natives-windows"
 
     implementation(kotlin("stdlib-jdk8"))

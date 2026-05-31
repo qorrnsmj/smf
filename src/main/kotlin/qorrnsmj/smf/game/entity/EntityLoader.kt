@@ -16,12 +16,11 @@ import qorrnsmj.smf.graphic.texture.TextureLoader.loadTexture
 import qorrnsmj.smf.graphic.texture.TexturePresets
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
-import qorrnsmj.smf.util.Cleanable
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 
-object EntityLoader : Cleanable {
+object EntityLoader  {
     private val vaos = mutableListOf<Int>()
     private val vbos = mutableListOf<Int>()
     private val ebos = mutableListOf<Int>()
@@ -232,11 +231,5 @@ object EntityLoader : Cleanable {
     private fun getResourceAsStream(path: String): InputStream {
         return ClassLoader.getSystemResourceAsStream(path)
             ?: error("Resource not found: $path")
-    }
-
-    override fun cleanup() {
-        vaos.forEach { glDeleteVertexArrays(it) }
-        vbos.forEach { glDeleteBuffers(it) }
-        ebos.forEach { glDeleteBuffers(it) }
     }
 }

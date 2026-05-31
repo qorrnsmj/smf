@@ -302,29 +302,7 @@ object AudioManager {
 
     /**
      * Cleanup all audio resources
-     */
-    fun cleanup() {
-        if (!isInitialized) return
-
-        Logger.info("Cleaning up AudioManager...")
-
-        stopAll()
-        
-        // Dispose all sources
-        audioSources.forEach { it.dispose() }
-        audioSources.clear()
-        availableSources.clear()
-        activeSources.clear()
-        
-        bgmSource?.dispose()
-        bgmSource = null
-        currentBGMBuffer = null
-
-        isInitialized = false
-        Logger.info("AudioManager cleaned up")
-    }
-
-    /**
+     */    /**
      * Check if the audio manager is ready to use
      */
     fun isReady(): Boolean = isInitialized && AudioContext.isReady()

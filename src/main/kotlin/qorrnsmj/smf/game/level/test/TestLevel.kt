@@ -11,8 +11,11 @@ import org.lwjgl.glfw.GLFW.glfwGetKey
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.entity.Entity
+import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.game.entity.EntityModels
+import qorrnsmj.smf.game.entity.custom.ObjectEntity
+import qorrnsmj.smf.game.entity.custom.StallEntity
+import qorrnsmj.smf.game.entity.custom.Transform
 import qorrnsmj.smf.game.entity.player.Player
 import qorrnsmj.smf.game.level.Level
 import qorrnsmj.smf.game.task.cutscene.IntroductionCutscene
@@ -22,10 +25,11 @@ import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.graphic.terrain.HeightProvider
 import qorrnsmj.smf.graphic.terrain.Terrains
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.smf.physics.PhysicsComponent
+import qorrnsmj.smf.physics.component.KinematicPhysics
+import qorrnsmj.smf.physics.component.StaticPhysics
 import qorrnsmj.smf.physics.PhysicsWorld
-import qorrnsmj.smf.physics.collision.BoxCollider
-import qorrnsmj.smf.physics.collision.SphereCollider
+import qorrnsmj.smf.physics.collision.shape.BoxCollider
+import qorrnsmj.smf.physics.collision.shape.SphereCollider
 import qorrnsmj.smf.graphic.text.DebugTextManager
 
 class TestLevel : Level() {
@@ -54,7 +58,8 @@ class TestLevel : Level() {
     private var moverResetPressed = false
 
     override fun load() {
-        player = Player().apply { camera.position = Vector3f(100f, 37f, 100f) }
+        player = Player().apply { setEyePosition(Vector3f(100f, 37f, 100f)) }
+        scene.entities.add(player)
 
         // Initialize debug text system
         debugTextManager.initialize()
@@ -74,6 +79,7 @@ class TestLevel : Level() {
         scene.terrain = Terrains.PLANE
         scene.skybox = Skyboxes.SKY1
         scene.skyColor = skyColorTestPalette[skyColorPaletteIndex]
+        scene.entities.add(StallEntity())
 
         // Add test entities with physics components for collision debug visualization
         addTestPhysicsEntities()
@@ -82,8 +88,8 @@ class TestLevel : Level() {
         triggers.add(
             object : AreaEnterTrigger(
                 areaCenter = Vector3f(0f, 0f, 0f),
-                areaRadius = 10f,
-                playerPosition = { player.camera.position }
+                areaHalfExtents = Vector3f(10f, 10f, 10f),
+                aabb = { player.getAabb() }
             ) {
                 override fun fire() {
                     scene.skybox = Skyboxes.DEFAULT
@@ -135,47 +141,39 @@ class TestLevel : Level() {
      * A dynamic box moves toward a static box and should stop on contact.
      */
     private fun addTestPhysicsEntities() {
-        sideCollisionWall = Entity(
-            localPosition = Vector3f(112f, 36f, 100f),
+        sideCollisionWall = ObjectEntity(
+            transform = Transform(position = Vector3f(112f, 36f, 100f)),
             model = EntityModels.EMPTY,
-            physicsComponent = PhysicsComponent(
-                useGravity = false,
-                isStatic = true,
+            physicsComponent = StaticPhysics(
                 collider = BoxCollider(width = 6f, height = 6f, depth = 6f)
             )
         )
         scene.entities.add(sideCollisionWall)
 
-        sideCollisionMover = Entity(
-            localPosition = sideCollisionMoverStart,
+        sideCollisionMover = ObjectEntity(
+            transform = Transform(position = sideCollisionMoverStart),
             model = EntityModels.EMPTY,
-            physicsComponent = PhysicsComponent(
+            physicsComponent = KinematicPhysics(
                 velocity = Vector3f(0f, 0f, 0f),
-                useGravity = false,
-                isStatic = false,
                 collider = BoxCollider(width = 4f, height = 4f, depth = 4f)
             )
         )
         scene.entities.add(sideCollisionMover)
 
-        sphereCollisionWall = Entity(
-            localPosition = Vector3f(112f, 36f, 112f),
+        sphereCollisionWall = ObjectEntity(
+            transform = Transform(position = Vector3f(112f, 36f, 112f)),
             model = EntityModels.EMPTY,
-            physicsComponent = PhysicsComponent(
-                useGravity = false,
-                isStatic = true,
+            physicsComponent = StaticPhysics(
                 collider = SphereCollider(radius = 3f)
             )
         )
         scene.entities.add(sphereCollisionWall)
 
-        sphereCollisionMover = Entity(
-            localPosition = sphereCollisionMoverStart,
+        sphereCollisionMover = ObjectEntity(
+            transform = Transform(position = sphereCollisionMoverStart),
             model = EntityModels.EMPTY,
-            physicsComponent = PhysicsComponent(
+            physicsComponent = KinematicPhysics(
                 velocity = Vector3f(sphereAutoVelocity.x, sphereAutoVelocity.y, sphereAutoVelocity.z),
-                useGravity = false,
-                isStatic = false,
                 collider = SphereCollider(radius = 2f)
             )
         )
@@ -185,7 +183,7 @@ class TestLevel : Level() {
     }
 
     private fun handleSideCollisionMoverInput() {
-        val moverPhysics = sideCollisionMover.physicsComponent ?: return
+        val moverPhysics = sideCollisionMover.physicsComponent
 
         var moveX = 0f
         var moveZ = 0f
@@ -208,11 +206,11 @@ class TestLevel : Level() {
 
         val resetPressed = glfwGetKey(SMF.window.id, GLFW_KEY_R) == GLFW_PRESS
         if (resetPressed && !moverResetPressed) {
-            sideCollisionMover.position = Vector3f(sideCollisionMoverStart.x, sideCollisionMoverStart.y, sideCollisionMoverStart.z)
+            sideCollisionMover.localTransform = sideCollisionMover.localTransform.copy(position = Vector3f(sideCollisionMoverStart.x, sideCollisionMoverStart.y, sideCollisionMoverStart.z))
             moverPhysics.stop()
             sideCollisionVerified = false
-            sphereCollisionMover.position = Vector3f(sphereCollisionMoverStart.x, sphereCollisionMoverStart.y, sphereCollisionMoverStart.z)
-            sphereCollisionMover.physicsComponent?.velocity = Vector3f(sphereAutoVelocity.x, sphereAutoVelocity.y, sphereAutoVelocity.z)
+            sphereCollisionMover.localTransform = sphereCollisionMover.localTransform.copy(position = Vector3f(sphereCollisionMoverStart.x, sphereCollisionMoverStart.y, sphereCollisionMoverStart.z))
+            sphereCollisionMover.physicsComponent.velocity = Vector3f(sphereAutoVelocity.x, sphereAutoVelocity.y, sphereAutoVelocity.z)
             sphereCollisionVerified = false
             Logger.info("Collision test reset: mover returned to start position")
         }
@@ -220,33 +218,30 @@ class TestLevel : Level() {
     }
 
     override fun update(delta: Float) {
-        // Player input and movement (existing logic)
-        player.update(delta, scene.terrain as HeightProvider)
-
-        // Physics simulation for all entities
+        // Physics simulation for all entities (player included)
         PhysicsWorld.update(scene.entities, scene.terrain as HeightProvider, delta)
+
+        // Keep camera synced to the physics-updated player entity.
+        player.update()
+
 
         if (!sideCollisionVerified) {
             val moverPhysics = sideCollisionMover.physicsComponent
-            if (moverPhysics != null) {
-                val nearWall = sideCollisionMover.position.distanceTo(sideCollisionWall.position) < 6f
-                val almostStopped = kotlin.math.abs(moverPhysics.velocity.x) < 0.05f
-                if (nearWall && almostStopped) {
-                    Logger.info("Side collision verified: mover stopped at wall boundary")
-                    sideCollisionVerified = true
-                }
+            val nearWall = sideCollisionMover.worldTransform.position.distanceTo(sideCollisionWall.worldTransform.position) < 6f
+            val almostStopped = kotlin.math.abs(moverPhysics.velocity.x) < 0.05f
+            if (nearWall && almostStopped) {
+                Logger.info("Side collision verified: mover stopped at wall boundary")
+                sideCollisionVerified = true
             }
         }
 
         if (!sphereCollisionVerified) {
             val spherePhysics = sphereCollisionMover.physicsComponent
-            if (spherePhysics != null) {
-                val nearSphereWall = sphereCollisionMover.position.distanceTo(sphereCollisionWall.position) < 5f
-                val sphereAlmostStopped = kotlin.math.abs(spherePhysics.velocity.x) < 0.03f
-                if (nearSphereWall && sphereAlmostStopped) {
-                    Logger.info("Sphere collision verified: sphere mover stopped at sphere boundary")
-                    sphereCollisionVerified = true
-                }
+            val nearSphereWall = sphereCollisionMover.worldTransform.position.distanceTo(sphereCollisionWall.worldTransform.position) < 5f
+            val sphereAlmostStopped = kotlin.math.abs(spherePhysics.velocity.x) < 0.03f
+            if (nearSphereWall && sphereAlmostStopped) {
+                Logger.info("Sphere collision verified: sphere mover stopped at sphere boundary")
+                sphereCollisionVerified = true
             }
         }
 
@@ -272,7 +267,6 @@ class TestLevel : Level() {
     }
 
     override fun unload() {
-        debugTextManager.cleanup()
         super.unload()
     }
 }

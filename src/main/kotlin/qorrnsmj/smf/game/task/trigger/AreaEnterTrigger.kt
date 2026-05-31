@@ -1,22 +1,21 @@
 package qorrnsmj.smf.game.task.trigger
 
 import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.physics.collision.data.AABB
 
-// TODO: AABB
 open class AreaEnterTrigger(
-    private val areaCenter: Vector3f,
-    private val areaRadius: Float,
-    private val playerPosition: () -> Vector3f,
+    areaCenter: Vector3f,
+    areaHalfExtents: Vector3f,
+    private val aabb: () -> AABB,
 ) : Trigger() {
+
+    private val areaAabb: AABB = AABB(
+        min = areaCenter.subtract(areaHalfExtents),
+        max = areaCenter.add(areaHalfExtents)
+    )
 
     override fun check(): Boolean {
         if (finished) return false
-
-        val distance = playerPosition().subtract(areaCenter).length()
-        if (distance <= areaRadius) {
-            return true
-        }
-
-        return false
+        return areaAabb.intersects(aabb())
     }
 }

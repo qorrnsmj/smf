@@ -75,7 +75,6 @@ object Test6_1 {
         program.delete()
 //        vao.delete()
 //        vbo.delete()
-        window.cleanup()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()
     }

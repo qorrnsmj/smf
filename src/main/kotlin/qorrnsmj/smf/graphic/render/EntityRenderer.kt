@@ -4,7 +4,7 @@ import de.javagl.jgltf.model.v2.MaterialModelV2.AlphaMode
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.entity.Entity
+import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.graphic.`object`.Model
 import qorrnsmj.smf.util.MVP
@@ -13,9 +13,8 @@ import qorrnsmj.smf.graphic.render.shader.EntityShaderProgram
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils.setUniform
-import qorrnsmj.smf.util.Cleanable
 
-class EntityRenderer : Resizable, Cleanable {
+class EntityRenderer : Resizable {
     // TODO: locationはシェーダークラスに書く?
     val program = EntityShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
@@ -108,9 +107,10 @@ class EntityRenderer : Resizable, Cleanable {
 
             for (entity in targets) {
                 // TODO: エンティティとの距離はUtilクラスに
-                val dx = entity.position.x - camera.position.x
-                val dy = entity.position.y - camera.position.y
-                val dz = entity.position.z - camera.position.z
+                val worldPos = entity.worldTransform.position
+                val dx = worldPos.x - camera.position.x
+                val dy = worldPos.y - camera.position.y
+                val dz = worldPos.z - camera.position.z
                 val distSq = dx * dx + dy * dy + dz * dz
 
                 blendItems.add(DrawItem(model, entity, distSq))
@@ -149,11 +149,9 @@ class EntityRenderer : Resizable, Cleanable {
 
     private fun prepareEntity(entity: Entity) {
         // Use world coordinates for rendering (resolves TODO: 親のpos, rot, scaleを子にも適用)
-        val worldPos = entity.getWorldPosition()
-        val worldRot = entity.getWorldRotation()
-        val worldScale = entity.getWorldScale()
+        val world = entity.worldTransform
         
-        setUniform(locationModel, MVP.getModelMatrix(worldPos, worldRot, worldScale))
+        setUniform(locationModel, MVP.getModelMatrix(world.position, world.rotation, world.scale))
     }
 
     private fun bindModel(model: Model) {
@@ -226,11 +224,4 @@ class EntityRenderer : Resizable, Cleanable {
 
     override fun resize(width: Int, height: Int) {
         setUniform(locationProjection, MVP.getPerspectiveMatrix(width / height.toFloat()))
-    }
-
-    override fun cleanup() {
-        glDeleteProgram(program.id)
-        Logger.info("EntityRenderer cleaned up!")
-    }
-}
-
+    }}

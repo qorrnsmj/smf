@@ -1,7 +1,6 @@
 package qorrnsmj.smf.graphic.text
 
 import org.lwjgl.opengl.GL33C.*
-import qorrnsmj.smf.util.Cleanable
 
 /**
  * Manages a texture atlas containing rendered glyphs for a font.
@@ -10,7 +9,7 @@ import qorrnsmj.smf.util.Cleanable
 class GlyphAtlas(
     private var initialWidth: Int = 512,
     private var initialHeight: Int = 512
-) : Cleanable {
+)  {
 
     private var textureId: Int = 0
     private var width: Int = initialWidth
@@ -115,12 +114,4 @@ class GlyphAtlas(
 
     fun getTextureId(): Int = textureId
     fun getWidth(): Int = width
-    fun getHeight(): Int = height
-
-    override fun cleanup() {
-        if (textureId != 0) {
-            glDeleteTextures(textureId)
-            textureId = 0
-        }
-    }
-}
+    fun getHeight(): Int = height}

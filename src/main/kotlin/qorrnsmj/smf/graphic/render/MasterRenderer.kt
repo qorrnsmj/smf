@@ -3,12 +3,11 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.Scene
-import qorrnsmj.smf.graphic.render.debug.DebugRenderer
-import qorrnsmj.smf.graphic.text.TextRenderer
-import qorrnsmj.smf.util.Cleanable
+import qorrnsmj.smf.graphic.render.DebugRenderer
+import qorrnsmj.smf.graphic.render.TextRenderer
 import qorrnsmj.smf.util.Resizable
 
-class MasterRenderer : Resizable, Cleanable {
+class MasterRenderer : Resizable {
     val postProcessor = PostProcessor()
     val skyboxRenderer = SkyboxRenderer()
     val terrainRenderer = TerrainRenderer()
@@ -73,17 +72,6 @@ class MasterRenderer : Resizable, Cleanable {
             textRenderer.renderText(scene.textElements)
             textRenderer.stop()
         }
-    }
-
-    override fun cleanup() {
-        entityRenderer.cleanup()
-        terrainRenderer.cleanup()
-        skyboxRenderer.cleanup()
-        postProcessor.cleanup()
-        debugRenderer.cleanup()
-        textRenderer.cleanup()
-
-        Logger.info("MasterRenderer cleaned up!")
     }
 
     override fun resize(width: Int, height: Int) {

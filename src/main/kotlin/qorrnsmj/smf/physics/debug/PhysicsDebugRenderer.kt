@@ -1,11 +1,12 @@
 package qorrnsmj.smf.physics.debug
 
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.entity.Entity
+import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.smf.physics.PhysicsComponent
-import qorrnsmj.smf.physics.collision.BoxCollider
-import qorrnsmj.smf.physics.collision.SphereCollider
+import qorrnsmj.smf.physics.component.DynamicPhysics
+import qorrnsmj.smf.physics.collision.shape.BoxCollider
+import qorrnsmj.smf.physics.collision.shape.SphereCollider
+import qorrnsmj.smf.physics.collision.shape.Collider
 import org.lwjgl.glfw.GLFW.glfwGetCurrentContext
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
@@ -16,19 +17,11 @@ import org.lwjgl.system.MemoryUtil.NULL
  * Renders colliders, velocity vectors, and force indicators
  */
 object PhysicsDebugRenderer {
-    
     private var enabled = false
     private var showColliders = true
     private var showVelocity = true
     private var showForces = false
     private var warnedLegacyUnsupported = false
-    
-    /**
-     * Initialize debug renderer resources
-     */
-    fun initialize() {
-        // Initialize debug rendering resources if needed
-    }
     
     /**
      * Toggle debug visualization on/off
@@ -71,23 +64,22 @@ object PhysicsDebugRenderer {
         glLineWidth(2.0f)
         
         entities.forEach { entity ->
-            entity.physicsComponent?.let { physics ->
-                val pos = entity.position
-                
-                // Render collider bounds
-                if (showColliders && physics.collider != null) {
-                    renderCollider(pos, physics.collider!!)
-                }
-                
-                // Render velocity vector
-                if (showVelocity && physics.velocity.length() > 0.1f) {
-                    renderVelocityVector(pos, physics.velocity)
-                }
-                
-                // Render force indicators
-                if (showForces) {
-                    renderForceIndicators(pos, physics)
-                }
+            val physics = entity.physicsComponent
+            val pos = entity.worldTransform.position
+
+            // Render collider bounds
+            if (showColliders && physics.collider != null) {
+                renderCollider(pos, physics.collider!!)
+            }
+
+            // Render velocity vector
+            if (showVelocity && physics.velocity.length() > 0.1f) {
+                renderVelocityVector(pos, physics.velocity)
+            }
+
+            // Render force indicators
+            if (showForces && physics is DynamicPhysics) {
+                renderForceIndicators(pos, physics)
             }
         }
         
@@ -113,10 +105,11 @@ object PhysicsDebugRenderer {
     /**
      * Render collider bounds
      */
-    private fun renderCollider(position: Vector3f, collider: qorrnsmj.smf.physics.collision.Collider) {
+    private fun renderCollider(position: Vector3f, collider: Collider) {
+        val center = collider.getCenter(position)
         when (collider) {
-            is SphereCollider -> renderSphereCollider(position, collider.radius)
-            is BoxCollider -> renderBoxCollider(position, collider.width, collider.height, collider.depth)
+            is SphereCollider -> renderSphereCollider(center, collider.radius)
+            is BoxCollider -> renderBoxCollider(center, collider.width, collider.height, collider.depth)
         }
     }
     
@@ -161,6 +154,23 @@ object PhysicsDebugRenderer {
                 center.x,
                 center.y + radius * kotlin.math.cos(angle2),
                 center.z + radius * kotlin.math.sin(angle2)
+            )
+        }
+        
+        // Draw frontal circle (XY plane)
+        for (i in 0 until segments) {
+            val angle1 = i * angleStep
+            val angle2 = (i + 1) * angleStep
+            
+            glVertex3f(
+                center.x + radius * kotlin.math.cos(angle1),
+                center.y + radius * kotlin.math.sin(angle1),
+                center.z
+            )
+            glVertex3f(
+                center.x + radius * kotlin.math.cos(angle2),
+                center.y + radius * kotlin.math.sin(angle2),
+                center.z
             )
         }
         
@@ -243,22 +253,22 @@ object PhysicsDebugRenderer {
     /**
      * Render force indicators
      */
-    private fun renderForceIndicators(position: Vector3f, physics: PhysicsComponent) {
-        // For now, just render gravity if enabled
-        if (physics.useGravity) {
-            glColor4f(1.0f, 0.0f, 0.0f, 0.8f)  // Red for gravity
-            
-            glBegin(GL_LINES)
-            glVertex3f(position.x, position.y, position.z)
-            glVertex3f(position.x, position.y - 2.0f, position.z)  // Downward arrow
-            glEnd()
-        }
-    }
-    
-    /**
-     * Cleanup debug renderer resources
-     */
-    fun cleanup() {
-        // Cleanup resources if needed
+    private fun renderForceIndicators(position: Vector3f, physics: DynamicPhysics) {
+        val totalForce = physics.getTotalForce()
+        if (totalForce.length() < 0.01f) return  // Skip rendering if force is negligible
+        
+        glColor4f(1.0f, 0.0f, 0.0f, 0.8f)  // Red for total forces
+
+        val scale = 0.3f  // Scale factor for force visualization
+        val endPos = Vector3f(
+            position.x + totalForce.x * scale,
+            position.y + totalForce.y * scale,
+            position.z + totalForce.z * scale
+        )
+        
+        glBegin(GL_LINES)
+        glVertex3f(position.x, position.y, position.z)
+        glVertex3f(endPos.x, endPos.y, endPos.z)
+        glEnd()
     }
 }

@@ -12,10 +12,9 @@ import qorrnsmj.smf.graphic.render.shader.TerrainShaderProgram
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils
-import qorrnsmj.smf.util.Cleanable
 
 // TODO: 整理する
-class TerrainRenderer : Resizable, Cleanable {
+class TerrainRenderer : Resizable {
     // TODO: locationはシェーダークラスに書く
     val program = TerrainShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
@@ -122,11 +121,5 @@ class TerrainRenderer : Resizable, Cleanable {
 
     override fun resize(width: Int, height: Int) {
         UniformUtils.setUniform(locationProjection, MVP.getPerspectiveMatrix(width / height.toFloat()))
-    }
-
-    override fun cleanup() {
-        glDeleteProgram(program.id)
-
-        Logger.info("TerrainRenderer cleaned up!")
     }
 }

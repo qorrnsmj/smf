@@ -18,11 +18,10 @@ import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
 import qorrnsmj.smf.util.ResourceUtils
-import qorrnsmj.smf.util.Cleanable
 import java.nio.ByteBuffer
 import kotlin.use
 
-object TextureLoader : Cleanable {
+object TextureLoader  {
     val textures = mutableListOf<TextureBufferObject>()
 
     fun loadTexture(textureModel: TextureModel, params: TextureParams): TextureBufferObject {
@@ -108,9 +107,4 @@ object TextureLoader : Cleanable {
             STBImage.stbi_image_free(pixels)
         }
     }
-
-    override fun cleanup() {
-        textures.forEach { it.delete() }
-    }
 }
-

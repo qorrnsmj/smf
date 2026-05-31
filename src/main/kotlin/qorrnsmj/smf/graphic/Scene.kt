@@ -1,7 +1,7 @@
 package qorrnsmj.smf.graphic
 
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.entity.Entity
+import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.graphic.light.Light
 import qorrnsmj.smf.graphic.skybox.Skybox
 import qorrnsmj.smf.graphic.skybox.Skyboxes

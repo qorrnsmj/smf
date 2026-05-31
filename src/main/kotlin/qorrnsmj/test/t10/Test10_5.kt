@@ -84,8 +84,6 @@ object Test10_5 {
 
         init()
         loop()
-
-        window.cleanup()
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)!!.free()
     }

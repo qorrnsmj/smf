@@ -1,6 +1,5 @@
 package qorrnsmj.smf.graphic.text
 
-import qorrnsmj.smf.util.Cleanable
 
 /**
  * Represents a loaded font with glyph atlas and metrics data.
@@ -11,7 +10,7 @@ class Font(
     val size: Float,
     val glyphAtlas: GlyphAtlas,
     val lineHeight: Int
-) : Cleanable {
+)  {
 
     /**
      * Information about a single character glyph
@@ -55,10 +54,4 @@ class Font(
             width += charInfo.advance
         }
         return width
-    }
-
-    override fun cleanup() {
-        glyphAtlas.cleanup()
-        charInfoMap.clear()
-    }
-}
+    }}

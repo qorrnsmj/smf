@@ -38,27 +38,4 @@ abstract class Game {
     protected fun render() {
         stateMachine.render()
     }
-
-    protected fun cleanup() {
-        running = false
-        window.hide()
-
-        errorCallback.free()
-        resizeCallback.free()
-        keyCallback.free()
-
-        stateMachine.changeState(EMPTY)
-        renderer.cleanup()
-        window.cleanup()
-
-        // Cleanup audio system
-        AudioManager.cleanup()
-        AudioContext.cleanup()
-        
-        // Cleanup physics system
-        PhysicsWorld.cleanup()
-
-        glfwTerminate()
-        Logger.info("Game cleaned up!")
-    }
 }

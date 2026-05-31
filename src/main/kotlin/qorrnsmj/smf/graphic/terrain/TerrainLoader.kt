@@ -14,9 +14,8 @@ import qorrnsmj.smf.graphic.terrain.component.TerrainMesh
 import qorrnsmj.smf.graphic.terrain.component.TerrainModel
 import qorrnsmj.smf.graphic.terrain.component.TerrainTextureMode
 import qorrnsmj.smf.util.ResourceUtils
-import qorrnsmj.smf.util.Cleanable
 
-object TerrainLoader : Cleanable {
+object TerrainLoader  {
     private val vaos = mutableListOf<Int>()
     private val vbos = mutableListOf<Int>()
     private val ebos = mutableListOf<Int>()
@@ -321,13 +320,6 @@ object TerrainLoader : Cleanable {
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
-    }
-
-    override fun cleanup() {
-        vaos.forEach { glDeleteVertexArrays(it) }
-        vbos.forEach { glDeleteBuffers(it) }
-        ebos.forEach { glDeleteBuffers(it) }
-        textures.forEach { it.delete() }
     }
 
     data class HeightmapData(

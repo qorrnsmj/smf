@@ -6,12 +6,11 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.`object`.Material
 import qorrnsmj.smf.graphic.`object`.Mesh
 import qorrnsmj.smf.graphic.`object`.TextureBufferObject
-import qorrnsmj.smf.util.Cleanable
 import qorrnsmj.smf.graphic.`object`.Model
 import qorrnsmj.smf.graphic.texture.TextureLoader
 import qorrnsmj.smf.graphic.texture.TexturePresets
 
-object SkyboxLoader : Cleanable {
+object SkyboxLoader  {
     private val vaos = mutableListOf<Int>()
     private val vbos = mutableListOf<Int>()
     private val ebos = mutableListOf<Int>()
@@ -88,12 +87,5 @@ object SkyboxLoader : Cleanable {
         MemoryUtil.memFree(ib)
 
         return Mesh(vao, SKYBOX_INDICES.size)
-    }
-
-    override fun cleanup() {
-        vaos.forEach { glDeleteVertexArrays(it) }
-        vbos.forEach { glDeleteBuffers(it) }
-        ebos.forEach { glDeleteBuffers(it) }
-        textures.forEach { it.delete() }
     }
 }
