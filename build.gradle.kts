@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    val lwjglVersion = "3.3.ds w dasdwasdw    "
+    val lwjglVersion = "3.3.3"
     val nativeTarget = "natives-windows"
 
     implementation(kotlin("stdlib-jdk8"))
