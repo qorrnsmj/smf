@@ -15,7 +15,6 @@ import java.nio.file.Path
  * Utility class for loading audio files into AudioBuffers
  */
 object AudioLoader {
-
     /**
      * Load an OGG Vorbis file from resources
      * @param resourcePath Path to the resource (e.g., "assets/audio/bgm/music.ogg")

@@ -1,7 +1,6 @@
 package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
-import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.graphic.terrain.*
 import qorrnsmj.smf.graphic.terrain.component.BlendedTexture
@@ -120,6 +119,7 @@ class TerrainRenderer : Resizable {
     }
 
     override fun resize(width: Int, height: Int) {
+        program.use()
         UniformUtils.setUniform(locationProjection, MVP.getPerspectiveMatrix(width / height.toFloat()))
     }
 }

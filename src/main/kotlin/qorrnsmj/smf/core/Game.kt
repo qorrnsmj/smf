@@ -1,17 +1,12 @@
 package qorrnsmj.smf.core
 
-import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback
 import org.lwjgl.glfw.GLFWKeyCallback
-import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.audio.AudioContext
 import qorrnsmj.smf.audio.AudioManager
-import qorrnsmj.smf.physics.PhysicsWorld
 import qorrnsmj.smf.graphic.render.MasterRenderer
-import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.state.StateMachine
-import qorrnsmj.smf.state.States.EMPTY
+import qorrnsmj.smf.window.Window
 
 abstract class Game {
     lateinit var window: Window
@@ -20,6 +15,7 @@ abstract class Game {
     lateinit var errorCallback: GLFWErrorCallback
     lateinit var resizeCallback: GLFWFramebufferSizeCallback
     lateinit var keyCallback: GLFWKeyCallback
+    lateinit var audioManager: AudioManager
     protected var running = false
 
     protected abstract fun start()
@@ -32,7 +28,7 @@ abstract class Game {
 
     protected fun update() {
         stateMachine.update()
-        AudioManager.update()
+        audioManager.update()
     }
 
     protected fun render() {

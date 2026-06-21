@@ -1,14 +1,21 @@
 package qorrnsmj.smf.audio
 
 import org.lwjgl.BufferUtils
+import org.lwjgl.openal.AL
 import org.lwjgl.openal.AL10.*
+import org.lwjgl.openal.ALC
+import org.lwjgl.openal.ALC10.*
+import org.lwjgl.openal.ALCCapabilities
+import org.lwjgl.system.MemoryUtil.NULL
 import org.tinylog.kotlin.Logger
 
 /**
- * Main audio management singleton that coordinates all audio operations
+ * Main audio management class that coordinates all audio operations
  */
-object AudioManager {
-    private var isInitialized = false
+class AudioManager {
+    // OpenAL device/context (moved from AudioContext)
+    private var device: Long = NULL
+    private var context: Long = NULL
     private val audioSources = mutableListOf<AudioSource>()
     private val availableSources = mutableSetOf<AudioSource>()
     private val activeSources = mutableSetOf<AudioSource>()
@@ -22,21 +29,34 @@ object AudioManager {
     private var bgmSource: AudioSource? = null
     private var currentBGMBuffer: AudioBuffer? = null
 
-    /**
-     * Initialize the audio manager
-     * This should be called after AudioContext.initialize()
-     */
-    fun initialize() {
-        if (isInitialized) {
-            Logger.warn("AudioManager already initialized")
-            return
-        }
-
-        if (!AudioContext.isReady()) {
-            throw IllegalStateException("AudioContext must be initialized before AudioManager")
-        }
-
+    init {
         Logger.info("Initializing AudioManager...")
+
+        // Initialize OpenAL device/context
+        Logger.info("Initializing OpenAL context...")
+
+        device = alcOpenDevice(null as String?)
+        if (device == NULL) {
+            throw RuntimeException("Failed to open OpenAL device")
+        }
+
+        context = alcCreateContext(device, null as IntArray?)
+        if (context == NULL) {
+            alcCloseDevice(device)
+            throw RuntimeException("Failed to create OpenAL context")
+        }
+
+        if (!alcMakeContextCurrent(context)) {
+            alcDestroyContext(context)
+            alcCloseDevice(device)
+            throw RuntimeException("Failed to make OpenAL context current")
+        }
+
+        val alcCapabilities: ALCCapabilities = ALC.createCapabilities(device)
+        AL.createCapabilities(alcCapabilities)
+
+        val deviceName = alcGetString(device, ALC_DEVICE_SPECIFIER)
+        Logger.info("OpenAL initialized (device: $deviceName)")
 
         // Create a pool of audio sources for sound effects
         createSourcePool(16) // Create 16 sources for sound effects
@@ -47,7 +67,6 @@ object AudioManager {
         // Set up listener (player) position and orientation
         setupListener()
 
-        isInitialized = true
         Logger.info("AudioManager initialized successfully")
     }
 
@@ -95,8 +114,6 @@ object AudioManager {
      * Update the audio system (call this in the game loop)
      */
     fun update() {
-        if (!isInitialized) return
-
         // Clean up finished sources
         val iterator = activeSources.iterator()
         while (iterator.hasNext()) {
@@ -118,11 +135,6 @@ object AudioManager {
      * @return AudioSource playing the sound, or null if no sources available
      */
     fun playSFX(buffer: AudioBuffer, volume: Float = 1.0f, pitch: Float = 1.0f, loop: Boolean = false): AudioSource? {
-        if (!isInitialized) {
-            Logger.warn("AudioManager not initialized")
-            return null
-        }
-
         val source = getAvailableSource() ?: return null
         
         try {
@@ -150,11 +162,6 @@ object AudioManager {
      * @param loop Whether to loop the music (default: true)
      */
     fun playBGM(buffer: AudioBuffer, volume: Float = 1.0f, loop: Boolean = true) {
-        if (!isInitialized) {
-            Logger.warn("AudioManager not initialized")
-            return
-        }
-
         val source = bgmSource ?: return
 
         try {
@@ -299,13 +306,6 @@ object AudioManager {
             sfxVolume = sfxVolume
         )
     }
-
-    /**
-     * Cleanup all audio resources
-     */    /**
-     * Check if the audio manager is ready to use
-     */
-    fun isReady(): Boolean = isInitialized && AudioContext.isReady()
 
     /**
      * Data class for audio system statistics

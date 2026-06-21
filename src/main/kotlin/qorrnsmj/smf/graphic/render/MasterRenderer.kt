@@ -3,15 +3,13 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.Scene
-import qorrnsmj.smf.graphic.render.DebugRenderer
-import qorrnsmj.smf.graphic.render.TextRenderer
 import qorrnsmj.smf.util.Resizable
 
 class MasterRenderer : Resizable {
-    val postProcessor = PostProcessor()
     val skyboxRenderer = SkyboxRenderer()
     val terrainRenderer = TerrainRenderer()
     val entityRenderer = EntityRenderer()
+    val postProcessor = PostProcessor()
     val debugRenderer = DebugRenderer()
     val textRenderer = TextRenderer()
 
@@ -64,8 +62,9 @@ class MasterRenderer : Resizable {
             postProcessor.applyPostProcess(scene.effects)
         }
 
-        // Render debug visualizations after post-processing, before text
+        debugRenderer.start()
         debugRenderer.render(scene.entities, scene.camera.getViewMatrix())
+        debugRenderer.stop()
 
         if (scene.textElements.isNotEmpty()) {
             textRenderer.start()
@@ -77,18 +76,9 @@ class MasterRenderer : Resizable {
     override fun resize(width: Int, height: Int) {
         glViewport(0, 0, width, height)
 
-        entityRenderer.start()
         entityRenderer.resize(width, height)
-        entityRenderer.stop()
-
-        terrainRenderer.start()
         terrainRenderer.resize(width, height)
-        terrainRenderer.stop()
-
-        skyboxRenderer.start()
         skyboxRenderer.resize(width, height)
-        skyboxRenderer.stop()
-
         postProcessor.resize(width, height)
         debugRenderer.resize(width, height)
         textRenderer.resize(width, height)

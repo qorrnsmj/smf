@@ -4,10 +4,8 @@ import org.lwjgl.glfw.GLFW.glfwInit
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.audio.Audio
-import qorrnsmj.smf.audio.AudioContext
 import qorrnsmj.smf.audio.AudioManager
-import qorrnsmj.smf.physics.PhysicsWorld
+import qorrnsmj.smf.audio.Audios
 import qorrnsmj.smf.core.FixedTimestepGame
 import qorrnsmj.smf.core.Timer
 import qorrnsmj.smf.game.entity.EntityModels
@@ -28,13 +26,9 @@ object SMF : FixedTimestepGame() {
         window = Window(1920, 1080, "SMF", true)
         renderer = MasterRenderer()
         renderer.resize(window.width, window.height)
+        audioManager = AudioManager()
         stateMachine = StateMachine()
         timer = Timer()
-
-        // Initialize audio system
-        AudioContext.initialize()
-        AudioManager.initialize()
-        
 
         errorCallback = GLFWErrorCallback.createPrint().set()
         resizeCallback = GLFWFramebufferSizeCallback.create { _, width, height ->
@@ -49,7 +43,7 @@ object SMF : FixedTimestepGame() {
     override fun start() {
         Logger.info("SMF starting...")
 
-        Audio.load()
+        Audios.load()
         Textures.load()
         EntityModels.load()
         Terrains.load()

@@ -134,8 +134,6 @@ class DebugRenderer : Resizable {
     fun render(entities: List<Entity>, viewMatrix: Matrix4f) {
         if (!isAnyDebugEnabled()) return
 
-        start()
-
         // Set up MVP matrix
         val mvpMatrix = projectionMatrix.multiply(viewMatrix)
         MemoryStack.stackPush().use { stack ->
@@ -149,11 +147,9 @@ class DebugRenderer : Resizable {
         if (vertices.isNotEmpty()) {
             renderVertices(vertices)
         }
-
-        stop()
     }
 
-    private fun start() {
+    fun start() {
         shaderProgram.use()
 
         GL11C.glDisable(GL11C.GL_DEPTH_TEST)
@@ -162,7 +158,7 @@ class DebugRenderer : Resizable {
         GL11C.glLineWidth(2.0f)
     }
 
-    private fun stop() {
+    fun stop() {
         GL11C.glLineWidth(1.0f)
         GL11C.glDisable(GL11C.GL_BLEND)
         GL11C.glEnable(GL11C.GL_DEPTH_TEST)

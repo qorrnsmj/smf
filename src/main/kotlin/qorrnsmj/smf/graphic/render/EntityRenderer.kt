@@ -2,7 +2,6 @@ package qorrnsmj.smf.graphic.render
 
 import de.javagl.jgltf.model.v2.MaterialModelV2.AlphaMode
 import org.lwjgl.opengl.GL33C.*
-import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.game.entity.EntityModels
@@ -223,5 +222,7 @@ class EntityRenderer : Resizable {
     }
 
     override fun resize(width: Int, height: Int) {
+        program.use()
         setUniform(locationProjection, MVP.getPerspectiveMatrix(width / height.toFloat()))
-    }}
+    }
+}
