@@ -1,6 +1,7 @@
 package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
+import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.graphic.render.shader.TextShaderProgram
@@ -14,7 +15,7 @@ import kotlin.text.iterator
  * Renders text using bitmap fonts with OpenGL.
  * Handles 2D screen-space text rendering with orthographic projection.
  */
-class TextRenderer : Resizable {
+class TextRenderer : SceneRenderer, Resizable {
     private lateinit var shaderProgram: TextShaderProgram
     private var vao: Int = 0
     private var vbo: Int = 0
@@ -53,7 +54,15 @@ class TextRenderer : Resizable {
         glBindVertexArray(0)
     }
 
-    fun start() {
+    override fun render(scene: Scene) {
+        if (scene.textElements.isEmpty()) return
+
+        start()
+        renderText(scene.textElements)
+        stop()
+    }
+
+    private fun start() {
         shaderProgram.use()
 
         glEnable(GL_BLEND)
@@ -67,7 +76,7 @@ class TextRenderer : Resizable {
         glDisable(GL_DEPTH_TEST)
     }
 
-    fun stop() {
+    private fun stop() {
         glEnable(GL_DEPTH_TEST)
         if (cullFaceWasEnabled) {
             glEnable(GL_CULL_FACE)
@@ -76,7 +85,7 @@ class TextRenderer : Resizable {
         glUseProgram(0)
     }
 
-    fun renderText(textElements: List<TextElement>) {
+    private fun renderText(textElements: List<TextElement>) {
         for (textElement in textElements) {
             renderSingleText(
                 textElement.text,

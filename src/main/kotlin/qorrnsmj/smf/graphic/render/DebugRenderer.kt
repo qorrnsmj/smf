@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL20C
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.system.MemoryStack
 import qorrnsmj.smf.game.entity.custom.Entity
+import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.graphic.render.shader.LineShaderProgram
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
@@ -23,8 +24,7 @@ import kotlin.math.sin
  * Handles collision bounds, physics vectors, lighting debug, and other debug overlays.
  * Follows the TextRenderer pattern for consistent architecture.
  */
-class DebugRenderer : Resizable {
-
+class DebugRenderer : SceneRenderer, Resizable {
     private lateinit var shaderProgram: LineShaderProgram
     private var vao: Int = 0
     private var vbo: Int = 0
@@ -131,11 +131,13 @@ class DebugRenderer : Resizable {
     /**
      * Main render function for all debug visualizations
      */
-    fun render(entities: List<Entity>, viewMatrix: Matrix4f) {
+    override fun render(scene: Scene) {
         if (!isAnyDebugEnabled()) return
 
+        start()
+
         // Set up MVP matrix
-        val mvpMatrix = projectionMatrix.multiply(viewMatrix)
+        val mvpMatrix = projectionMatrix.multiply(scene.camera.getViewMatrix())
         MemoryStack.stackPush().use { stack ->
             val mvpBuffer = stack.mallocFloat(16)
             mvpMatrix.toBuffer(mvpBuffer)
@@ -143,10 +145,12 @@ class DebugRenderer : Resizable {
         }
 
         // Generate vertices for all enabled debug features
-        val vertices = generateDebugVertices(entities)
+        val vertices = generateDebugVertices(scene.entities)
         if (vertices.isNotEmpty()) {
             renderVertices(vertices)
         }
+
+        stop()
     }
 
     fun start() {

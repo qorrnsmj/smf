@@ -4,13 +4,14 @@ import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.camera.Camera
+import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.graphic.render.shader.SkyboxShaderProgram
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.UniformUtils
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.graphic.skybox.Skybox
 
-class SkyboxRenderer : Resizable {
+class SkyboxRenderer : SceneRenderer, Resizable {
     // TODO: locationはProgramクラスの中にしまえない？
     private val program = SkyboxShaderProgram()
     private val locationModel = glGetUniformLocation(program.id, "model")
@@ -19,7 +20,15 @@ class SkyboxRenderer : Resizable {
     private val locationTexImage = glGetUniformLocation(program.id, "texImage")
     private val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
 
-    fun start() {
+    override fun render(scene: Scene) {
+        start()
+        loadCamera(scene.camera)
+        loadSkyColor(scene.skyColor)
+        renderSkybox(scene.skybox)
+        stop()
+    }
+
+    private fun start() {
         program.use()
 
         glDepthMask(false)
@@ -27,13 +36,13 @@ class SkyboxRenderer : Resizable {
         glDepthFunc(GL_LEQUAL)
     }
 
-    fun stop() {
+    private fun stop() {
         glDepthMask(true)
         glEnable(GL_CULL_FACE)
         glDepthFunc(GL_LESS)
     }
 
-    fun renderSkybox(skybox: Skybox) {
+    private fun renderSkybox(skybox: Skybox) {
         val model = skybox.model
 
         // identity model
@@ -53,11 +62,11 @@ class SkyboxRenderer : Resizable {
         glBindVertexArray(0)
     }
 
-    fun loadSkyColor(skyColor: Vector3f) {
+    private fun loadSkyColor(skyColor: Vector3f) {
         UniformUtils.setUniform(locationSkyColor, skyColor)
     }
 
-    fun loadCamera(camera: Camera) {
+    private fun loadCamera(camera: Camera) {
         val view = camera.getViewMatrix()
         // clear translation components of your Matrix4f (project's Matrix4f stores trans in m03/m13/m23)
         view.m03 = 0f
