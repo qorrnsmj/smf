@@ -7,6 +7,7 @@ import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.graphic.render.shader.TextShaderProgram
 import qorrnsmj.smf.graphic.text.Font
 import qorrnsmj.smf.graphic.text.TextElement
+import qorrnsmj.smf.graphic.text.TextAnchor
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils
 import kotlin.text.iterator
@@ -55,10 +56,14 @@ class TextRenderer : SceneRenderer, Resizable {
     }
 
     override fun render(scene: Scene) {
-        if (scene.textElements.isEmpty()) return
+        val textElements = scene.textElements + listOfNotNull(
+            scene.cinematicOverlay.subtitle,
+            scene.cinematicOverlay.debugStatus,
+        )
+        if (textElements.isEmpty()) return
 
         start()
-        renderText(scene.textElements)
+        renderText(textElements)
         stop()
     }
 
@@ -87,11 +92,20 @@ class TextRenderer : SceneRenderer, Resizable {
 
     private fun renderText(textElements: List<TextElement>) {
         for (textElement in textElements) {
+            val anchoredX = when (textElement.anchor) {
+                TextAnchor.TOP_LEFT -> textElement.x
+                TextAnchor.BOTTOM_CENTER ->
+                    (screenWidth - textElement.font.getTextWidth(textElement.text)) / 2f + textElement.x
+            }
+            val anchoredY = when (textElement.anchor) {
+                TextAnchor.TOP_LEFT -> textElement.y
+                TextAnchor.BOTTOM_CENTER -> screenHeight + textElement.y
+            }
             renderSingleText(
                 textElement.text,
                 textElement.font,
-                textElement.x,
-                textElement.y,
+                anchoredX,
+                anchoredY,
                 textElement.color
             )
         }

@@ -53,6 +53,7 @@ abstract class FixedTimestepGame : Game() {
 
     protected fun update(delta: Float = 1f / TARGET_UPS) {
         stateMachine.update(delta)
+        audioManager.update()
     }
 
     protected fun render(alpha: Float = 1f) {

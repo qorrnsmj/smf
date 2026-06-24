@@ -602,7 +602,7 @@ object PhysicsWorld {
     ): Vector3f? {
         var bestSurfaceY: Float? = null
         var bestPlane: qorrnsmj.smf.physics.collision.shape.Plane? = null
-        val supportPoints = getCapsuleSupportPoints(capsule, capsulePosition)
+        val supportPoints = getCapsuleSupportPoints(capsulePosition)
 
         for (plane in hull.planes) {
             if (plane.isGhost) {
@@ -645,18 +645,8 @@ object PhysicsWorld {
         }
     }
 
-    private fun getCapsuleSupportPoints(
-        capsule: CapsuleCollider,
-        capsulePosition: Vector3f,
-    ): List<Vector3f> {
-        val radius = capsule.radius * 0.8f
-        return listOf(
-            capsulePosition,
-            capsulePosition.add(Vector3f(radius, 0f, 0f)),
-            capsulePosition.add(Vector3f(-radius, 0f, 0f)),
-            capsulePosition.add(Vector3f(0f, 0f, radius)),
-            capsulePosition.add(Vector3f(0f, 0f, -radius)),
-        )
+    private fun getCapsuleSupportPoints(capsulePosition: Vector3f): List<Vector3f> {
+        return listOf(capsulePosition)
     }
 
     private fun isPointInsideHull(

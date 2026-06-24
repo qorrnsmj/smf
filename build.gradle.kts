@@ -32,9 +32,16 @@ dependencies {
     runtimeOnly("org.lwjgl:lwjgl-glfw:$lwjglVersion:$nativeTarget")
     runtimeOnly("org.lwjgl:lwjgl-opengl:$lwjglVersion:$nativeTarget")
     runtimeOnly("org.lwjgl:lwjgl-openal:$lwjglVersion:$nativeTarget")
+
+    testImplementation(kotlin("test-junit5"))
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks {
+    test {
+        useJUnitPlatform()
+    }
+
     shadowJar {
         archiveBaseName = "SMF"
         archiveVersion = "${rootProject.version}"

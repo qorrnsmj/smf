@@ -18,5 +18,6 @@ data class Scene(
     val lights: MutableList<Light> = mutableListOf(),
     val entities: MutableList<Entity> = mutableListOf(),
     val effects: MutableList<Effect> = mutableListOf(),
-    val textElements: MutableList<TextElement> = mutableListOf()
+    val textElements: MutableList<TextElement> = mutableListOf(),
+    val cinematicOverlay: CinematicOverlay = CinematicOverlay(),
 )

@@ -10,5 +10,11 @@ data class TextElement(
     val font: Font,
     val x: Float,
     val y: Float,
-    val color: Vector3f = Vector3f(1f, 1f, 1f)
+    val color: Vector3f = Vector3f(1f, 1f, 1f),
+    val anchor: TextAnchor = TextAnchor.TOP_LEFT,
 )
+
+enum class TextAnchor {
+    TOP_LEFT,
+    BOTTOM_CENTER,
+}

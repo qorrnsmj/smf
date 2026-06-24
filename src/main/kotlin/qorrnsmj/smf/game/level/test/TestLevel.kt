@@ -5,24 +5,26 @@ import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.glfwGetKey
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
+import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.custom.StallEntity
+import qorrnsmj.smf.game.entity.player.Player
+import qorrnsmj.smf.game.level.Level
 import qorrnsmj.smf.game.map.EntityFactory
 import qorrnsmj.smf.game.map.MapCollisionBuilder
 import qorrnsmj.smf.game.map.Maps
-import qorrnsmj.smf.game.entity.player.Player
-import qorrnsmj.smf.game.level.Level
+import qorrnsmj.smf.game.task.cutscene.IntroductionCutscene
 import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.skybox.Skyboxes
+import qorrnsmj.smf.graphic.text.DebugTextManager
+import qorrnsmj.smf.graphic.text.FontLoader
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.PhysicsWorld
-import qorrnsmj.smf.graphic.text.DebugTextManager
 import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
 
 class TestLevel : Level() {
     private lateinit var pointLight: PointLight
-    // private lateinit var introductionCutscene: IntroductionCutscene
-    // private lateinit var cutsceneCamera: Camera
+    private lateinit var cutsceneCamera: Camera
     private val triggers: MutableList<AreaEnterTrigger> = mutableListOf()
     private val debugTextManager = DebugTextManager()
     private val skyColorTestPalette = listOf(
@@ -37,12 +39,14 @@ class TestLevel : Level() {
         player = Player()
         scene.entities.add(player)
         logPlayerCapsuleCollision()
+
         scene.map = Maps.TEST
         scene.entities.addAll(MapCollisionBuilder.createCollisionEntities(Maps.TEST))
         EntityFactory.spawn(Maps.TEST.entities, scene, player)
 
-        // Initialize debug text system
         debugTextManager.initialize()
+        cutscenes.setSubtitleFont(FontLoader.loadAssetFont("Inconsolata.ttf", 28f))
+        cutscenes.showDebugControls = true
 
         pointLight = PointLight().apply {
             position = Vector3f(0f, 10f, 0f)
@@ -72,20 +76,40 @@ class TestLevel : Level() {
     }
 
     override fun start() {
-        scene.camera = player.camera
-//        cutsceneCamera = Camera().apply {
-//            position = Vector3f(0f, 100f, 50f)
-//            setFront(Vector3f(0f, -1f, 1f))
-//            scene.camera = this
-//        }
-//
-//        introductionCutscene = IntroductionCutscene(
-//            camera = cutsceneCamera,
-//            questAreaPosition = player.camera.position
-//        )
+        cutsceneCamera = Camera().apply {
+            val playerEye = player.camera.position
+            position = playerEye.add(Vector3f(-60f, 40f, 60f))
+            setFront(playerEye.subtract(position))
+            scene.camera = this
+        }
+
+        val introductionCutscene = IntroductionCutscene(
+            camera = cutsceneCamera,
+            focusPosition = player.camera.position,
+            destinationEyePosition = player.camera.position,
+            destinationFront = player.camera.getFront(),
+            onAreaReveal = {
+                pointLight.diffuse = Vector3f(1f, 0.75f, 0.35f)
+                scene.skyColor = skyColorTestPalette[1]
+                Logger.info("Introduction cutscene event fired at 2.5 seconds")
+            },
+            onComplete = {
+                Logger.info("Introduction cutscene finished")
+            },
+        )
+        cutscenes.play(
+            cutscene = introductionCutscene,
+            camera = cutsceneCamera,
+            returnTo = player.camera,
+        )
     }
 
     override fun input(delta: Float) {
+        if (handleCutsceneInput()) {
+            handleSkyColorTestInput()
+            return
+        }
+
         player.handleInput(SMF.window, delta)
         handleSkyColorTestInput()
     }
@@ -118,30 +142,25 @@ class TestLevel : Level() {
     }
 
     override fun update(delta: Float) {
-        // Physics simulation for all entities (player included)
+        updateCutscenes(delta)
+
+        if (!cutscenes.isWorldPaused) {
+            updateWorld(delta)
+        }
+
+        val collisionDebugEnabled = SMF.renderer.debugRenderer.isCollisionDebugEnabled()
+        debugTextManager.updateDebugInfo(scene.camera.position, SMF.timer.getFPS(), SMF.timer.getUPS(), collisionDebugEnabled)
+        scene.textElements.clear()
+        scene.textElements.addAll(debugTextManager.getDebugElements())
+    }
+
+    private fun updateWorld(delta: Float) {
         PhysicsWorld.update(scene.entities, null, delta)
-
-        // Keep camera synced to the physics-updated player entity.
         player.update()
-
-//        if (!introductionCutscene.isFinished()) {
-//            introductionCutscene.update(delta)
-//
-//            if (introductionCutscene.isFinished()) {
-//                player.camera.setFront(cutsceneCamera.getFront())
-//                scene.camera = player.camera
-//            }
-//        }
 
         for (trigger in triggers) {
             trigger.update(delta)
         }
-
-        // Update debug text display
-        val collisionDebugEnabled = SMF.renderer.debugRenderer.isCollisionDebugEnabled()
-        debugTextManager.updateDebugInfo(player.worldTransform.position, SMF.timer.getFPS(), SMF.timer.getUPS(), collisionDebugEnabled)
-        scene.textElements.clear()
-        scene.textElements.addAll(debugTextManager.getDebugElements())
     }
 
     override fun unload() {
