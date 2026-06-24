@@ -31,12 +31,7 @@ class TerrainRenderer : SceneRenderer, Resizable {
     val locationFogGradient = glGetUniformLocation(program.id, "fogGradient")
 
     override fun render(scene: Scene) {
-        start()
-        loadCamera(scene.camera)
-        loadSkyColor(scene.skyColor)
-        loadFog(0.007f, 1.5f)
-        renderTerrains(scene.terrain)
-        stop()
+        // Terrain has been replaced by GameMap rendering.
     }
 
     private fun start() {

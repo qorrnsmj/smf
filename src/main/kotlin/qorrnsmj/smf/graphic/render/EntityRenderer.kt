@@ -15,6 +15,11 @@ import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils.setUniform
 
 class EntityRenderer : SceneRenderer, Resizable {
+    private companion object {
+        const val FOG_DENSITY = 0.00045f
+        const val FOG_GRADIENT = 1.5f
+    }
+
     // TODO: locationはシェーダークラスに書く?
     val program = EntityShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
@@ -61,7 +66,7 @@ class EntityRenderer : SceneRenderer, Resizable {
         loadCamera(scene.camera)
         loadLights(scene.lights)
         loadSkyColor(scene.skyColor)
-        loadFog(0.007f, 1.5f)
+        loadFog(FOG_DENSITY, FOG_GRADIENT)
         renderEntities(scene.camera, scene.entities)
         stop()
     }

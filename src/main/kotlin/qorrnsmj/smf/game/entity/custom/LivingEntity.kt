@@ -10,6 +10,7 @@ open class LivingEntity(
     transform: Transform = Transform(),
     model: Model = EntityModels.EMPTY,
     physicsComponent: IPhysicsComponent = DynamicPhysics(collider = null),
+    override var collisionShape: CollisionShape = CollisionShape.AABB,
     override var collisionHalfWidth: Float = 0.5f,
     override var collisionHeight: Float = 1f,
     override var collisionHalfDepth: Float = 0.5f,

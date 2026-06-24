@@ -7,7 +7,7 @@ import qorrnsmj.smf.util.Resizable
 
 class MasterRenderer : SceneRenderer, Resizable {
     val skyboxRenderer = SkyboxRenderer()
-    val terrainRenderer = TerrainRenderer()
+    val mapRenderer = MapRenderer()
     val entityRenderer = EntityRenderer()
     val postProcessor = PostProcessor()
     val debugRenderer = DebugRenderer()
@@ -37,7 +37,7 @@ class MasterRenderer : SceneRenderer, Resizable {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         skyboxRenderer.render(scene)
-        terrainRenderer.render(scene)
+        mapRenderer.render(scene)
         entityRenderer.render(scene)
 
         if (scene.effects.isNotEmpty()) {
@@ -53,7 +53,7 @@ class MasterRenderer : SceneRenderer, Resizable {
         glViewport(0, 0, width, height)
 
         entityRenderer.resize(width, height)
-        terrainRenderer.resize(width, height)
+        mapRenderer.resize(width, height)
         skyboxRenderer.resize(width, height)
         postProcessor.resize(width, height)
         debugRenderer.resize(width, height)

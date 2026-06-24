@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL33C.GL_FILL
 import org.lwjgl.opengl.GL33C.GL_FRONT_AND_BACK
 import org.lwjgl.opengl.GL33C.GL_LINE
 import org.lwjgl.opengl.GL33C.glPolygonMode
+import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.state.States
 
@@ -37,7 +38,9 @@ class SMFKeyCallback : GLFWKeyCallback() {
         if (key == GLFW_KEY_F11 && action == GLFW_PRESS)
             SMF.window.toggleFullscreen()
 
-        if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
+        if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
             SMF.renderer.debugRenderer.toggleCollisionDebug()
+            Logger.info("Collision debug: {}", SMF.renderer.debugRenderer.isCollisionDebugEnabled())
+        }
     }
 }

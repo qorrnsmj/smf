@@ -13,9 +13,13 @@ import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
 import qorrnsmj.smf.physics.collision.data.AABB
 import qorrnsmj.smf.physics.collision.shape.BoxCollider
+import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
+import qorrnsmj.smf.physics.collision.shape.ConvexHullCollider
 import qorrnsmj.smf.physics.collision.shape.SphereCollider
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.Resizable
+import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -34,11 +38,15 @@ class DebugRenderer : SceneRenderer, Resizable {
 
     private val boxColliderColor = Vector4f(0.2f, 0.6f, 1.0f, 1.0f)
     private val sphereColliderColor = Vector4f(0.2f, 1.0f, 0.6f, 1.0f)
+    private val capsuleColliderColor = Vector4f(1.0f, 0.75f, 0.25f, 1.0f)
+    private val convexHullColor = Vector4f(0.25f, 1.0f, 1.0f, 1.0f)
+    private val ghostPlaneColor = Vector4f(1.0f, 0.2f, 0.8f, 1.0f)
     private val playerBoundsColor = Vector4f(1.0f, 0.35f, 0.35f, 1.0f)
 
     private val circleSegments = 16
+    private val hullPlaneEpsilon = 0.05f
 
-    private val maxLines = 8192
+    private val maxLines = 65536
     private val verticesPerLine = 2
     private val floatsPerVertex = 7 // position (3) + color (4)
     private val maxVertices = maxLines * verticesPerLine * floatsPerVertex
@@ -195,11 +203,120 @@ class DebugRenderer : SceneRenderer, Resizable {
                 is SphereCollider -> {
                     generateSphereWireframe(collider.getCenter(worldPos), collider, sphereColliderColor, vertices)
                 }
+                is CapsuleCollider -> {
+                    generateCapsuleWireframe(worldPos, collider, capsuleColliderColor, vertices)
+                }
+                is ConvexHullCollider -> {
+                    generateConvexHullWireframe(worldPos, collider, vertices)
+                }
             }
         }
 
         playerBounds?.let { bounds ->
             generateAabbWireframe(bounds, playerBoundsColor, vertices)
+        }
+    }
+
+    private fun generateConvexHullWireframe(position: Vector3f, hull: ConvexHullCollider, vertices: MutableList<Float>) {
+        for (plane in hull.planes) {
+            val faceVertices = hull.vertices
+                .filter { vertex -> abs(plane.distanceTo(vertex)) <= hullPlaneEpsilon }
+                .let { sortFaceVertices(it, plane.normal) }
+
+            if (faceVertices.size < 2) continue
+
+            val color = if (plane.isGhost) ghostPlaneColor else convexHullColor
+            for (index in faceVertices.indices) {
+                appendVertex(vertices, faceVertices[index].add(position), color)
+                appendVertex(vertices, faceVertices[(index + 1) % faceVertices.size].add(position), color)
+            }
+        }
+    }
+
+    private fun sortFaceVertices(vertices: List<Vector3f>, normal: Vector3f): List<Vector3f> {
+        if (vertices.size <= 2) return vertices
+
+        val center = vertices
+            .fold(Vector3f()) { acc, vertex -> acc.add(vertex) }
+            .divide(vertices.size.toFloat())
+        val tangent = pickTangent(normal)
+        val bitangent = normal.cross(tangent).normalize()
+
+        return vertices.sortedBy { vertex ->
+            val relative = vertex.subtract(center)
+            atan2(relative.dot(bitangent), relative.dot(tangent))
+        }
+    }
+
+    private fun pickTangent(normal: Vector3f): Vector3f {
+        val up = Vector3f(0f, 1f, 0f)
+        val right = Vector3f(1f, 0f, 0f)
+        val base = if (abs(normal.dot(up)) < 0.9f) up else right
+        return base.cross(normal).normalize()
+    }
+
+    private fun generateCapsuleWireframe(position: Vector3f, capsule: CapsuleCollider, color: Vector4f, vertices: MutableList<Float>) {
+        val bottom = capsule.getBottomCenter(position)
+        val top = capsule.getTopCenter(position)
+        val radius = capsule.radius
+        val angleStep = (2.0 * Math.PI / circleSegments).toFloat()
+
+        generateCircle(color, vertices, angleStep) { angle ->
+            Vector3f(
+                bottom.x + radius * cos(angle),
+                bottom.y,
+                bottom.z + radius * sin(angle),
+            )
+        }
+        generateCircle(color, vertices, angleStep) { angle ->
+            Vector3f(
+                top.x + radius * cos(angle),
+                top.y,
+                top.z + radius * sin(angle),
+            )
+        }
+
+        for (i in 0 until 4) {
+            val angle = i * (Math.PI.toFloat() * 0.5f)
+            appendVertex(vertices, Vector3f(bottom.x + radius * cos(angle), bottom.y, bottom.z + radius * sin(angle)), color)
+            appendVertex(vertices, Vector3f(top.x + radius * cos(angle), top.y, top.z + radius * sin(angle)), color)
+        }
+
+        generateCapsuleProfile(bottom, top, radius, color, vertices, xAxis = true)
+        generateCapsuleProfile(bottom, top, radius, color, vertices, xAxis = false)
+    }
+
+    private fun generateCapsuleProfile(
+        bottom: Vector3f,
+        top: Vector3f,
+        radius: Float,
+        color: Vector4f,
+        vertices: MutableList<Float>,
+        xAxis: Boolean,
+    ) {
+        val halfSegments = circleSegments / 2
+        val angleStep = Math.PI.toFloat() / halfSegments
+
+        for (i in 0 until halfSegments) {
+            val angle1 = i * angleStep
+            val angle2 = (i + 1) * angleStep
+            appendVertex(vertices, capsuleProfilePoint(top, radius, angle1, xAxis), color)
+            appendVertex(vertices, capsuleProfilePoint(top, radius, angle2, xAxis), color)
+            appendVertex(vertices, capsuleProfilePoint(bottom, radius, angle1 + Math.PI.toFloat(), xAxis), color)
+            appendVertex(vertices, capsuleProfilePoint(bottom, radius, angle2 + Math.PI.toFloat(), xAxis), color)
+        }
+    }
+
+    private fun capsuleProfilePoint(
+        center: Vector3f,
+        radius: Float,
+        angle: Float,
+        xAxis: Boolean,
+    ): Vector3f {
+        return if (xAxis) {
+            Vector3f(center.x + radius * cos(angle), center.y + radius * sin(angle), center.z)
+        } else {
+            Vector3f(center.x, center.y + radius * sin(angle), center.z + radius * cos(angle))
         }
     }
 

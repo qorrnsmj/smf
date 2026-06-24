@@ -1,42 +1,29 @@
 package qorrnsmj.smf.game.level.test
 
 import org.lwjgl.glfw.GLFW.GLFW_KEY_F6
-import org.lwjgl.glfw.GLFW.GLFW_KEY_R
-import org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN
-import org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT
-import org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT
-import org.lwjgl.glfw.GLFW.GLFW_KEY_UP
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.glfwGetKey
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
-import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.entity.custom.Entity
-import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.entity.custom.ObjectEntity
 import qorrnsmj.smf.game.entity.custom.StallEntity
-import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.game.map.EntityFactory
+import qorrnsmj.smf.game.map.MapCollisionBuilder
+import qorrnsmj.smf.game.map.Maps
 import qorrnsmj.smf.game.entity.player.Player
 import qorrnsmj.smf.game.level.Level
-import qorrnsmj.smf.game.task.cutscene.IntroductionCutscene
 import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.skybox.Skyboxes
-import qorrnsmj.smf.graphic.terrain.HeightProvider
-import qorrnsmj.smf.graphic.terrain.Terrains
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.smf.physics.component.KinematicPhysics
-import qorrnsmj.smf.physics.component.StaticPhysics
 import qorrnsmj.smf.physics.PhysicsWorld
-import qorrnsmj.smf.physics.collision.shape.BoxCollider
-import qorrnsmj.smf.physics.collision.shape.SphereCollider
 import qorrnsmj.smf.graphic.text.DebugTextManager
+import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
 
 class TestLevel : Level() {
     private lateinit var pointLight: PointLight
+    // private lateinit var introductionCutscene: IntroductionCutscene
+    // private lateinit var cutsceneCamera: Camera
     private val triggers: MutableList<AreaEnterTrigger> = mutableListOf()
-    private lateinit var introductionCutscene: IntroductionCutscene
-    private lateinit var cutsceneCamera: Camera
     private val debugTextManager = DebugTextManager()
     private val skyColorTestPalette = listOf(
         Vector3f(0.55f, 0.72f, 0.98f),
@@ -45,21 +32,14 @@ class TestLevel : Level() {
     )
     private var skyColorPaletteIndex = 0
     private var skyColorTogglePressed = false
-    private lateinit var sideCollisionWall: Entity
-    private lateinit var sideCollisionMover: Entity
-    private var sideCollisionVerified = false
-    private lateinit var sphereCollisionWall: Entity
-    private lateinit var sphereCollisionMover: Entity
-    private var sphereCollisionVerified = false
-    private val sideCollisionMoverStart = Vector3f(96f, 36f, 100f)
-    private val sphereCollisionMoverStart = Vector3f(96f, 36f, 112f)
-    private val sphereAutoVelocity = Vector3f(0.1f, 0f, 0f)
-    private val moverControlSpeed = 0.1f
-    private var moverResetPressed = false
 
     override fun load() {
-        player = Player().apply { setEyePosition(Vector3f(100f, 37f, 100f)) }
+        player = Player()
         scene.entities.add(player)
+        logPlayerCapsuleCollision()
+        scene.map = Maps.TEST
+        scene.entities.addAll(MapCollisionBuilder.createCollisionEntities(Maps.TEST))
+        EntityFactory.spawn(Maps.TEST.entities, scene, player)
 
         // Initialize debug text system
         debugTextManager.initialize()
@@ -76,51 +56,36 @@ class TestLevel : Level() {
         }
         scene.lights.add(pointLight)
 
-        scene.terrain = Terrains.PLANE
         scene.skybox = Skyboxes.SKY1
         scene.skyColor = skyColorTestPalette[skyColorPaletteIndex]
         scene.entities.add(StallEntity())
+        addSlideTeleportTrigger()
 
-        // Add test entities with physics components for collision debug visualization
-        addTestPhysicsEntities()
-        SMF.renderer.debugRenderer.setCollisionDebugEnabled(true)
+        SMF.renderer.debugRenderer.setCollisionDebugEnabled(false)
+    }
 
-        triggers.add(
-            object : AreaEnterTrigger(
-                areaCenter = Vector3f(0f, 0f, 0f),
-                areaHalfExtents = Vector3f(10f, 10f, 10f),
-                aabb = { player.getAabb() }
-            ) {
-                override fun fire() {
-                    scene.skybox = Skyboxes.DEFAULT
-                    scene.skyColor = skyColorTestPalette[1]
-                    Logger.info("Sky/Fog color test trigger fired: {}", scene.skyColor)
-                }
-            }
-        )
+    private fun logPlayerCapsuleCollision() {
+        val capsule = player.physicsComponent.collider as? CapsuleCollider
+        if (capsule != null) {
+            Logger.info("Player capsule collision enabled: radius={}, height={}", capsule.radius, capsule.height)
+        }
     }
 
     override fun start() {
-        cutsceneCamera = Camera().apply {
-            position = Vector3f(0f, 100f, 50f)
-            setFront(Vector3f(0f, -1f, 1f))
-            scene.camera = this
-        }
-
-        introductionCutscene = IntroductionCutscene(
-            camera = cutsceneCamera,
-            questAreaPosition = player.camera.position
-        )
+        scene.camera = player.camera
+//        cutsceneCamera = Camera().apply {
+//            position = Vector3f(0f, 100f, 50f)
+//            setFront(Vector3f(0f, -1f, 1f))
+//            scene.camera = this
+//        }
+//
+//        introductionCutscene = IntroductionCutscene(
+//            camera = cutsceneCamera,
+//            questAreaPosition = player.camera.position
+//        )
     }
 
     override fun input(delta: Float) {
-        handleSideCollisionMoverInput()
-
-        if (!introductionCutscene.isFinished()) {
-            handleSkyColorTestInput()
-            return
-        }
-
         player.handleInput(SMF.window, delta)
         handleSkyColorTestInput()
     }
@@ -135,133 +100,46 @@ class TestLevel : Level() {
 
         skyColorTogglePressed = isPressed
     }
-    
-    /**
-     * Prepare deterministic collision test entities.
-     * A dynamic box moves toward a static box and should stop on contact.
-     */
-    private fun addTestPhysicsEntities() {
-        sideCollisionWall = ObjectEntity(
-            transform = Transform(position = Vector3f(112f, 36f, 100f)),
-            model = EntityModels.EMPTY,
-            physicsComponent = StaticPhysics(
-                collider = BoxCollider(width = 6f, height = 6f, depth = 6f)
-            )
+
+    private fun addSlideTeleportTrigger() {
+        triggers.add(
+            object : AreaEnterTrigger(
+                areaCenter = Vector3f(300f, 50f, 300f),
+                areaHalfExtents = Vector3f(90f, 60f, 90f),
+                aabb = { player.getAabb() }
+            ) {
+                override fun fire() {
+                    player.setFeetPosition(Vector3f(1875f, 9000f, 650f))
+                    player.camera.setFront(Vector3f(0f, -0.2f, -1f))
+                    Logger.info("Slide teleport triggered: {}", player.worldTransform.position)
+                }
+            }
         )
-        scene.entities.add(sideCollisionWall)
-
-        sideCollisionMover = ObjectEntity(
-            transform = Transform(position = sideCollisionMoverStart),
-            model = EntityModels.EMPTY,
-            physicsComponent = KinematicPhysics(
-                velocity = Vector3f(0f, 0f, 0f),
-                collider = BoxCollider(width = 4f, height = 4f, depth = 4f)
-            )
-        )
-        scene.entities.add(sideCollisionMover)
-
-        sphereCollisionWall = ObjectEntity(
-            transform = Transform(position = Vector3f(112f, 36f, 112f)),
-            model = EntityModels.EMPTY,
-            physicsComponent = StaticPhysics(
-                collider = SphereCollider(radius = 3f)
-            )
-        )
-        scene.entities.add(sphereCollisionWall)
-
-        sphereCollisionMover = ObjectEntity(
-            transform = Transform(position = sphereCollisionMoverStart),
-            model = EntityModels.EMPTY,
-            physicsComponent = KinematicPhysics(
-                velocity = Vector3f(sphereAutoVelocity.x, sphereAutoVelocity.y, sphereAutoVelocity.z),
-                collider = SphereCollider(radius = 2f)
-            )
-        )
-        scene.entities.add(sphereCollisionMover)
-
-        Logger.info("Collision tests ready: box-box (arrow keys) and sphere-sphere (auto)")
-    }
-
-    private fun handleSideCollisionMoverInput() {
-        val moverPhysics = sideCollisionMover.physicsComponent
-
-        var moveX = 0f
-        var moveZ = 0f
-
-        if (glfwGetKey(SMF.window.id, GLFW_KEY_LEFT) == GLFW_PRESS) moveX -= 1f
-        if (glfwGetKey(SMF.window.id, GLFW_KEY_RIGHT) == GLFW_PRESS) moveX += 1f
-        if (glfwGetKey(SMF.window.id, GLFW_KEY_UP) == GLFW_PRESS) moveZ -= 1f
-        if (glfwGetKey(SMF.window.id, GLFW_KEY_DOWN) == GLFW_PRESS) moveZ += 1f
-
-        val inputLength = kotlin.math.sqrt(moveX * moveX + moveZ * moveZ)
-        if (inputLength > 0f) {
-            moverPhysics.velocity = Vector3f(
-                (moveX / inputLength) * moverControlSpeed,
-                0f,
-                (moveZ / inputLength) * moverControlSpeed
-            )
-        } else {
-            moverPhysics.velocity = Vector3f(0f, 0f, 0f)
-        }
-
-        val resetPressed = glfwGetKey(SMF.window.id, GLFW_KEY_R) == GLFW_PRESS
-        if (resetPressed && !moverResetPressed) {
-            sideCollisionMover.localTransform = sideCollisionMover.localTransform.copy(position = Vector3f(sideCollisionMoverStart.x, sideCollisionMoverStart.y, sideCollisionMoverStart.z))
-            moverPhysics.stop()
-            sideCollisionVerified = false
-            sphereCollisionMover.localTransform = sphereCollisionMover.localTransform.copy(position = Vector3f(sphereCollisionMoverStart.x, sphereCollisionMoverStart.y, sphereCollisionMoverStart.z))
-            sphereCollisionMover.physicsComponent.velocity = Vector3f(sphereAutoVelocity.x, sphereAutoVelocity.y, sphereAutoVelocity.z)
-            sphereCollisionVerified = false
-            Logger.info("Collision test reset: mover returned to start position")
-        }
-        moverResetPressed = resetPressed
     }
 
     override fun update(delta: Float) {
         // Physics simulation for all entities (player included)
-        PhysicsWorld.update(scene.entities, scene.terrain as HeightProvider, delta)
+        PhysicsWorld.update(scene.entities, null, delta)
 
         // Keep camera synced to the physics-updated player entity.
         player.update()
 
-
-        if (!sideCollisionVerified) {
-            val moverPhysics = sideCollisionMover.physicsComponent
-            val nearWall = sideCollisionMover.worldTransform.position.distanceTo(sideCollisionWall.worldTransform.position) < 6f
-            val almostStopped = kotlin.math.abs(moverPhysics.velocity.x) < 0.05f
-            if (nearWall && almostStopped) {
-                Logger.info("Side collision verified: mover stopped at wall boundary")
-                sideCollisionVerified = true
-            }
-        }
-
-        if (!sphereCollisionVerified) {
-            val spherePhysics = sphereCollisionMover.physicsComponent
-            val nearSphereWall = sphereCollisionMover.worldTransform.position.distanceTo(sphereCollisionWall.worldTransform.position) < 5f
-            val sphereAlmostStopped = kotlin.math.abs(spherePhysics.velocity.x) < 0.03f
-            if (nearSphereWall && sphereAlmostStopped) {
-                Logger.info("Sphere collision verified: sphere mover stopped at sphere boundary")
-                sphereCollisionVerified = true
-            }
-        }
-
-        if (!introductionCutscene.isFinished()) {
-            introductionCutscene.update(delta)
-
-            if (introductionCutscene.isFinished()) {
-                player.camera.setFront(cutsceneCamera.getFront())
-                scene.camera = player.camera
-            }
-        }
+//        if (!introductionCutscene.isFinished()) {
+//            introductionCutscene.update(delta)
+//
+//            if (introductionCutscene.isFinished()) {
+//                player.camera.setFront(cutsceneCamera.getFront())
+//                scene.camera = player.camera
+//            }
+//        }
 
         for (trigger in triggers) {
             trigger.update(delta)
         }
 
-
         // Update debug text display
         val collisionDebugEnabled = SMF.renderer.debugRenderer.isCollisionDebugEnabled()
-        debugTextManager.updateDebugInfo(scene.camera.position, SMF.timer.getFPS(), SMF.timer.getUPS(), collisionDebugEnabled)
+        debugTextManager.updateDebugInfo(player.worldTransform.position, SMF.timer.getFPS(), SMF.timer.getUPS(), collisionDebugEnabled)
         scene.textElements.clear()
         scene.textElements.addAll(debugTextManager.getDebugElements())
     }

@@ -1,6 +1,7 @@
 package qorrnsmj.smf.physics.collision
 
 import qorrnsmj.smf.game.entity.custom.Entity
+import qorrnsmj.smf.game.entity.custom.Collidable
 import qorrnsmj.smf.physics.collision.data.CollisionPair
 import qorrnsmj.smf.physics.component.IPhysicsComponent
 import qorrnsmj.smf.physics.component.StaticPhysics
@@ -18,7 +19,7 @@ object CollisionDetection {
         val collisions = mutableListOf<CollisionPair>()
 
         // Get entities that have colliders
-        val physicsEntities = entities.filter { it.physicsComponent.collider != null }
+        val physicsEntities = entities.filter { it.physicsComponent.collider != null && it !is Collidable }
 
         // Broad-phase: Check all pairs
         for (i in physicsEntities.indices) {
