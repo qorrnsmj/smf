@@ -12,7 +12,6 @@ class MasterRenderer : SceneRenderer, Resizable {
     val entityRenderer = EntityRenderer()
     val postProcessor = PostProcessor()
     val debugRenderer = DebugRenderer()
-    val cinematicOverlayRenderer = CinematicOverlayRenderer()
     val textRenderer = TextRenderer()
 
     init {
@@ -49,7 +48,6 @@ class MasterRenderer : SceneRenderer, Resizable {
         }
 
         debugRenderer.render(scene)
-        cinematicOverlayRenderer.render(scene)
         textRenderer.render(scene)
     }
 
