@@ -7,12 +7,16 @@ import qorrnsmj.smf.util.Resizable
 
 class MasterRenderer : SceneRenderer, Resizable {
     val skyboxRenderer = SkyboxRenderer()
+    val terrainRenderer = TerrainRenderer()
     val mapRenderer = MapRenderer()
     val entityRenderer = EntityRenderer()
+    val shadowRenderer = ShadowRenderer()
     val postProcessor = PostProcessor()
     val debugRenderer = DebugRenderer()
     val cinematicOverlayRenderer = CinematicOverlayRenderer()
     val textRenderer = TextRenderer()
+    private var viewportWidth = 1280
+    private var viewportHeight = 720
 
     init {
         Logger.info("MasterRenderer initializing...")
@@ -30,6 +34,9 @@ class MasterRenderer : SceneRenderer, Resizable {
     }
 
     override fun render(scene: Scene) {
+        val shadowState = shadowRenderer.render(scene)
+        glViewport(0, 0, viewportWidth, viewportHeight)
+
         // If there are no effects, render directly to the default frame-buffer
         if (scene.effects.isNotEmpty()) postProcessor.bindFrameBuffer()
 
@@ -38,8 +45,9 @@ class MasterRenderer : SceneRenderer, Resizable {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         skyboxRenderer.render(scene)
-        mapRenderer.render(scene)
-        entityRenderer.render(scene)
+        terrainRenderer.render(scene, shadowState)
+        mapRenderer.render(scene, shadowState)
+        entityRenderer.render(scene, shadowState)
 
         if (scene.effects.isNotEmpty()) {
             postProcessor.bindDefaultFrameBuffer()
@@ -52,9 +60,12 @@ class MasterRenderer : SceneRenderer, Resizable {
     }
 
     override fun resize(width: Int, height: Int) {
+        viewportWidth = width
+        viewportHeight = height
         glViewport(0, 0, width, height)
 
         entityRenderer.resize(width, height)
+        terrainRenderer.resize(width, height)
         mapRenderer.resize(width, height)
         skyboxRenderer.resize(width, height)
         postProcessor.resize(width, height)

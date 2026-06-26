@@ -28,9 +28,13 @@ object EntityLoader  {
     /* Loader */
 
     fun loadModel(file: String): Map<String, Model> {
+        return loadModelFromResource("assets/model/$file")
+    }
+
+    fun loadModelFromResource(resourcePath: String): Map<String, Model> {
         try {
             val gltfModel = GltfModelReader()
-                .readWithoutReferences(getResourceAsStream("assets/model/$file"))
+                .readWithoutReferences(getResourceAsStream(resourcePath))
             val models = hashMapOf<String, Model>()
 
             gltfModel.sceneModels.forEach { scene: SceneModel ->
@@ -48,7 +52,7 @@ object EntityLoader  {
             }
 
             val faceCount = models.values.sumOf { it.mesh.vertexCount }.div(3)
-            Logger.info("\"$file\" loaded ($faceCount faces)")
+            Logger.info("\"$resourcePath\" loaded ($faceCount faces)")
 
             return models
         } catch (e: Exception) {

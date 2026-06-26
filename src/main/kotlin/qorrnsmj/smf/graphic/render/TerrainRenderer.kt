@@ -29,9 +29,24 @@ class TerrainRenderer : SceneRenderer, Resizable {
     val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
     val locationFogDensity = glGetUniformLocation(program.id, "fogDensity")
     val locationFogGradient = glGetUniformLocation(program.id, "fogGradient")
+    val locationLightSpaceMatrix = glGetUniformLocation(program.id, "lightSpaceMatrix")
+    val locationShadowMap = glGetUniformLocation(program.id, "shadowMap")
+    val locationShadowEnabled = glGetUniformLocation(program.id, "shadowEnabled")
 
     override fun render(scene: Scene) {
-        // Terrain has been replaced by GameMap rendering.
+        render(scene, ShadowRenderState(false, qorrnsmj.smf.math.Matrix4f(), 0))
+    }
+
+    fun render(scene: Scene, shadowState: ShadowRenderState) {
+        val terrain = scene.terrain ?: return
+
+        start()
+        loadCamera(scene.camera)
+        loadSkyColor(scene.skyColor)
+        loadFog(0.00045f, 1.5f)
+        loadShadow(shadowState)
+        renderTerrains(terrain)
+        stop()
     }
 
     private fun start() {
@@ -106,6 +121,8 @@ class TerrainRenderer : SceneRenderer, Resizable {
         // Unbind only active texture units
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, 0)
+        glActiveTexture(GL_TEXTURE5)
+        glBindTexture(GL_TEXTURE_2D, 0)
     }
 
     /* Uniforms */
@@ -121,6 +138,16 @@ class TerrainRenderer : SceneRenderer, Resizable {
     private fun loadFog(density: Float, gradient: Float) {
         UniformUtils.setUniform(locationFogDensity, density)
         UniformUtils.setUniform(locationFogGradient, gradient)
+    }
+
+    private fun loadShadow(shadowState: ShadowRenderState) {
+        UniformUtils.setUniform(locationLightSpaceMatrix, shadowState.lightSpaceMatrix)
+        UniformUtils.setUniform(locationShadowEnabled, if (shadowState.enabled) 1 else 0)
+        if (shadowState.enabled) {
+            glActiveTexture(GL_TEXTURE5)
+            glBindTexture(GL_TEXTURE_2D, shadowState.depthTextureId)
+            glUniform1i(locationShadowMap, 5)
+        }
     }
 
     override fun resize(width: Int, height: Int) {

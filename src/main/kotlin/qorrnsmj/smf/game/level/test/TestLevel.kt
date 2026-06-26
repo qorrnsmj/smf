@@ -8,21 +8,28 @@ import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.custom.StallEntity
 import qorrnsmj.smf.game.entity.player.Player
+import qorrnsmj.smf.game.level.GltfLevel
+import qorrnsmj.smf.game.level.GltfLevelApplier
+import qorrnsmj.smf.game.level.GltfLevelLoader
 import qorrnsmj.smf.game.level.Level
-import qorrnsmj.smf.game.map.EntityFactory
-import qorrnsmj.smf.game.map.MapCollisionBuilder
-import qorrnsmj.smf.game.map.Maps
 import qorrnsmj.smf.game.task.cutscene.IntroductionCutscene
 import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.graphic.text.DebugTextManager
 import qorrnsmj.smf.graphic.text.FontLoader
+import qorrnsmj.smf.graphic.terrain.TerrainLoader
+import qorrnsmj.smf.graphic.terrain.component.SingleTexture
+import qorrnsmj.smf.graphic.texture.Textures
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.PhysicsWorld
 import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
 
 class TestLevel : Level() {
+    private companion object {
+        const val USE_TEMPORARY_GLTF_LEVEL = true
+    }
+
     private lateinit var pointLight: PointLight
     private lateinit var cutsceneCamera: Camera
     private val triggers: MutableList<AreaEnterTrigger> = mutableListOf()
@@ -40,16 +47,14 @@ class TestLevel : Level() {
         scene.entities.add(player)
         logPlayerCapsuleCollision()
 
-        scene.map = Maps.TEST
-        scene.entities.addAll(MapCollisionBuilder.createCollisionEntities(Maps.TEST))
-        EntityFactory.spawn(Maps.TEST.entities, scene, player)
+        loadGltfLevel()
 
         debugTextManager.initialize()
         cutscenes.setSubtitleFont(FontLoader.loadAssetFont("Inconsolata.ttf", 28f))
         cutscenes.showDebugControls = true
 
         pointLight = PointLight().apply {
-            position = Vector3f(0f, 10f, 0f)
+            position = Vector3f(-700f, 1200f, -500f)
             ambient = Vector3f(0.1f, 0.1f, 0.1f)
             diffuse = Vector3f(1f, 1f, 1f)
             specular = Vector3f(1f, 1f, 1f)
@@ -59,11 +64,10 @@ class TestLevel : Level() {
             quadratic = 0f
         }
         scene.lights.add(pointLight)
+        addShadowTestFixtures()
 
         scene.skybox = Skyboxes.SKY1
         scene.skyColor = skyColorTestPalette[skyColorPaletteIndex]
-        scene.entities.add(StallEntity())
-        addSlideTeleportTrigger()
 
         SMF.renderer.debugRenderer.setCollisionDebugEnabled(false)
     }
@@ -73,6 +77,24 @@ class TestLevel : Level() {
         if (capsule != null) {
             Logger.info("Player capsule collision enabled: radius={}, height={}", capsule.radius, capsule.height)
         }
+    }
+
+    private fun addShadowTestFixtures() {
+        if (!USE_TEMPORARY_GLTF_LEVEL) return
+
+        scene.terrain = TerrainLoader.loadModel(
+            sizeX = 2000f,
+            sizeY = 2000f,
+            vertexCount = 32,
+            position = Vector3f(-1000f, 0f, -1000f),
+            textureMode = SingleTexture(Textures.TERRAIN_GRASS),
+        )
+
+        scene.entities.add(
+            StallEntity().apply {
+                localTransform = localTransform.copy(position = Vector3f(260f, 0f, 260f))
+            }
+        )
     }
 
     override fun start() {
@@ -125,19 +147,21 @@ class TestLevel : Level() {
         skyColorTogglePressed = isPressed
     }
 
-    private fun addSlideTeleportTrigger() {
-        triggers.add(
-            object : AreaEnterTrigger(
-                areaCenter = Vector3f(300f, 50f, 300f),
-                areaHalfExtents = Vector3f(90f, 60f, 90f),
-                aabb = { player.getAabb() }
-            ) {
-                override fun fire() {
-                    player.setFeetPosition(Vector3f(1875f, 9000f, 650f))
-                    player.camera.setFront(Vector3f(0f, -0.2f, -1f))
-                    Logger.info("Slide teleport triggered: {}", player.worldTransform.position)
-                }
-            }
+    private fun loadGltfLevel() {
+        val gltfLevel = if (USE_TEMPORARY_GLTF_LEVEL) {
+            GltfLevel.createTemporaryTestLevel()
+        } else {
+            GltfLevelLoader.load("assets/level/test_level.glb")
+        }
+        triggers.addAll(
+            GltfLevelApplier.apply(
+                level = gltfLevel,
+                scene = scene,
+                player = player,
+                onAreaTriggerEvent = { eventName, trigger ->
+                    Logger.info("TestLevel glTF AreaTrigger fired: {} ({})", eventName, trigger.name)
+                },
+            )
         )
     }
 
@@ -149,13 +173,13 @@ class TestLevel : Level() {
         }
 
         val collisionDebugEnabled = SMF.renderer.debugRenderer.isCollisionDebugEnabled()
-        debugTextManager.updateDebugInfo(scene.camera.position, SMF.timer.getFPS(), SMF.timer.getUPS(), collisionDebugEnabled)
+        debugTextManager.updateDebugInfo(player.worldTransform.position, SMF.timer.getFPS(), SMF.timer.getUPS(), collisionDebugEnabled)
         scene.textElements.clear()
         scene.textElements.addAll(debugTextManager.getDebugElements())
     }
 
     private fun updateWorld(delta: Float) {
-        PhysicsWorld.update(scene.entities, null, delta)
+        PhysicsWorld.update(scene.entities, scene.terrainHeightProvider ?: scene.terrain, delta)
         player.update()
 
         for (trigger in triggers) {

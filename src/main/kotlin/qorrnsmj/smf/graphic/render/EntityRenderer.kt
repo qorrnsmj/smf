@@ -31,6 +31,9 @@ class EntityRenderer : SceneRenderer, Resizable {
     val locationLightCount = glGetUniformLocation(program.id, "lightCount")
     val locationFogDensity = glGetUniformLocation(program.id, "fogDensity")
     val locationFogGradient = glGetUniformLocation(program.id, "fogGradient")
+    val locationLightSpaceMatrix = glGetUniformLocation(program.id, "lightSpaceMatrix")
+    val locationShadowMap = glGetUniformLocation(program.id, "shadowMap")
+    val locationShadowEnabled = glGetUniformLocation(program.id, "shadowEnabled")
     val locationLights = mutableMapOf<Int, HashMap<String, Int>>()
     val locationMaterials = hashMapOf<String, Int>()
 
@@ -62,11 +65,16 @@ class EntityRenderer : SceneRenderer, Resizable {
     }
 
     override fun render(scene: Scene) {
+        render(scene, ShadowRenderState(false, qorrnsmj.smf.math.Matrix4f(), 0))
+    }
+
+    fun render(scene: Scene, shadowState: ShadowRenderState) {
         start()
         loadCamera(scene.camera)
         loadLights(scene.lights)
         loadSkyColor(scene.skyColor)
         loadFog(FOG_DENSITY, FOG_GRADIENT)
+        loadShadow(shadowState)
         renderEntities(scene.camera, scene.entities)
         stop()
     }
@@ -203,7 +211,7 @@ class EntityRenderer : SceneRenderer, Resizable {
         glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
 
-        for (i in 0..4) {
+        for (i in 0..5) {
             glActiveTexture(GL_TEXTURE0 + i)
             glBindTexture(GL_TEXTURE_2D, 0)
         }
@@ -235,6 +243,14 @@ class EntityRenderer : SceneRenderer, Resizable {
     private fun loadFog(density: Float, gradient: Float) {
         setUniform(locationFogDensity, density)
         setUniform(locationFogGradient, gradient)
+    }
+
+    private fun loadShadow(shadowState: ShadowRenderState) {
+        setUniform(locationLightSpaceMatrix, shadowState.lightSpaceMatrix)
+        setUniform(locationShadowEnabled, if (shadowState.enabled) 1 else 0)
+        if (shadowState.enabled) {
+            setUniform(locationShadowMap, shadowState.depthTextureId, 5)
+        }
     }
 
     override fun resize(width: Int, height: Int) {

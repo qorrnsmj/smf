@@ -9,7 +9,6 @@ import qorrnsmj.smf.audio.Audios
 import qorrnsmj.smf.core.FixedTimestepGame
 import qorrnsmj.smf.core.Timer
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.map.Maps
 import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.graphic.texture.Textures
 import qorrnsmj.smf.graphic.render.MasterRenderer
@@ -46,7 +45,6 @@ object SMF : FixedTimestepGame() {
         Audios.load()
         Textures.load()
         EntityModels.load()
-        Maps.load()
         Skyboxes.load()
 
         window.show()

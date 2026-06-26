@@ -26,14 +26,17 @@ object TerrainLoader  {
         sizeY: Float,
         vertexCount: Int,
         heightmapFile: String? = null,
+        heightScale: Float = 50f,
+        minHeight: Float = 1f,
+        position: Vector3f = Vector3f(0f, 0f, 0f),
         textureMode: TerrainTextureMode,
     ): Terrain {
         val size = Vector2f(sizeX, sizeY)
-        val mesh = loadMesh(size, vertexCount, heightmapFile)
+        val mesh = loadMesh(size, vertexCount, heightmapFile, heightScale, minHeight)
         val material = TerrainMaterial(textureMode = textureMode)
         val model = TerrainModel(mesh = mesh, material = material)
 
-        return Terrain(model = model)
+        return Terrain(model = model, position = position)
     }
 
     private fun loadMesh(
