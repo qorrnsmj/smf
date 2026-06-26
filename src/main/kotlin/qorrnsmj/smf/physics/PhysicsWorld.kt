@@ -266,7 +266,7 @@ object PhysicsWorld {
         for (obstacle in entities) {
             if (obstacle === entity) continue
 
-            val correction = computeCollidableCorrection(collidable, obstacle, -collidable.groundProbeDistance)
+            val correction = computeCollidableCorrection(collidable, obstacle, -collidable.collisionConfig.groundProbeDistance)
 
             if (correction != null && correction.y > 0f && isWalkableSlope(correction.normalize())) {
                 return true
@@ -277,7 +277,7 @@ object PhysicsWorld {
     }
 
     private fun tryStepUp(entity: Entity, collidable: Collidable, obstacle: Entity): Boolean {
-        if (collidable.collisionShape != CollisionShape.CAPSULE) {
+        if (collidable.collisionConfig.shape != CollisionShape.CAPSULE) {
             return false
         }
 
@@ -317,7 +317,7 @@ object PhysicsWorld {
         val collider = obstacle.physicsComponent.collider ?: return null
         val obstaclePosition = obstacle.worldTransform.position
 
-        return when (collidable.collisionShape) {
+        return when (collidable.collisionConfig.shape) {
             CollisionShape.AABB -> {
                 val bounds = collidable.getAabbWithFeetOffset(feetOffset)
                 computeAabbObstacleCorrection(bounds, collider, obstaclePosition)

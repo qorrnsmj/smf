@@ -3,6 +3,7 @@ package qorrnsmj.smf.game.entity.player
 import org.lwjgl.glfw.GLFW
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.EntityModels
+import qorrnsmj.smf.game.entity.custom.CollisionConfig
 import qorrnsmj.smf.game.entity.custom.CollisionShape
 import qorrnsmj.smf.game.entity.custom.LivingEntity
 import qorrnsmj.smf.game.entity.custom.Transform
@@ -23,11 +24,13 @@ class Player(
     transform = Transform(position = Vector3f(0f, 0f, 0f)),
     model = EntityModels.EMPTY,
     physicsComponent = DynamicPhysics(collider = CapsuleCollider(minOf(collisionHalfWidth, collisionHalfDepth), collisionHeight)),
-    collisionShape = CollisionShape.CAPSULE,
-    collisionHalfWidth = collisionHalfWidth,
-    collisionHeight = collisionHeight,
-    collisionHalfDepth = collisionHalfDepth,
-    groundProbeDistance = groundProbeDistance
+    collisionConfig = CollisionConfig(
+        shape = CollisionShape.CAPSULE,
+        halfWidth = collisionHalfWidth,
+        height = collisionHeight,
+        halfDepth = collisionHalfDepth,
+        groundProbeDistance = groundProbeDistance,
+    )
 ) {
     var camera = Camera()
 
@@ -53,8 +56,13 @@ class Player(
         handleJump(window)
     }
 
-    fun update() {
+    override fun update(deltaTime: Float) {
+        super.update(deltaTime)
         syncCameraWithEntity()
+    }
+
+    fun update() {
+        update(0f)
     }
 
     private fun moveHorizontal(window: Window, delta: Float) {

@@ -6,6 +6,7 @@ import qorrnsmj.smf.game.map.GameMap
 import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.graphic.render.shader.MapShaderProgram
 import qorrnsmj.smf.graphic.texture.Textures
+import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.Resizable
@@ -42,7 +43,7 @@ class MapRenderer : SceneRenderer, Resizable {
             locationModel,
             MVP.getModelMatrix(
                 position = Vector3f(),
-                rotation = Vector3f(),
+                rotation = Quaternion.identity(),
                 scale = Vector3f(1f, 1f, 1f),
             )
         )

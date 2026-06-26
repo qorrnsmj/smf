@@ -4,19 +4,23 @@ import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.collision.data.AABB
 import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
 
+data class CollisionConfig(
+    val shape: CollisionShape = CollisionShape.AABB,
+    val halfWidth: Float = 0.5f,
+    val height: Float = 1f,
+    val halfDepth: Float = 0.5f,
+    val groundProbeDistance: Float = 0.05f,
+)
+
 interface Collidable {
-    var collisionShape: CollisionShape
-    var collisionHalfWidth: Float
-    var collisionHeight: Float
-    var collisionHalfDepth: Float
-    var groundProbeDistance: Float
+    var collisionConfig: CollisionConfig
 
     fun getCollisionBasePosition(): Vector3f
 
     fun getCapsuleCollider(): CapsuleCollider {
         return CapsuleCollider(
-            radius = minOf(collisionHalfWidth, collisionHalfDepth),
-            height = collisionHeight,
+            radius = minOf(collisionConfig.halfWidth, collisionConfig.halfDepth),
+            height = collisionConfig.height,
         )
     }
 
@@ -28,14 +32,14 @@ interface Collidable {
         val feet = getCollisionBasePosition()
         return AABB(
             min = Vector3f(
-                feet.x - collisionHalfWidth,
+                feet.x - collisionConfig.halfWidth,
                 feet.y,
-                feet.z - collisionHalfDepth
+                feet.z - collisionConfig.halfDepth
             ),
             max = Vector3f(
-                feet.x + collisionHalfWidth,
-                feet.y + collisionHeight,
-                feet.z + collisionHalfDepth
+                feet.x + collisionConfig.halfWidth,
+                feet.y + collisionConfig.height,
+                feet.z + collisionConfig.halfDepth
             )
         )
     }
@@ -45,14 +49,14 @@ interface Collidable {
         val y = feet.y + feetOffset
         return AABB(
             min = Vector3f(
-                feet.x - collisionHalfWidth,
+                feet.x - collisionConfig.halfWidth,
                 y,
-                feet.z - collisionHalfDepth
+                feet.z - collisionConfig.halfDepth
             ),
             max = Vector3f(
-                feet.x + collisionHalfWidth,
-                y + collisionHeight,
-                feet.z + collisionHalfDepth
+                feet.x + collisionConfig.halfWidth,
+                y + collisionConfig.height,
+                feet.z + collisionConfig.halfDepth
             )
         )
     }

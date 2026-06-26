@@ -9,6 +9,7 @@ import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.custom.ObjectEntity
 import qorrnsmj.smf.game.entity.custom.Transform
 import qorrnsmj.smf.graphic.`object`.Model
+import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.collision.shape.BoxCollider
 import qorrnsmj.smf.physics.collision.shape.Collider
@@ -19,7 +20,6 @@ import qorrnsmj.smf.util.ResourceUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.abs
-import kotlin.math.atan2
 import kotlin.math.sqrt
 
 object GlbLevelLoader {
@@ -304,7 +304,7 @@ object GlbLevelLoader {
         val scaleX = Vector3f(matrix[0], matrix[1], matrix[2]).length()
         val scaleY = Vector3f(matrix[4], matrix[5], matrix[6]).length()
         val scaleZ = Vector3f(matrix[8], matrix[9], matrix[10]).length()
-        val rotation = eulerFromMatrix(matrix, scaleX, scaleY, scaleZ)
+        val rotation = quaternionFromMatrix(matrix, scaleX, scaleY, scaleZ)
 
         return Transform(
             position = Vector3f(matrix[12], matrix[13], matrix[14]).scale(BLENDER_METER_TO_GAME_UNIT),
@@ -313,31 +313,27 @@ object GlbLevelLoader {
         )
     }
 
-    private fun eulerFromMatrix(matrix: FloatArray, scaleX: Float, scaleY: Float, scaleZ: Float): Vector3f {
+    private fun quaternionFromMatrix(matrix: FloatArray, scaleX: Float, scaleY: Float, scaleZ: Float): Quaternion {
         val r00 = matrix[0] / scaleX
         val r10 = matrix[1] / scaleX
         val r20 = matrix[2] / scaleX
+        val r01 = matrix[4] / scaleY
+        val r11 = matrix[5] / scaleY
         val r21 = matrix[6] / scaleY
+        val r02 = matrix[8] / scaleZ
+        val r12 = matrix[9] / scaleZ
         val r22 = matrix[10] / scaleZ
-        val sy = sqrt(r00 * r00 + r10 * r10)
 
-        val x: Float
-        val y: Float
-        val z: Float
-        if (sy > 0.000001f) {
-            x = atan2(r21, r22)
-            y = atan2(-r20, sy)
-            z = atan2(r10, r00)
-        } else {
-            x = atan2(-matrix[9] / scaleZ, matrix[5] / scaleY)
-            y = atan2(-r20, sy)
-            z = 0f
-        }
-
-        return Vector3f(
-            Math.toDegrees(x.toDouble()).toFloat(),
-            Math.toDegrees(y.toDouble()).toFloat(),
-            Math.toDegrees(z.toDouble()).toFloat(),
+        return Quaternion.fromRotationMatrix(
+            m00 = r00,
+            m01 = r01,
+            m02 = r02,
+            m10 = r10,
+            m11 = r11,
+            m12 = r12,
+            m20 = r20,
+            m21 = r21,
+            m22 = r22,
         )
     }
 
@@ -552,7 +548,7 @@ object GlbLevelLoader {
     private data class EntitySpawnKey(
         val type: String,
         val position: Triple<Int, Int, Int>,
-        val rotation: Triple<Int, Int, Int>,
+        val rotation: List<Int>,
         val scale: Triple<Int, Int, Int>,
     )
 
@@ -580,5 +576,13 @@ object GlbLevelLoader {
             (x * 1000f).toInt(),
             (y * 1000f).toInt(),
             (z * 1000f).toInt(),
+        )
+
+    private fun Quaternion.roundedKey(): List<Int> =
+        listOf(
+            (x * 1000f).toInt(),
+            (y * 1000f).toInt(),
+            (z * 1000f).toInt(),
+            (w * 1000f).toInt(),
         )
 }

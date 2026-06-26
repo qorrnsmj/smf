@@ -6,8 +6,6 @@ import qorrnsmj.smf.game.entity.player.Player
 import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
 import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.math.Vector3f
-import kotlin.math.cos
-import kotlin.math.sin
 
 object GlbLevelApplier {
     fun apply(
@@ -42,7 +40,7 @@ object GlbLevelApplier {
     private fun spawnEntity(spawn: GlbEntity, scene: Scene, player: Player) {
         if (spawn.type.normalized() in PLAYER_SPAWN_TYPES) {
             player.setFeetPosition(spawn.transform.position)
-            setPlayerYaw(player, spawn.transform.rotation.y)
+            setPlayerFront(player, spawn.transform.rotation.rotate(Vector3f(1f, 0f, 0f)))
             Logger.info("GLB player spawn applied: {}", spawn.name)
             return
         }
@@ -57,9 +55,11 @@ object GlbLevelApplier {
         Logger.info("GLB entity spawned: {} ({})", spawn.name, spawn.type)
     }
 
-    private fun setPlayerYaw(player: Player, yawDegrees: Float) {
-        val radians = Math.toRadians(yawDegrees.toDouble())
-        player.camera.setFront(Vector3f(cos(radians).toFloat(), 0f, sin(radians).toFloat()))
+    private fun setPlayerFront(player: Player, front: Vector3f) {
+        val horizontalFront = Vector3f(front.x, 0f, front.z)
+        if (horizontalFront.lengthSquared() > 0f) {
+            player.camera.setFront(horizontalFront)
+        }
     }
 
     private fun String.normalized(): String =

@@ -3,19 +3,15 @@ package qorrnsmj.smf.game.entity.custom
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.EntityModels.STALL
 import qorrnsmj.smf.math.Vector3f
-import qorrnsmj.smf.physics.component.DynamicPhysics
 import qorrnsmj.smf.physics.collision.shape.BoxCollider
+import qorrnsmj.smf.physics.component.StaticPhysics
 
 class StallEntity : ObjectEntity(
     transform = Transform(
         position = Vector3f(180f, 2f, 180f),
         scale = Vector3f(35f, 35f, 35f),
     ),
-    physicsComponent = DynamicPhysics(
-        mass = 50f,
-        restitution = 0.1f,
-        friction = 0.8f,
-        drag = 0.05f,
+    physicsComponent = StaticPhysics(
         collider = BoxCollider(223f, 133f, 132f, Vector3f(-1.5f, 64.8f, 30.6f))
     )
 ) {

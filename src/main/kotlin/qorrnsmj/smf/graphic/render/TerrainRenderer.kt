@@ -9,6 +9,7 @@ import qorrnsmj.smf.graphic.terrain.component.TerrainTextureMode
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.graphic.render.shader.TerrainShaderProgram
+import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils
@@ -63,7 +64,7 @@ class TerrainRenderer : SceneRenderer, Resizable {
 
         val modelMatrix = MVP.getModelMatrix(
             position = terrain.position,
-            rotation = Vector3f(0f, 0f, 0f),
+            rotation = Quaternion.identity(),
             scale = Vector3f(1f, 1f, 1f)
         )
         UniformUtils.setUniform(locationModel, modelMatrix)
