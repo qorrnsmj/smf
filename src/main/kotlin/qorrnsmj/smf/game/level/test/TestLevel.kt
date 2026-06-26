@@ -7,7 +7,10 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.custom.StallEntity
+import qorrnsmj.smf.game.entity.mob.SlimeEntity
 import qorrnsmj.smf.game.entity.player.Player
+import qorrnsmj.smf.game.entity.projectile.ArrowEntity
+import qorrnsmj.smf.game.entity.projectile.ProjectileEntity
 import qorrnsmj.smf.game.level.Level
 import qorrnsmj.smf.game.map.EntityFactory
 import qorrnsmj.smf.game.map.MapCollisionBuilder
@@ -63,6 +66,8 @@ class TestLevel : Level() {
         scene.skybox = Skyboxes.SKY1
         scene.skyColor = skyColorTestPalette[skyColorPaletteIndex]
         scene.entities.add(StallEntity())
+        scene.entities.add(SlimeEntity(Vector3f(120f, 5f, 160f)))
+        scene.entities.add(ArrowEntity(Vector3f(80f, 80f, 160f), Vector3f(1f, 0f, 0f)))
         addSlideTeleportTrigger()
 
         SMF.renderer.debugRenderer.setCollisionDebugEnabled(false)
@@ -156,7 +161,8 @@ class TestLevel : Level() {
 
     private fun updateWorld(delta: Float) {
         PhysicsWorld.update(scene.entities, null, delta)
-        player.update()
+        scene.entities.forEach { it.update(delta) }
+        scene.entities.removeAll { it is ProjectileEntity && it.isExpired }
 
         for (trigger in triggers) {
             trigger.update(delta)

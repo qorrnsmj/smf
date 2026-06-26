@@ -1,17 +1,16 @@
 package qorrnsmj.smf.util
 
 import qorrnsmj.smf.math.Matrix4f
+import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
 import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlin.math.tan
 
 object MVP {
     /* Model */
 
-    fun getModelMatrix(position: Vector3f, rotation: Vector3f, scale: Vector3f): Matrix4f {
+    fun getModelMatrix(position: Vector3f, rotation: Quaternion, scale: Vector3f): Matrix4f {
         return Matrix4f()
             .multiply(getTranslationMatrix(position))
             .multiply(getRotationMatrix(rotation))
@@ -27,33 +26,8 @@ object MVP {
         )
     }
 
-    fun getRotationMatrix(rotation: Vector3f): Matrix4f {
-        val radX = Math.toRadians(rotation.x.toDouble()).toFloat()
-        val radY = Math.toRadians(rotation.y.toDouble()).toFloat()
-        val radZ = Math.toRadians(rotation.z.toDouble()).toFloat()
-
-        val xRotation = Matrix4f(
-            Vector4f(1f, 0f, 0f, 0f),
-            Vector4f(0f, cos(radX), -sin(radX), 0f),
-            Vector4f(0f, sin(radX), cos(radX), 0f),
-            Vector4f(0f, 0f, 0f, 1f)
-        )
-
-        val yRotation = Matrix4f(
-            Vector4f(cos(radY), 0f, sin(radY), 0f),
-            Vector4f(0f, 1f, 0f, 0f),
-            Vector4f(-sin(radY), 0f, cos(radY), 0f),
-            Vector4f(0f, 0f, 0f, 1f)
-        )
-
-        val zRotation = Matrix4f(
-            Vector4f(cos(radZ), -sin(radZ), 0f, 0f),
-            Vector4f(sin(radZ), cos(radZ), 0f, 0f),
-            Vector4f(0f, 0f, 1f, 0f),
-            Vector4f(0f, 0f, 0f, 1f)
-        )
-
-        return xRotation.multiply(yRotation).multiply(zRotation)
+    fun getRotationMatrix(rotation: Quaternion): Matrix4f {
+        return rotation.toMatrix()
     }
 
     fun getScaleMatrix(scale: Vector3f): Matrix4f {

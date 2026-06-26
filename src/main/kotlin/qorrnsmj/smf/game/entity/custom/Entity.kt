@@ -13,25 +13,27 @@ abstract class Entity(
     var localTransform: Transform = transform
     val worldTransform: Transform
         get() = parent?.worldTransform?.let { p ->
+            val scaledLocalPosition = localTransform.position.multiply(p.scale)
             Transform(
-                position = p.position.add(localTransform.position),
-                rotation = p.rotation.add(localTransform.rotation),
+                position = p.position.add(p.rotation.rotate(scaledLocalPosition)),
+                rotation = p.rotation.multiply(localTransform.rotation).normalize(),
                 scale = p.scale.multiply(localTransform.scale)
             )
         } ?: localTransform
 
     var parent: Entity? = null
         private set
-    val children: MutableList<Entity> = mutableListOf()
+    private val _children: MutableList<Entity> = mutableListOf()
+    val children: List<Entity> get() = _children
 
     fun addChild(child: Entity) {
         child.parent?.removeChild(child)
-        children.add(child)
+        _children.add(child)
         child.parent = this
     }
 
     fun removeChild(child: Entity) {
-        children.remove(child)
+        _children.remove(child)
         child.parent = null
     }
 
