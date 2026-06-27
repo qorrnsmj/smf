@@ -20,7 +20,7 @@ class DebugTextManager  {
     /**
      * Update debug information for this frame
      */
-    fun updateDebugInfo(cameraPosition: Vector3f, fps: Int, ups: Int, collisionDebugEnabled: Boolean = false) {
+    fun updateDebugInfo(position: Vector3f, fps: Int, ups: Int, collisionDebugEnabled: Boolean = false) {
         val currentFont = font ?: return
         val textColor = Vector3f(0.3f, 0.3f, 0.3f)
         
@@ -37,11 +37,11 @@ class DebugTextManager  {
             )
         )
         
-        // Add camera position
+        // Add tracked position
         debugElements.add(
             TextElement(
                 text = String.format("Position: %.1f, %.1f, %.1f", 
-                    cameraPosition.x, cameraPosition.y, cameraPosition.z),
+                    position.x, position.y, position.z),
                 font = currentFont,
                 x = 10f,
                 y = 50f,

@@ -5,6 +5,7 @@ import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.component.DynamicPhysics
 import qorrnsmj.smf.physics.collision.shape.BoxCollider
+import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
 import qorrnsmj.smf.physics.collision.shape.SphereCollider
 import qorrnsmj.smf.physics.collision.shape.Collider
 import org.lwjgl.glfw.GLFW.glfwGetCurrentContext
@@ -110,6 +111,7 @@ object PhysicsDebugRenderer {
         when (collider) {
             is SphereCollider -> renderSphereCollider(center, collider.radius)
             is BoxCollider -> renderBoxCollider(center, collider.width, collider.height, collider.depth)
+            is CapsuleCollider -> renderBoxCollider(center, collider.radius * 2f, collider.height, collider.radius * 2f)
         }
     }
     

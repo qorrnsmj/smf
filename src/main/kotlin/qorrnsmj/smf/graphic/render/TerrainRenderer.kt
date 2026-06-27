@@ -7,13 +7,14 @@ import qorrnsmj.smf.graphic.terrain.component.BlendedTexture
 import qorrnsmj.smf.graphic.terrain.component.SingleTexture
 import qorrnsmj.smf.graphic.terrain.component.TerrainTextureMode
 import qorrnsmj.smf.util.MVP
+import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.graphic.render.shader.TerrainShaderProgram
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils
 
 // TODO: 整理する
-class TerrainRenderer : Resizable {
+class TerrainRenderer : SceneRenderer, Resizable {
     // TODO: locationはシェーダークラスに書く
     val program = TerrainShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
@@ -29,16 +30,27 @@ class TerrainRenderer : Resizable {
     val locationFogDensity = glGetUniformLocation(program.id, "fogDensity")
     val locationFogGradient = glGetUniformLocation(program.id, "fogGradient")
 
-    fun start() {
+    override fun render(scene: Scene) {
+        val terrain = scene.terrain ?: return
+
+        start()
+        loadCamera(scene.camera)
+        loadSkyColor(scene.skyColor)
+        loadFog(0.00045f, 1.5f)
+        renderTerrains(terrain)
+        stop()
+    }
+
+    private fun start() {
         program.use()
     }
 
-    fun stop() {
+    private fun stop() {
     }
 
     /* Render */
 
-    fun renderTerrains(terrain: Terrain) {
+    private fun renderTerrains(terrain: Terrain) {
         bindTextures(terrain.model.material.textureMode)
         prepareTerrain(terrain)
         glDrawElements(GL_TRIANGLES, terrain.model.mesh.vertexCount, GL_UNSIGNED_INT, 0)
@@ -105,15 +117,15 @@ class TerrainRenderer : Resizable {
 
     /* Uniforms */
 
-    fun loadCamera(camera: Camera) {
+    private fun loadCamera(camera: Camera) {
         UniformUtils.setUniform(locationView, camera.getViewMatrix())
     }
 
-    fun loadSkyColor(skyColor: Vector3f) {
+    private fun loadSkyColor(skyColor: Vector3f) {
         UniformUtils.setUniform(locationSkyColor, skyColor)
     }
 
-    fun loadFog(density: Float, gradient: Float) {
+    private fun loadFog(density: Float, gradient: Float) {
         UniformUtils.setUniform(locationFogDensity, density)
         UniformUtils.setUniform(locationFogGradient, gradient)
     }

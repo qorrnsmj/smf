@@ -8,6 +8,7 @@ class InGameState : State() {
         super.start()
 
         levelManager.loadLevel(TestLevel())
+//        levelManager.loadLevel(TestMapLevel())
         levelManager.updateTransition()
     }
 }

@@ -3,24 +3,27 @@ package qorrnsmj.smf.game.entity.player
 import org.lwjgl.glfw.GLFW
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.EntityModels
+import qorrnsmj.smf.game.entity.custom.CollisionShape
 import qorrnsmj.smf.game.entity.custom.LivingEntity
 import qorrnsmj.smf.game.entity.custom.Transform
 import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
 import qorrnsmj.smf.physics.component.DynamicPhysics
 import qorrnsmj.smf.window.Window
 
 class Player(
-    private val eyeHeight: Float = 5f,
-    private val moveSpeed: Float = 0.5f,
-    private val jumpSpeed: Float = 2f,
-    collisionHalfWidth: Float = 0.5f,
+    private val eyeHeight: Float = 170f,
+    private val moveSpeed: Float = 4f,
+    private val jumpSpeed: Float = 8f,
+    collisionHalfWidth: Float = 22f,
     collisionHeight: Float = eyeHeight,
-    collisionHalfDepth: Float = 0.5f,
-    groundProbeDistance: Float = 0.05f,
+    collisionHalfDepth: Float = 22f,
+    groundProbeDistance: Float = 1f,
 ) : LivingEntity(
     transform = Transform(position = Vector3f(0f, 0f, 0f)),
     model = EntityModels.EMPTY,
-    physicsComponent = DynamicPhysics(collider = null),
+    physicsComponent = DynamicPhysics(collider = CapsuleCollider(minOf(collisionHalfWidth, collisionHalfDepth), collisionHeight)),
+    collisionShape = CollisionShape.CAPSULE,
     collisionHalfWidth = collisionHalfWidth,
     collisionHeight = collisionHeight,
     collisionHalfDepth = collisionHalfDepth,
@@ -34,6 +37,12 @@ class Player(
 
     fun setEyePosition(eyePosition: Vector3f) {
         localTransform = localTransform.copy(position = Vector3f(eyePosition.x, eyePosition.y - eyeHeight, eyePosition.z))
+        physicsComponent.velocity = Vector3f(0f, 0f, 0f)
+        syncCameraWithEntity()
+    }
+
+    fun setFeetPosition(feetPosition: Vector3f) {
+        localTransform = localTransform.copy(position = feetPosition)
         physicsComponent.velocity = Vector3f(0f, 0f, 0f)
         syncCameraWithEntity()
     }
@@ -52,15 +61,19 @@ class Player(
         val front = camera.getFront()
         val forward = Vector3f(front.x, 0f, front.z).normalize()
         val right = forward.cross(Vector3f(0f, 1f, 0f)).normalize()
-        val velocity = moveSpeed * delta
-        var move = Vector3f()
-        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS) move = move.add(forward.scale(velocity))
-        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_S) == GLFW.GLFW_PRESS) move = move.add(forward.scale(-velocity))
-        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_A) == GLFW.GLFW_PRESS) move = move.add(right.scale(-velocity))
-        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_D) == GLFW.GLFW_PRESS) move = move.add(right.scale(velocity))
+        var moveDirection = Vector3f()
+        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS) moveDirection = moveDirection.add(forward)
+        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_S) == GLFW.GLFW_PRESS) moveDirection = moveDirection.add(forward.scale(-1f))
+        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_A) == GLFW.GLFW_PRESS) moveDirection = moveDirection.add(right.scale(-1f))
+        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_D) == GLFW.GLFW_PRESS) moveDirection = moveDirection.add(right)
 
-        localTransform = localTransform.copy(position = localTransform.position.add(move))
-        syncCameraWithEntity()
+        val physics = physicsComponent
+        val horizontalVelocity = if (moveDirection.lengthSquared() > 0f) {
+            moveDirection.normalize().scale(moveSpeed * delta)
+        } else {
+            Vector3f()
+        }
+        physics.velocity = Vector3f(horizontalVelocity.x, physics.velocity.y, horizontalVelocity.z)
     }
 
     private fun handleJump(window: Window) {

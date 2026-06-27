@@ -6,6 +6,7 @@ import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.graphic.`object`.Model
+import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.graphic.light.Light
 import qorrnsmj.smf.graphic.render.shader.EntityShaderProgram
@@ -13,7 +14,12 @@ import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils.setUniform
 
-class EntityRenderer : Resizable {
+class EntityRenderer : SceneRenderer, Resizable {
+    private companion object {
+        const val FOG_DENSITY = 0.00045f
+        const val FOG_GRADIENT = 1.5f
+    }
+
     // TODO: locationはシェーダークラスに書く?
     val program = EntityShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
@@ -55,17 +61,27 @@ class EntityRenderer : Resizable {
         locationMaterials["doubleSided"] = glGetUniformLocation(program.id, "material.doubleSided")
     }
 
-    fun start() {
+    override fun render(scene: Scene) {
+        start()
+        loadCamera(scene.camera)
+        loadLights(scene.lights)
+        loadSkyColor(scene.skyColor)
+        loadFog(FOG_DENSITY, FOG_GRADIENT)
+        renderEntities(scene.camera, scene.entities)
+        stop()
+    }
+
+    private fun start() {
         program.use()
     }
 
-    fun stop() {
+    private fun stop() {
     }
 
     /* Render */
 
     // TODO: テクスチャキャッシング - 同じテクスチャは再bind しない
-    fun renderEntity(camera: Camera, entities: List<Entity>) {
+    private fun renderEntities(camera: Camera, entities: List<Entity>) {
         val batchMap = mutableMapOf<Model, MutableList<Entity>>()
         for (entity in entities) processEntity(entity, batchMap)
 
@@ -195,12 +211,12 @@ class EntityRenderer : Resizable {
 
     /* Uniforms */
 
-    fun loadCamera(camera: Camera) {
+    private fun loadCamera(camera: Camera) {
         setUniform(locationView, camera.getViewMatrix())
         setUniform(locationCameraPosition, camera.position)
     }
 
-    fun loadLights(lights: List<Light>) {
+    private fun loadLights(lights: List<Light>) {
         // TODO: dynamic light count
         glUniform1i(locationLightCount, lights.size)
 
@@ -212,11 +228,11 @@ class EntityRenderer : Resizable {
         }
     }
 
-    fun loadSkyColor(skyColor: Vector3f) {
+    private fun loadSkyColor(skyColor: Vector3f) {
         setUniform(locationSkyColor, skyColor)
     }
 
-    fun loadFog(density: Float, gradient: Float) {
+    private fun loadFog(density: Float, gradient: Float) {
         setUniform(locationFogDensity, density)
         setUniform(locationFogGradient, gradient)
     }

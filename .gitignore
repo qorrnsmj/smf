@@ -5,6 +5,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 CHANGELOG.md
+AGENTS.md
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

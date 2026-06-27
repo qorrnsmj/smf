@@ -5,12 +5,14 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.util.Resizable
 
-class MasterRenderer : Resizable {
+class MasterRenderer : SceneRenderer, Resizable {
     val skyboxRenderer = SkyboxRenderer()
     val terrainRenderer = TerrainRenderer()
+    val mapRenderer = MapRenderer()
     val entityRenderer = EntityRenderer()
     val postProcessor = PostProcessor()
     val debugRenderer = DebugRenderer()
+    val cinematicOverlayRenderer = CinematicOverlayRenderer()
     val textRenderer = TextRenderer()
 
     init {
@@ -28,7 +30,7 @@ class MasterRenderer : Resizable {
         Logger.info("MasterRenderer initialized!")
     }
 
-    fun render(scene: Scene) {
+    override fun render(scene: Scene) {
         // If there are no effects, render directly to the default frame-buffer
         if (scene.effects.isNotEmpty()) postProcessor.bindFrameBuffer()
 
@@ -36,41 +38,19 @@ class MasterRenderer : Resizable {
         glClearColor(skyColor.x, skyColor.y, skyColor.z, 1f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        skyboxRenderer.start()
-        skyboxRenderer.loadCamera(scene.camera)
-        skyboxRenderer.loadSkyColor(skyColor)
-        skyboxRenderer.renderSkybox(scene.skybox)
-        skyboxRenderer.stop()
-
-        terrainRenderer.start()
-        terrainRenderer.loadCamera(scene.camera)
-        terrainRenderer.loadSkyColor(skyColor)
-        terrainRenderer.loadFog(0.007f, 1.5f)
-        terrainRenderer.renderTerrains(scene.terrain)
-        terrainRenderer.stop()
-
-        entityRenderer.start()
-        entityRenderer.loadCamera(scene.camera)
-        entityRenderer.loadLights(scene.lights)
-        entityRenderer.loadSkyColor(skyColor)
-        entityRenderer.loadFog(0.007f, 1.5f)
-        entityRenderer.renderEntity(scene.camera, scene.entities)
-        entityRenderer.stop()
+        skyboxRenderer.render(scene)
+        terrainRenderer.render(scene)
+        mapRenderer.render(scene)
+        entityRenderer.render(scene)
 
         if (scene.effects.isNotEmpty()) {
             postProcessor.bindDefaultFrameBuffer()
             postProcessor.applyPostProcess(scene.effects)
         }
 
-        debugRenderer.start()
-        debugRenderer.render(scene.entities, scene.camera.getViewMatrix())
-        debugRenderer.stop()
-
-        if (scene.textElements.isNotEmpty()) {
-            textRenderer.start()
-            textRenderer.renderText(scene.textElements)
-            textRenderer.stop()
-        }
+        debugRenderer.render(scene)
+        cinematicOverlayRenderer.render(scene)
+        textRenderer.render(scene)
     }
 
     override fun resize(width: Int, height: Int) {
@@ -78,6 +58,7 @@ class MasterRenderer : Resizable {
 
         entityRenderer.resize(width, height)
         terrainRenderer.resize(width, height)
+        mapRenderer.resize(width, height)
         skyboxRenderer.resize(width, height)
         postProcessor.resize(width, height)
         debugRenderer.resize(width, height)

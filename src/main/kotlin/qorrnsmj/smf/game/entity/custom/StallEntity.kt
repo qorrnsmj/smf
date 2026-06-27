@@ -7,13 +7,16 @@ import qorrnsmj.smf.physics.component.DynamicPhysics
 import qorrnsmj.smf.physics.collision.shape.BoxCollider
 
 class StallEntity : ObjectEntity(
-    transform = Transform(position = Vector3f(90f, 34f, 80f)),  // Start above ground
+    transform = Transform(
+        position = Vector3f(180f, 2f, 180f),
+        scale = Vector3f(35f, 35f, 35f),
+    ),
     physicsComponent = DynamicPhysics(
-        mass = 50f,           // Heavy stall
-        restitution = 0.1f,   // Low bounce
-        friction = 0.8f,      // High friction
-        drag = 0.05f,         // Some air resistance
-        collider = BoxCollider(10f, 5f, 5f, Vector3f(0f, 2.5f, 1.5f))  // Box collider (width, height, depth)
+        mass = 50f,
+        restitution = 0.1f,
+        friction = 0.8f,
+        drag = 0.05f,
+        collider = BoxCollider(223f, 133f, 132f, Vector3f(-1.5f, 64.8f, 30.6f))
     )
 ) {
     // Child entities with local positions relative to stall center

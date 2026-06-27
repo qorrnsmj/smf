@@ -28,6 +28,7 @@ class AudioManager {
     // Special sources for BGM
     private var bgmSource: AudioSource? = null
     private var currentBGMBuffer: AudioBuffer? = null
+    private var currentBGMVolume = 1f
 
     init {
         Logger.info("Initializing AudioManager...")
@@ -171,7 +172,8 @@ class AudioManager {
             }
 
             source.setBuffer(buffer)
-            source.setVolume(volume * bgmVolume * masterVolume)
+            currentBGMVolume = volume.coerceAtLeast(0f)
+            source.setVolume(currentBGMVolume * bgmVolume * masterVolume)
             source.setPitch(1.0f)
             source.setLooping(loop)
             source.play()
@@ -189,6 +191,7 @@ class AudioManager {
     fun stopBGM() {
         bgmSource?.stop()
         currentBGMBuffer = null
+        currentBGMVolume = 1f
     }
 
     /**
@@ -232,7 +235,7 @@ class AudioManager {
         alListenerf(AL_GAIN, masterVolume)
         
         // Update BGM volume
-        bgmSource?.setVolume(bgmVolume * masterVolume)
+        bgmSource?.setVolume(currentBGMVolume * bgmVolume * masterVolume)
     }
 
     /**
@@ -240,7 +243,12 @@ class AudioManager {
      */
     fun setBGMVolume(volume: Float) {
         bgmVolume = volume.coerceIn(0f, 1f)
-        bgmSource?.setVolume(bgmVolume * masterVolume)
+        bgmSource?.setVolume(currentBGMVolume * bgmVolume * masterVolume)
+    }
+
+    fun setCurrentBGMVolume(volume: Float) {
+        currentBGMVolume = volume.coerceIn(0f, 1f)
+        bgmSource?.setVolume(currentBGMVolume * bgmVolume * masterVolume)
     }
 
     /**

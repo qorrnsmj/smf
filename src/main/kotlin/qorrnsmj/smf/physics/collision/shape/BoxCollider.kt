@@ -21,6 +21,9 @@ class BoxCollider(
                 // Reverse the collision normal for proper response
                 it.copy(collisionNormal = it.collisionNormal.scale(-1f))
             }
+            is ConvexHullCollider -> other.checkCollision(this, otherPosition, thisPosition)?.let {
+                it.copy(collisionNormal = it.collisionNormal.scale(-1f))
+            }
             else -> null
         }
     }
