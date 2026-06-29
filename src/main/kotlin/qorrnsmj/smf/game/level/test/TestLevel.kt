@@ -1,5 +1,8 @@
 package qorrnsmj.smf.game.level.test
 
+import org.lwjgl.glfw.GLFW.GLFW_KEY_F2
+import org.lwjgl.glfw.GLFW.GLFW_KEY_F3
+import org.lwjgl.glfw.GLFW.GLFW_KEY_F4
 import org.lwjgl.glfw.GLFW.GLFW_KEY_F6
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.glfwGetKey
@@ -15,6 +18,8 @@ import qorrnsmj.smf.game.level.GlbLevel
 import qorrnsmj.smf.game.level.GlbLevelApplier
 import qorrnsmj.smf.game.level.GlbLevelLoader
 import qorrnsmj.smf.game.level.Level
+import qorrnsmj.smf.game.progress.GameProgress
+import qorrnsmj.smf.game.progress.GameProgressManager
 import qorrnsmj.smf.game.task.cutscene.IntroductionCutscene
 import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
 import qorrnsmj.smf.graphic.light.PointLight
@@ -41,6 +46,10 @@ class TestLevel : Level() {
     )
     private var skyColorPaletteIndex = 0
     private var skyColorTogglePressed = false
+    private val progressManager = GameProgressManager("test_level")
+    private var saveProgressPressed = false
+    private var loadProgressPressed = false
+    private var moveToSavePointPressed = false
 
     override fun load() {
         player = Player(moveSpeed = 5.5f, jumpSpeed = 10f)
@@ -48,6 +57,7 @@ class TestLevel : Level() {
         logPlayerCapsuleCollision()
 
         loadGlbLevel()
+        loadSavedProgressIfPresent()
 
         debugTextManager.initialize()
         cutscenes.setSubtitleFont(FontLoader.loadAssetFont("Inconsolata.ttf", 28f))
@@ -113,11 +123,13 @@ class TestLevel : Level() {
     override fun input(delta: Float) {
         if (handleCutsceneInput()) {
             handleSkyColorTestInput()
+            handleProgressTestInput()
             return
         }
 
         player.handleInput(SMF.window, delta)
         handleSkyColorTestInput()
+        handleProgressTestInput()
     }
 
     private fun handleSkyColorTestInput() {
@@ -129,6 +141,66 @@ class TestLevel : Level() {
         }
 
         skyColorTogglePressed = isPressed
+    }
+
+    private fun handleProgressTestInput() {
+        val isSavePressed = glfwGetKey(SMF.window.id, GLFW_KEY_F2) == GLFW_PRESS
+        if (isSavePressed && !saveProgressPressed) {
+            capturePlayerProgress()
+            progressManager.addFlag("test_level_visited")
+            progressManager.save()
+            Logger.info("Game progress saved to {}", progressManager.getSavePath())
+        }
+        saveProgressPressed = isSavePressed
+
+        val isLoadPressed = glfwGetKey(SMF.window.id, GLFW_KEY_F3) == GLFW_PRESS
+        if (isLoadPressed && !loadProgressPressed) {
+            progressManager.loadOrNull()
+        }
+        loadProgressPressed = isLoadPressed
+
+        val isMovePressed = glfwGetKey(SMF.window.id, GLFW_KEY_F4) == GLFW_PRESS
+        if (isMovePressed && !moveToSavePointPressed) {
+            movePlayerToSavedProgressPoint()
+        }
+        moveToSavePointPressed = isMovePressed
+    }
+
+    private fun loadSavedProgressIfPresent() {
+        val loadedProgress = progressManager.loadOrNull()
+        if (loadedProgress != null) {
+            applyProgress(loadedProgress)
+        }
+    }
+
+    private fun movePlayerToSavedProgressPoint() {
+        val loadedProgress = progressManager.loadOrNull()
+        if (loadedProgress == null) {
+            Logger.info("Cannot move to saved progress point because no save exists at {}", progressManager.getSavePath())
+            return
+        }
+
+        applyProgress(loadedProgress)
+        Logger.info(
+            "Moved player to saved progress point: stage={}, position={}, facing={}",
+            loadedProgress.currentStageName,
+            loadedProgress.playerPosition,
+            loadedProgress.playerFacing,
+        )
+    }
+
+    private fun capturePlayerProgress() {
+        progressManager.setCurrentStage("test_level")
+        progressManager.updatePlayerState(
+            position = player.worldTransform.position,
+            facing = player.camera.getFront(),
+        )
+    }
+
+    private fun applyProgress(progress: GameProgress) {
+        player.setFeetPosition(progress.playerPosition)
+        player.camera.setFront(progress.playerFacing)
+        scene.camera = player.camera
     }
 
     private fun loadGlbLevel() {
