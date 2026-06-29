@@ -1,6 +1,7 @@
 package qorrnsmj.smf.game.level.test
 
 import org.lwjgl.glfw.GLFW.GLFW_KEY_F6
+import org.lwjgl.glfw.GLFW.GLFW_KEY_F7
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.glfwGetKey
 import org.tinylog.kotlin.Logger
@@ -10,7 +11,9 @@ import qorrnsmj.smf.game.entity.player.Player
 import qorrnsmj.smf.game.level.GlbLevel
 import qorrnsmj.smf.game.level.GlbLevelApplier
 import qorrnsmj.smf.game.level.GlbLevelLoader
+import qorrnsmj.smf.game.level.GlbTrigger
 import qorrnsmj.smf.game.level.Level
+import qorrnsmj.smf.game.level.LevelDefinition
 import qorrnsmj.smf.game.task.cutscene.IntroductionCutscene
 import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
 import qorrnsmj.smf.graphic.light.PointLight
@@ -21,7 +24,9 @@ import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.PhysicsWorld
 import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
 
-class TestLevel : Level() {
+class TestLevel(
+    private val definition: LevelDefinition,
+) : Level() {
     private companion object {
         const val USE_TEMPORARY_GLB_LEVEL = false
     }
@@ -37,6 +42,7 @@ class TestLevel : Level() {
     )
     private var skyColorPaletteIndex = 0
     private var skyColorTogglePressed = false
+    private var levelSwitchTestPressed = false
 
     override fun load() {
         player = Player(moveSpeed = 5.5f, jumpSpeed = 10f)
@@ -106,11 +112,13 @@ class TestLevel : Level() {
     override fun input(delta: Float) {
         if (handleCutsceneInput()) {
             handleSkyColorTestInput()
+            handleLevelSwitchTestInput()
             return
         }
 
         player.handleInput(SMF.window, delta)
         handleSkyColorTestInput()
+        handleLevelSwitchTestInput()
     }
 
     private fun handleSkyColorTestInput() {
@@ -124,11 +132,22 @@ class TestLevel : Level() {
         skyColorTogglePressed = isPressed
     }
 
+    private fun handleLevelSwitchTestInput() {
+        val isPressed = glfwGetKey(SMF.window.id, GLFW_KEY_F7) == GLFW_PRESS
+        if (isPressed && !levelSwitchTestPressed) {
+            val targetLevel = if (definition.name == "home") "test_level" else "home"
+            Logger.info("TestLevel manual level switch requested: {} -> {}", definition.name, targetLevel)
+            switchLevel(targetLevel)
+        }
+
+        levelSwitchTestPressed = isPressed
+    }
+
     private fun loadGlbLevel() {
         val glbLevel = if (USE_TEMPORARY_GLB_LEVEL) {
             GlbLevel.createTemporaryTestLevel()
         } else {
-            GlbLevelLoader.load("assets/level/test_level.glb")
+            GlbLevelLoader.load(definition.glbPath ?: error("TestLevel requires glb in ${definition.resourcePath}"))
         }
         triggers.addAll(
             GlbLevelApplier.apply(
@@ -136,10 +155,25 @@ class TestLevel : Level() {
                 scene = scene,
                 player = player,
                 onAreaTriggerEvent = { eventName, trigger ->
-                    Logger.info("TestLevel GLB AreaTrigger fired: {} ({})", eventName, trigger.name)
+                    handleAreaTriggerEvent(eventName, trigger)
                 },
             )
         )
+    }
+
+    private fun handleAreaTriggerEvent(eventName: String, trigger: GlbTrigger) {
+        val targetLevel = trigger.properties["switchLevel"]
+            ?: trigger.properties["levelName"]
+            ?: eventName.substringAfter("switchLevel:", missingDelimiterValue = "")
+                .takeIf { eventName.startsWith("switchLevel:") }
+
+        if (!targetLevel.isNullOrBlank()) {
+            Logger.info("TestLevel trigger requested level switch: {} -> {}", trigger.name, targetLevel)
+            switchLevel(targetLevel)
+            return
+        }
+
+        Logger.info("TestLevel GLB AreaTrigger fired: {} ({})", eventName, trigger.name)
     }
 
     override fun update(delta: Float) {
@@ -165,6 +199,7 @@ class TestLevel : Level() {
     }
 
     override fun unload() {
+        triggers.clear()
         super.unload()
     }
 }

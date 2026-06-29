@@ -45,7 +45,7 @@ object SMF : FixedTimestepGame() {
 
         Audios.load()
         Textures.load()
-        EntityModels.load()
+        EntityModels.loadResident()
         Entities.load()
         Skyboxes.load()
 

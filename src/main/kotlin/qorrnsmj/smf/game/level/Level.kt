@@ -10,6 +10,7 @@ abstract class Level {
     val scene: Scene = Scene()
     val cutscenes: CutsceneManager = CutsceneManager(scene)
     lateinit var player: Player
+    private var levelSwitcher: ((String) -> Unit)? = null
 
     abstract fun load()
 
@@ -30,5 +31,14 @@ abstract class Level {
 
     protected fun updateCutscenes(delta: Float) {
         cutscenes.update(delta / FixedTimestepGame.TARGET_UPS)
+    }
+
+    internal fun attachLevelSwitcher(levelSwitcher: (String) -> Unit) {
+        this.levelSwitcher = levelSwitcher
+    }
+
+    protected fun switchLevel(levelName: String) {
+        levelSwitcher?.invoke(levelName)
+            ?: error("Level switcher is not attached.")
     }
 }

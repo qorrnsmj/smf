@@ -29,6 +29,7 @@ abstract class State {
     }
 
     open fun stop() {
+        levelManager.stop()
         SMF.window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL)
     }
 
