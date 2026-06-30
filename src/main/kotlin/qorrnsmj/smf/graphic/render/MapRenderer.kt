@@ -27,14 +27,22 @@ class MapRenderer : SceneRenderer, Resizable {
     private val locationCameraPosition = glGetUniformLocation(program.id, "cameraPosition")
     private val locationFogDensity = glGetUniformLocation(program.id, "fogDensity")
     private val locationFogGradient = glGetUniformLocation(program.id, "fogGradient")
+    private val locationLightSpaceMatrix = glGetUniformLocation(program.id, "lightSpaceMatrix")
+    private val locationShadowMap = glGetUniformLocation(program.id, "shadowMap")
+    private val locationShadowEnabled = glGetUniformLocation(program.id, "shadowEnabled")
 
     override fun render(scene: Scene) {
+        render(scene, ShadowRenderState(false, qorrnsmj.smf.math.Matrix4f(), 0))
+    }
+
+    fun render(scene: Scene, shadowState: ShadowRenderState) {
         val gameMap = scene.map ?: return
 
         program.use()
         loadCamera(scene.camera)
         loadSkyColor(scene.skyColor)
         loadFog(FOG_DENSITY, FOG_GRADIENT)
+        loadShadow(shadowState)
         renderMap(gameMap)
     }
 
@@ -83,6 +91,16 @@ class MapRenderer : SceneRenderer, Resizable {
     private fun loadFog(density: Float, gradient: Float) {
         UniformUtils.setUniform(locationFogDensity, density)
         UniformUtils.setUniform(locationFogGradient, gradient)
+    }
+
+    private fun loadShadow(shadowState: ShadowRenderState) {
+        UniformUtils.setUniform(locationLightSpaceMatrix, shadowState.lightSpaceMatrix)
+        UniformUtils.setUniform(locationShadowEnabled, if (shadowState.enabled) 1 else 0)
+        if (shadowState.enabled) {
+            glActiveTexture(GL_TEXTURE1)
+            glBindTexture(GL_TEXTURE_2D, shadowState.depthTextureId)
+            glUniform1i(locationShadowMap, 1)
+        }
     }
 
     override fun resize(width: Int, height: Int) {

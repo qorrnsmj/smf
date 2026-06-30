@@ -30,6 +30,8 @@ uniform int lightCount;
 uniform Light lights[30];
 uniform vec3 cameraPosition;
 uniform vec3 skyColor;
+uniform sampler2D shadowMap;
+uniform bool shadowEnabled;
 uniform PbrMaterial material;
 
 layout(location = 0) in vec2 texCoord;
@@ -38,6 +40,7 @@ layout(location = 2) in vec3 worldPosition;
 layout(location = 3) in vec3 worldNormal;
 layout(location = 4) in vec3 viewPosition;
 layout(location = 5) in float visibility;
+layout(location = 6) in vec4 lightSpacePosition;
 
 out vec4 fragColor;
 
@@ -66,6 +69,28 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
 
 vec3 FresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+float calculateShadow(vec4 lightSpacePos) {
+    vec3 projected = lightSpacePos.xyz / lightSpacePos.w;
+    projected = projected * 0.5 + 0.5;
+
+    if (projected.z > 1.0 || projected.x < 0.0 || projected.x > 1.0 || projected.y < 0.0 || projected.y > 1.0) {
+        return 1.0;
+    }
+
+    float bias = 0.003;
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            float closestDepth = texture(shadowMap, projected.xy + vec2(x, y) * texelSize).r;
+            shadow += projected.z - bias > closestDepth ? 1.0 : 0.0;
+        }
+    }
+    shadow /= 9.0;
+
+    return mix(1.0, 0.55, shadow);
 }
 
 /* Main */
@@ -140,6 +165,7 @@ void main() {
         * texture(material.emissiveTexture, texCoord).rgb;
 
     float exposure = 5.0; // TEST: remove exposure later and use intensity
-    fragColor = vec4(Lo * ao * exposure + emissive, baseColor.a);
+    float shadowFactor = shadowEnabled ? calculateShadow(lightSpacePosition) : 1.0;
+    fragColor = vec4(Lo * shadowFactor * ao * exposure + emissive, baseColor.a);
     fragColor = mix(vec4(skyColor, 1.0), fragColor, visibility);
 }

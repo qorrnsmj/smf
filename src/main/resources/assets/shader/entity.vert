@@ -3,6 +3,7 @@
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform mat4 lightSpaceMatrix;
 uniform bool fakeLighting;
 uniform float fogDensity;
 uniform float fogGradient;
@@ -18,9 +19,11 @@ layout(location = 2) out vec3 worldPosition;
 layout(location = 3) out vec3 worldNormal;
 layout(location = 4) out vec3 viewPosition;
 layout(location = 5) out float visibility;
+layout(location = 6) out vec4 lightSpacePosition;
 
 void main() {
-    gl_Position = projection * view * model * vec4(position, 1.0);
+    vec4 world = model * vec4(position, 1.0);
+    gl_Position = projection * view * world;
 
     vec3 n = normalize(normal);
     if (fakeLighting) {
@@ -29,9 +32,10 @@ void main() {
 
     outTexCoord = texCoord;
     outTangent = tangent;
-    worldPosition = vec3(model * vec4(position, 1.0));
+    worldPosition = vec3(world);
     worldNormal = mat3(transpose(inverse(model))) * n;
     viewPosition = vec3(inverse(view)[3]);
+    lightSpacePosition = lightSpaceMatrix * world;
 
     // fog visibility
     float distance = length(viewPosition - worldPosition);
