@@ -25,6 +25,10 @@ import qorrnsmj.smf.game.progress.GameProgress
 import qorrnsmj.smf.game.progress.GameProgressManager
 import qorrnsmj.smf.game.task.cutscene.IntroductionCutscene
 import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
+import qorrnsmj.smf.game.task.trigger.ContainmentMode
+import qorrnsmj.smf.game.task.trigger.TeleportFacing
+import qorrnsmj.smf.game.task.trigger.TeleportLook
+import qorrnsmj.smf.game.task.trigger.TeleportTrigger
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.graphic.text.DebugTextManager
@@ -64,6 +68,7 @@ class TestLevel(
 
         loadGlbLevel()
         loadSavedProgressIfPresent()
+        addTeleportTriggerTestFixture()
 
         debugTextManager.initialize()
         cutscenes.setSubtitleFont(FontLoader.loadAssetFont("Inconsolata.ttf", 28f))
@@ -235,6 +240,31 @@ class TestLevel(
                 player = player,
                 onAreaTriggerEvent = { eventName, trigger ->
                     handleAreaTriggerEvent(eventName, trigger)
+                },
+            )
+        )
+    }
+
+    private fun addTeleportTriggerTestFixture() {
+        val origin = player.worldTransform.position
+        val triggerCenter = origin.add(Vector3f(180f, 85f, 0f))
+        val destination = origin.add(Vector3f(360f, 0f, 180f))
+
+        triggers.add(
+            TeleportTrigger(
+                areaCenter = triggerCenter,
+                areaHalfExtents = Vector3f(45f, 100f, 45f),
+                player = player,
+                destinationFeet = destination,
+                facing = TeleportFacing.Direction(Vector3f(0f, 0f, 1f)),
+                look = TeleportLook.LookAt(destination.add(Vector3f(0f, 170f, 300f))),
+                containmentMode = ContainmentMode.FULLY_INSIDE,
+                onTeleport = {
+                    Logger.info(
+                        "TestLevel teleport trigger fired: destination={}, look={}",
+                        destination,
+                        player.camera.getFront(),
+                    )
                 },
             )
         )
