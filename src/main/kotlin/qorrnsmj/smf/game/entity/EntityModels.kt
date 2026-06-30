@@ -10,8 +10,17 @@ object EntityModels {
     lateinit var EMPTY: Model
 
     lateinit var STALL: Map<String, Model>
+    private var coreLoaded: Boolean = false
+    private var stallLoaded: Boolean = false
 
-    fun load() {
+    fun loadResident() {
+        loadCore()
+        loadStall()
+    }
+
+    fun loadCore() {
+        if (coreLoaded) return
+
         EMPTY = Model(Mesh(), Material(
             baseColorTexture = Textures.DEFAULT_000000,
             metallicRoughnessTexture = Textures.DEFAULT_00FF00,
@@ -19,8 +28,26 @@ object EntityModels {
             occlusionTexture = Textures.DEFAULT_FFFFFF,
             emissiveTexture = Textures.DEFAULT_000000,
         ))
+        coreLoaded = true
+    }
+
+    fun loadStageModels(modelFiles: List<String>) {
+        loadCore()
+
+        modelFiles.forEach { modelFile ->
+            when (modelFile) {
+                "stall.glb", "stall" -> loadStall()
+                else -> Unit
+            }
+        }
+    }
+
+    fun loadStall() {
+        loadCore()
+        if (stallLoaded) return
 
         STALL = EntityLoader.loadModel("stall.glb")
+        stallLoaded = true
     }
 
     fun getModel(map: Map<String, Model>, key: String): Model {

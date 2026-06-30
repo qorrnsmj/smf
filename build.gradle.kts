@@ -15,6 +15,7 @@ dependencies {
     val nativeTarget = "natives-windows"
 
     implementation(kotlin("stdlib-jdk8"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("de.javagl:jgltf-model:2.0.4")
     implementation("org.tinylog:tinylog-impl:2.7.0")
     implementation("org.tinylog:tinylog-api-kotlin:2.7.0")
