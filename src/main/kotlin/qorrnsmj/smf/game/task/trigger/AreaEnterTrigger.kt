@@ -7,6 +7,7 @@ open class AreaEnterTrigger(
     areaCenter: Vector3f,
     areaHalfExtents: Vector3f,
     private val aabb: () -> AABB,
+    private val containmentMode: ContainmentMode = ContainmentMode.TOUCHING,
 ) : Trigger() {
 
     private val areaAabb: AABB = AABB(
@@ -16,6 +17,14 @@ open class AreaEnterTrigger(
 
     override fun check(): Boolean {
         if (finished) return false
-        return areaAabb.intersects(aabb())
+        val targetAabb = aabb()
+        return when (containmentMode) {
+            ContainmentMode.TOUCHING -> areaAabb.intersects(targetAabb)
+            ContainmentMode.CENTER_INSIDE -> areaAabb.contains(targetAabb.center())
+            ContainmentMode.FULLY_INSIDE -> areaAabb.contains(targetAabb.min) && areaAabb.contains(targetAabb.max)
+        }
     }
+
+    private fun AABB.center(): Vector3f =
+        min.add(max).scale(0.5f)
 }
