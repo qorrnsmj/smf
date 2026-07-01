@@ -7,6 +7,7 @@ import qorrnsmj.smf.graphic.terrain.component.BlendedTexture
 import qorrnsmj.smf.graphic.terrain.component.SingleTexture
 import qorrnsmj.smf.graphic.terrain.component.TerrainTextureMode
 import qorrnsmj.smf.util.MVP
+import qorrnsmj.smf.graphic.FogSettings
 import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.graphic.render.shader.TerrainShaderProgram
 import qorrnsmj.smf.math.Vector3f
@@ -27,8 +28,15 @@ class TerrainRenderer : SceneRenderer, Resizable {
     val locationTexDirt = glGetUniformLocation(program.id, "texDirt")
     val locationTexPath = glGetUniformLocation(program.id, "texPath")
     val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
-    val locationFogDensity = glGetUniformLocation(program.id, "fogDensity")
-    val locationFogGradient = glGetUniformLocation(program.id, "fogGradient")
+    val locationCameraPosition = glGetUniformLocation(program.id, "cameraPosition")
+    val locationFogEnabled = glGetUniformLocation(program.id, "fog.enabled")
+    val locationFogColor = glGetUniformLocation(program.id, "fog.color")
+    val locationFogDistanceDensity = glGetUniformLocation(program.id, "fog.distanceDensity")
+    val locationFogDistanceGradient = glGetUniformLocation(program.id, "fog.distanceGradient")
+    val locationFogHeightDensity = glGetUniformLocation(program.id, "fog.heightDensity")
+    val locationFogBottomY = glGetUniformLocation(program.id, "fog.bottomY")
+    val locationFogTopY = glGetUniformLocation(program.id, "fog.topY")
+    val locationFogHeightFalloff = glGetUniformLocation(program.id, "fog.heightFalloff")
 
     override fun render(scene: Scene) {
         val terrain = scene.terrain ?: return
@@ -36,7 +44,7 @@ class TerrainRenderer : SceneRenderer, Resizable {
         start()
         loadCamera(scene.camera)
         loadSkyColor(scene.skyColor)
-        loadFog(0.00045f, 1.5f)
+        loadFog(scene.fog)
         renderTerrains(terrain)
         stop()
     }
@@ -119,15 +127,22 @@ class TerrainRenderer : SceneRenderer, Resizable {
 
     private fun loadCamera(camera: Camera) {
         UniformUtils.setUniform(locationView, camera.getViewMatrix())
+        UniformUtils.setUniform(locationCameraPosition, camera.position)
     }
 
     private fun loadSkyColor(skyColor: Vector3f) {
         UniformUtils.setUniform(locationSkyColor, skyColor)
     }
 
-    private fun loadFog(density: Float, gradient: Float) {
-        UniformUtils.setUniform(locationFogDensity, density)
-        UniformUtils.setUniform(locationFogGradient, gradient)
+    private fun loadFog(fog: FogSettings) {
+        UniformUtils.setUniform(locationFogEnabled, if (fog.enabled) 1 else 0)
+        UniformUtils.setUniform(locationFogColor, fog.color)
+        UniformUtils.setUniform(locationFogDistanceDensity, fog.distanceDensity)
+        UniformUtils.setUniform(locationFogDistanceGradient, fog.distanceGradient)
+        UniformUtils.setUniform(locationFogHeightDensity, fog.heightDensity)
+        UniformUtils.setUniform(locationFogBottomY, fog.bottomY)
+        UniformUtils.setUniform(locationFogTopY, fog.topY)
+        UniformUtils.setUniform(locationFogHeightFalloff, fog.heightFalloff)
     }
 
     override fun resize(width: Int, height: Int) {

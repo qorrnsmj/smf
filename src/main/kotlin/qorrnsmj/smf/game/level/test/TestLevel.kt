@@ -1,6 +1,6 @@
 package qorrnsmj.smf.game.level.test
 
-import org.lwjgl.glfw.GLFW.GLFW_KEY_F6
+import org.lwjgl.glfw.GLFW.GLFW_KEY_F7
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.glfwGetKey
 import org.tinylog.kotlin.Logger
@@ -14,9 +14,11 @@ import qorrnsmj.smf.game.level.Level
 import qorrnsmj.smf.game.task.cutscene.IntroductionCutscene
 import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
 import qorrnsmj.smf.graphic.light.PointLight
-import qorrnsmj.smf.graphic.skybox.Skyboxes
+import qorrnsmj.smf.graphic.terrain.TerrainLoader
+import qorrnsmj.smf.graphic.terrain.component.BlendedTexture
 import qorrnsmj.smf.graphic.text.DebugTextManager
 import qorrnsmj.smf.graphic.text.FontLoader
+import qorrnsmj.smf.graphic.texture.Textures
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.PhysicsWorld
 import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
@@ -24,19 +26,15 @@ import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
 class TestLevel : Level() {
     private companion object {
         const val USE_TEMPORARY_GLB_LEVEL = false
+        const val USE_WIDE_TERRAIN_FOG_TEST = true
     }
 
     private lateinit var pointLight: PointLight
     private lateinit var cutsceneCamera: Camera
     private val triggers: MutableList<AreaEnterTrigger> = mutableListOf()
     private val debugTextManager = DebugTextManager()
-    private val skyColorTestPalette = listOf(
-        Vector3f(0.55f, 0.72f, 0.98f),
-        Vector3f(0.95f, 0.55f, 0.35f),
-        Vector3f(0.22f, 0.28f, 0.45f)
-    )
-    private var skyColorPaletteIndex = 0
-    private var skyColorTogglePressed = false
+    private var fogEnabled = true
+    private var fogTogglePressed = false
 
     override fun load() {
         player = Player(moveSpeed = 5.5f, jumpSpeed = 10f)
@@ -44,6 +42,9 @@ class TestLevel : Level() {
         logPlayerCapsuleCollision()
 
         loadGlbLevel()
+        if (USE_WIDE_TERRAIN_FOG_TEST) {
+            addWideTerrainFogTest()
+        }
 
         debugTextManager.initialize()
         cutscenes.setSubtitleFont(FontLoader.loadAssetFont("Inconsolata.ttf", 28f))
@@ -61,8 +62,8 @@ class TestLevel : Level() {
         }
         scene.lights.add(pointLight)
 
-        scene.skybox = Skyboxes.SKY1
-        scene.skyColor = skyColorTestPalette[skyColorPaletteIndex]
+        scene.skyboxEnabled = false
+        applyFogTestState()
 
         SMF.renderer.debugRenderer.setCollisionDebugEnabled(false)
     }
@@ -89,7 +90,6 @@ class TestLevel : Level() {
             destinationFront = player.camera.getFront(),
             onAreaReveal = {
                 pointLight.diffuse = Vector3f(1f, 0.75f, 0.35f)
-                scene.skyColor = skyColorTestPalette[1]
                 Logger.info("Introduction cutscene event fired at 2.5 seconds")
             },
             onComplete = {
@@ -105,23 +105,49 @@ class TestLevel : Level() {
 
     override fun input(delta: Float) {
         if (handleCutsceneInput()) {
-            handleSkyColorTestInput()
+            handleMistTestInput()
             return
         }
 
         player.handleInput(SMF.window, delta)
-        handleSkyColorTestInput()
+        handleMistTestInput()
     }
 
-    private fun handleSkyColorTestInput() {
-        val isPressed = glfwGetKey(SMF.window.id, GLFW_KEY_F6) == GLFW_PRESS
-        if (isPressed && !skyColorTogglePressed) {
-            skyColorPaletteIndex = (skyColorPaletteIndex + 1) % skyColorTestPalette.size
-            scene.skyColor = skyColorTestPalette[skyColorPaletteIndex]
-            Logger.info("Sky/Fog color switched to {}", scene.skyColor)
+    private fun handleMistTestInput() {
+        val isPressed = glfwGetKey(SMF.window.id, GLFW_KEY_F7) == GLFW_PRESS
+        if (isPressed && !fogTogglePressed) {
+            fogEnabled = !fogEnabled
+            applyFogTestState()
+            Logger.info("Height fog {}", if (fogEnabled) "enabled" else "disabled")
         }
 
-        skyColorTogglePressed = isPressed
+        fogTogglePressed = isPressed
+    }
+
+    private fun applyFogTestState() {
+        scene.fog.enabled = fogEnabled
+        scene.skyColor = if (fogEnabled) {
+            scene.fog.color
+        } else {
+            Vector3f(0f, 0f, 0f)
+        }
+    }
+
+    private fun addWideTerrainFogTest() {
+        scene.terrain = TerrainLoader.loadModel(
+            sizeX = 20000f,
+            sizeY = 20000f,
+            vertexCount = 96,
+            position = Vector3f(-10000f, -4f, -10000f),
+            textureMode = BlendedTexture(
+                blendMap = Textures.TERRAIN_BLEND_MAP,
+                baseTexture = Textures.TERRAIN_GRASS,
+                rTexture = Textures.TERRAIN_DIRT,
+                gTexture = Textures.TERRAIN_FLOWER,
+                bTexture = Textures.TERRAIN_PATH,
+            )
+        )
+        Logger.info("Wide terrain fog test enabled")
     }
 
     private fun loadGlbLevel() {

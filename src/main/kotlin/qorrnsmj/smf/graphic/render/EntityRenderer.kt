@@ -6,6 +6,7 @@ import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.graphic.`object`.Model
+import qorrnsmj.smf.graphic.FogSettings
 import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.graphic.light.Light
@@ -15,11 +16,6 @@ import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils.setUniform
 
 class EntityRenderer : SceneRenderer, Resizable {
-    private companion object {
-        const val FOG_DENSITY = 0.00045f
-        const val FOG_GRADIENT = 1.5f
-    }
-
     // TODO: locationはシェーダークラスに書く?
     val program = EntityShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
@@ -29,8 +25,14 @@ class EntityRenderer : SceneRenderer, Resizable {
     val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
     val locationCameraPosition = glGetUniformLocation(program.id, "cameraPosition")
     val locationLightCount = glGetUniformLocation(program.id, "lightCount")
-    val locationFogDensity = glGetUniformLocation(program.id, "fogDensity")
-    val locationFogGradient = glGetUniformLocation(program.id, "fogGradient")
+    val locationFogEnabled = glGetUniformLocation(program.id, "fog.enabled")
+    val locationFogColor = glGetUniformLocation(program.id, "fog.color")
+    val locationFogDistanceDensity = glGetUniformLocation(program.id, "fog.distanceDensity")
+    val locationFogDistanceGradient = glGetUniformLocation(program.id, "fog.distanceGradient")
+    val locationFogHeightDensity = glGetUniformLocation(program.id, "fog.heightDensity")
+    val locationFogBottomY = glGetUniformLocation(program.id, "fog.bottomY")
+    val locationFogTopY = glGetUniformLocation(program.id, "fog.topY")
+    val locationFogHeightFalloff = glGetUniformLocation(program.id, "fog.heightFalloff")
     val locationLights = mutableMapOf<Int, HashMap<String, Int>>()
     val locationMaterials = hashMapOf<String, Int>()
 
@@ -66,7 +68,7 @@ class EntityRenderer : SceneRenderer, Resizable {
         loadCamera(scene.camera)
         loadLights(scene.lights)
         loadSkyColor(scene.skyColor)
-        loadFog(FOG_DENSITY, FOG_GRADIENT)
+        loadFog(scene.fog)
         renderEntities(scene.camera, scene.entities)
         stop()
     }
@@ -232,9 +234,15 @@ class EntityRenderer : SceneRenderer, Resizable {
         setUniform(locationSkyColor, skyColor)
     }
 
-    private fun loadFog(density: Float, gradient: Float) {
-        setUniform(locationFogDensity, density)
-        setUniform(locationFogGradient, gradient)
+    private fun loadFog(fog: FogSettings) {
+        setUniform(locationFogEnabled, if (fog.enabled) 1 else 0)
+        setUniform(locationFogColor, fog.color)
+        setUniform(locationFogDistanceDensity, fog.distanceDensity)
+        setUniform(locationFogDistanceGradient, fog.distanceGradient)
+        setUniform(locationFogHeightDensity, fog.heightDensity)
+        setUniform(locationFogBottomY, fog.bottomY)
+        setUniform(locationFogTopY, fog.topY)
+        setUniform(locationFogHeightFalloff, fog.heightFalloff)
     }
 
     override fun resize(width: Int, height: Int) {
