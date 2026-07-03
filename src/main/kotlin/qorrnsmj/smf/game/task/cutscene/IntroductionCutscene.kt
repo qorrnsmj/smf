@@ -12,7 +12,7 @@ class IntroductionCutscene(
     private val onComplete: () -> Unit = {},
 ) : Cutscene(camera) {
     init {
-        val destinationLookAt = destinationEyePosition.add(destinationFront.normalize().scale(10f))
+        val destinationLookAt = destinationEyePosition.add(destinationFront.normalize().scale(0.1f))
 
         letterbox(0.1f)
         fade(startSeconds = 0f, durationSeconds = 0.8f, fromAlpha = 1f, toAlpha = 0f)
@@ -28,19 +28,19 @@ class IntroductionCutscene(
         )
         cameraKeyframe(
             timeSeconds = 0f,
-            position = focusPosition.add(Vector3f(-60f, 40f, 60f)),
+            position = focusPosition.add(Vector3f(-0.6f, 0.4f, 0.6f)),
             lookAt = focusPosition,
             easingToNext = Easing.EASE_IN_OUT_CUBIC,
         )
         cameraKeyframe(
             timeSeconds = 2.5f,
-            position = focusPosition.add(Vector3f(55f, 30f, 45f)),
-            lookAt = focusPosition.add(Vector3f(0f, 5f, 0f)),
+            position = focusPosition.add(Vector3f(0.55f, 0.3f, 0.45f)),
+            lookAt = focusPosition.add(Vector3f(0f, 0.05f, 0f)),
         )
         cameraKeyframe(
             timeSeconds = 5f,
-            position = focusPosition.add(Vector3f(20f, 18f, 30f)),
-            lookAt = focusPosition.add(Vector3f(0f, 4f, 0f)),
+            position = focusPosition.add(Vector3f(0.2f, 0.18f, 0.3f)),
+            lookAt = focusPosition.add(Vector3f(0f, 0.04f, 0f)),
             interpolationToNext = CameraInterpolation.LINEAR,
         )
         cameraKeyframe(

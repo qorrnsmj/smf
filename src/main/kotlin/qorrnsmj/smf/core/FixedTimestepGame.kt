@@ -38,6 +38,7 @@ abstract class FixedTimestepGame : Game() {
 
             // Renders game
             render(alpha)
+            postRender(alpha)
 
             // Updates timer and window
             timer.updateFPS()
@@ -51,12 +52,14 @@ abstract class FixedTimestepGame : Game() {
         }
     }
 
-    protected fun update(delta: Float = 1f / TARGET_UPS) {
+    protected open fun postRender(alpha: Float) {}
+
+    protected open fun update(delta: Float = 1f / TARGET_UPS) {
         stateMachine.update(delta)
         audioManager.update()
     }
 
-    protected fun render(alpha: Float = 1f) {
+    protected open fun render(alpha: Float = 1f) {
         stateMachine.render(alpha)
     }
 

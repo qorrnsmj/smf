@@ -8,9 +8,12 @@ uniform float fogGradient;
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 texCoord;
+layout(location = 2) in vec3 normal;
 
 layout(location = 0) out vec2 outTexCoord;
 layout(location = 1) out float visibility;
+layout(location = 2) out float heightValue;
+layout(location = 3) out vec3 worldNormal;
 
 void main() {
     gl_Position = projection * view * model * vec4(position, 1.0);
@@ -18,6 +21,8 @@ void main() {
 
     // fog visibility
     vec3 worldPosition = vec3(model * vec4(position, 1.0));
+    heightValue = worldPosition.y;
+    worldNormal = normalize(mat3(transpose(inverse(model))) * normal);
     vec3 viewPosition = vec3(inverse(view)[3]);
     float distance = length(viewPosition - worldPosition);
     visibility = exp(-pow(distance * fogDensity, fogGradient));

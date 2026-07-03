@@ -7,9 +7,12 @@ uniform sampler2D texDirt;
 uniform sampler2D texPath;
 uniform vec3 skyColor;
 uniform bool useSingleTexture;
+uniform bool useGrayTerrain;
 
 layout(location = 0) in vec2 texCoord;
 layout(location = 1) in float visibility;
+layout(location = 2) in float heightValue;
+layout(location = 3) in vec3 worldNormal;
 
 out vec4 fragColor;
 
@@ -17,7 +20,11 @@ void main() {
     vec4 finalColor;
     vec2 tiledCoord = texCoord * 50.0;
 
-    if (useSingleTexture) {
+    if (useGrayTerrain) {
+        float shade = clamp(0.5 + heightValue / 327.68 * 0.45, 0.18, 0.92);
+        float light = 0.35 + max(dot(normalize(worldNormal), normalize(vec3(0.35, 0.9, 0.25))), 0.0) * 0.65;
+        finalColor = vec4(vec3(shade * light), 1.0);
+    } else if (useSingleTexture) {
         // Single texture mode: use only texGrass
         finalColor = texture(texGrass, tiledCoord);
     } else {

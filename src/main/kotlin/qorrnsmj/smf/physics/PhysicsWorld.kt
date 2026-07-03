@@ -25,7 +25,7 @@ import kotlin.math.acos
  */
 object PhysicsWorld {
     // Physics constants
-    const val GRAVITY_STRENGTH = 1960f
+    const val GRAVITY_STRENGTH = 24f
     const val GRAVITY_EFFECT_SCALE = 1f / (60f * 60f)
     val GRAVITY_VECTOR = Vector3f(0f, -GRAVITY_STRENGTH, 0f)
 
@@ -33,8 +33,8 @@ object PhysicsWorld {
     private const val HORIZONTAL_PRIORITY_BIAS = 0.01f
     private const val PENETRATION_EPSILON = 0.0005f
     private const val RESTING_HORIZONTAL_SPEED_EPSILON = 0.0001f
-    private const val MAX_STEP_HEIGHT = 32f
-    private const val GROUND_SNAP_DOWN_DISTANCE = 4f
+    private const val MAX_STEP_HEIGHT = 0.32f
+    private const val GROUND_SNAP_DOWN_DISTANCE = 0.04f
     private const val WALKABLE_SURFACE_MIN_Y = 0.5f
     private const val SLIDE_SURFACE_MIN_ANGLE_DEGREES = 45.0
     private val SLIDE_SURFACE_TEXTURES = setOf("grass")

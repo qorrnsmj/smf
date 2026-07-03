@@ -14,8 +14,12 @@ class SMFKeyCallback : GLFWKeyCallback() {
     private var polygonMode = 0
 
     override fun invoke(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-            glfwSetWindowShouldClose(window, true)
+        if (key == GLFW_KEY_F11 && action == GLFW_PRESS) {
+            SMF.window.toggleFullscreen()
+            return
+        }
+
+        if (SMF.isEditorMode) {
             return
         }
 
@@ -34,9 +38,6 @@ class SMFKeyCallback : GLFWKeyCallback() {
 
         if (key == GLFW_KEY_1 && action == GLFW_PRESS)
             SMF.stateMachine.changeState(States.IN_GAME)
-
-        if (key == GLFW_KEY_F11 && action == GLFW_PRESS)
-            SMF.window.toggleFullscreen()
 
         if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
             SMF.renderer.debugRenderer.toggleCollisionDebug()

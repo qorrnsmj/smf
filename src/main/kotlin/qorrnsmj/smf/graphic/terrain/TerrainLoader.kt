@@ -39,6 +39,21 @@ object TerrainLoader  {
         return Terrain(model = model, position = position)
     }
 
+    fun loadHeightGridModel(
+        sizeX: Float,
+        sizeY: Float,
+        heightGrid: Array<FloatArray>,
+        position: Vector3f = Vector3f(0f, 0f, 0f),
+        textureMode: TerrainTextureMode,
+    ): Terrain {
+        val size = Vector2f(sizeX, sizeY)
+        val mesh = loadMeshFromHeightGrid(size, heightGrid)
+        val material = TerrainMaterial(textureMode = textureMode)
+        val model = TerrainModel(mesh = mesh, material = material)
+
+        return Terrain(model = model, position = position)
+    }
+
     private fun loadMesh(
         size: Vector2f,
         gridResolution: Int,
@@ -119,6 +134,58 @@ object TerrainLoader  {
                 indices[pointer++] = bottomRight
             }
         }
+    }
+
+    private fun loadMeshFromHeightGrid(
+        size: Vector2f,
+        heightGrid: Array<FloatArray>,
+    ): TerrainMesh {
+        val gridResolution = heightGrid.size.coerceAtLeast(2)
+        val count = gridResolution * gridResolution
+        val positions = FloatArray(count * 3)
+        val texCoords = FloatArray(count * 2)
+        val normals = FloatArray(count * 3)
+        val indices = IntArray(6 * (gridResolution - 1) * (gridResolution - 1))
+        val heights = Array(gridResolution) { FloatArray(gridResolution) }
+
+        var vertexPointer = 0
+        for (z in 0 until gridResolution) {
+            for (x in 0 until gridResolution) {
+                val heightValue = heightGrid.getOrNull(x)?.getOrNull(z) ?: 0f
+                positions[vertexPointer * 3] = x.toFloat() / (gridResolution - 1) * size.x
+                positions[vertexPointer * 3 + 1] = heightValue
+                positions[vertexPointer * 3 + 2] = z.toFloat() / (gridResolution - 1) * size.y
+
+                texCoords[vertexPointer * 2] = x.toFloat() / (gridResolution - 1)
+                texCoords[vertexPointer * 2 + 1] = z.toFloat() / (gridResolution - 1)
+
+                heights[x][z] = heightValue
+                vertexPointer++
+            }
+        }
+
+        var pointer = 0
+        for (gz in 0 until gridResolution - 1) {
+            for (gx in 0 until gridResolution - 1) {
+                val topLeft = (gz * gridResolution) + gx
+                val topRight = topLeft + 1
+                val bottomLeft = ((gz + 1) * gridResolution) + gx
+                val bottomRight = bottomLeft + 1
+
+                indices[pointer++] = topLeft
+                indices[pointer++] = bottomLeft
+                indices[pointer++] = topRight
+                indices[pointer++] = topRight
+                indices[pointer++] = bottomLeft
+                indices[pointer++] = bottomRight
+            }
+        }
+
+        calculateNormals(positions, indices, normals)
+        val mesh = loadMeshInternal(size, positions, texCoords, normals, indices, gridResolution, heights)
+        val faceCount = mesh.vertexCount.div(3)
+        Logger.info("Terrain height grid loaded ($faceCount faces)")
+        return mesh
     }
 
     private fun generateHeightmapTerrain(

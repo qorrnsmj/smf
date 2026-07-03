@@ -30,6 +30,7 @@ uniform int lightCount;
 uniform Light lights[30];
 uniform vec3 cameraPosition;
 uniform vec3 skyColor;
+uniform int viewportShadingMode;
 uniform PbrMaterial material;
 
 layout(location = 0) in vec2 texCoord;
@@ -80,6 +81,30 @@ void main() {
         if (baseColor.a < material.alphaCutoff) {
             discard;
         }
+    }
+
+    if (viewportShadingMode == 0 || viewportShadingMode == 1) {
+        vec3 solidNormal = normalize(worldNormal);
+        float lightAmount = 0.28;
+        if (lightCount == 0) {
+            lightAmount += max(dot(solidNormal, normalize(vec3(0.35, 0.9, 0.25))), 0.0) * 0.72;
+        } else {
+            for (int i = 0; i < lightCount; i++) {
+                vec3 L = normalize(lights[i].position - worldPosition);
+                lightAmount += max(dot(solidNormal, L), 0.0) * 0.72 / float(lightCount);
+            }
+        }
+        fragColor = vec4(vec3(0.62) * clamp(lightAmount, 0.22, 1.0), baseColor.a);
+        fragColor = mix(vec4(skyColor, 1.0), fragColor, visibility);
+        return;
+    }
+
+    if (viewportShadingMode == 2) {
+        vec3 emissivePreview = material.emissiveFactor
+            * texture(material.emissiveTexture, texCoord).rgb;
+        fragColor = vec4(baseColor.rgb + emissivePreview, baseColor.a);
+        fragColor = mix(vec4(skyColor, 1.0), fragColor, visibility);
+        return;
     }
 
     // tangent space to world space

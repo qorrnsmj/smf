@@ -8,6 +8,7 @@ import qorrnsmj.smf.graphic.terrain.component.SingleTexture
 import qorrnsmj.smf.graphic.terrain.component.TerrainTextureMode
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.graphic.ViewportShadingMode
 import qorrnsmj.smf.graphic.render.shader.TerrainShaderProgram
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.Resizable
@@ -21,6 +22,7 @@ class TerrainRenderer : SceneRenderer, Resizable {
     val locationView = glGetUniformLocation(program.id, "view")
     val locationProjection = glGetUniformLocation(program.id, "projection")
     val locationUseSingleTexture = glGetUniformLocation(program.id, "useSingleTexture")
+    val locationUseGrayTerrain = glGetUniformLocation(program.id, "useGrayTerrain")
     val locationBlendMap = glGetUniformLocation(program.id, "blendMap")
     val locationTexGrass = glGetUniformLocation(program.id, "texGrass")
     val locationTexFlower = glGetUniformLocation(program.id, "texFlower")
@@ -37,7 +39,7 @@ class TerrainRenderer : SceneRenderer, Resizable {
         loadCamera(scene.camera)
         loadSkyColor(scene.skyColor)
         loadFog(0.00045f, 1.5f)
-        renderTerrains(terrain)
+        renderTerrains(terrain, scene.viewportShadingMode == ViewportShadingMode.SOLID || scene.viewportShadingMode == ViewportShadingMode.WIRE)
         stop()
     }
 
@@ -50,7 +52,8 @@ class TerrainRenderer : SceneRenderer, Resizable {
 
     /* Render */
 
-    private fun renderTerrains(terrain: Terrain) {
+    private fun renderTerrains(terrain: Terrain, grayView: Boolean) {
+        glUniform1i(locationUseGrayTerrain, if (grayView) 1 else 0)
         bindTextures(terrain.model.material.textureMode)
         prepareTerrain(terrain)
         glDrawElements(GL_TRIANGLES, terrain.model.mesh.vertexCount, GL_UNSIGNED_INT, 0)

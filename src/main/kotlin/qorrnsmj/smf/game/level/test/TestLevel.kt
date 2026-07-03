@@ -7,12 +7,16 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.player.Player
+import qorrnsmj.smf.game.event.EventAreaDefinition
+import qorrnsmj.smf.game.event.EditorMapEventLoader
 import qorrnsmj.smf.game.level.GlbLevel
 import qorrnsmj.smf.game.level.GlbLevelApplier
 import qorrnsmj.smf.game.level.GlbLevelLoader
 import qorrnsmj.smf.game.level.Level
+import qorrnsmj.smf.game.level.EditorMapLevelLoader
+import qorrnsmj.smf.game.level.EditorMapStaticObjectLoader
+import qorrnsmj.smf.game.task.Task
 import qorrnsmj.smf.game.task.cutscene.IntroductionCutscene
-import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.graphic.text.DebugTextManager
@@ -24,11 +28,18 @@ import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
 class TestLevel : Level() {
     private companion object {
         const val USE_TEMPORARY_GLB_LEVEL = false
+        const val LOAD_GLB_TEST_LEVEL = false
+        const val EDITOR_STAGE_PATH = "assets/level/stage.json"
     }
 
     private lateinit var pointLight: PointLight
     private lateinit var cutsceneCamera: Camera
-    private val triggers: MutableList<AreaEnterTrigger> = mutableListOf()
+    private val eventTasks: MutableList<Task> = mutableListOf()
+    private val eventHandlers: Map<String, (EventAreaDefinition) -> Unit> by lazy {
+        mapOf(
+            "cutscene_start_trigger" to { startIntroductionCutscene() },
+        )
+    }
     private val debugTextManager = DebugTextManager()
     private val skyColorTestPalette = listOf(
         Vector3f(0.55f, 0.72f, 0.98f),
@@ -39,18 +50,35 @@ class TestLevel : Level() {
     private var skyColorTogglePressed = false
 
     override fun load() {
-        player = Player(moveSpeed = 5.5f, jumpSpeed = 10f)
+        player = Player(moveSpeed = 0.09f, jumpSpeed = 0.18f)
         scene.entities.add(player)
         logPlayerCapsuleCollision()
 
-        loadGlbLevel()
+        if (LOAD_GLB_TEST_LEVEL) {
+            loadGlbLevel()
+        }
+        EditorMapLevelLoader.loadInto(scene, EDITOR_STAGE_PATH)
+        EditorMapStaticObjectLoader.loadInto(scene, EDITOR_STAGE_PATH)
+        eventTasks.addAll(
+            EditorMapEventLoader.loadInto(
+                scene = scene,
+                player = player,
+                path = EDITOR_STAGE_PATH,
+                onAreaTriggerEvent = { eventArea ->
+                    Logger.info("TestLevel editor event fired: {} ({})", eventArea.id, eventArea.name)
+                    eventHandlers[eventArea.id]?.invoke(eventArea)
+                        ?: Logger.info("No editor event handler registered: {}", eventArea.id)
+                },
+            )
+        )
+        scene.camera = player.camera
 
         debugTextManager.initialize()
         cutscenes.setSubtitleFont(FontLoader.loadAssetFont("Inconsolata.ttf", 28f))
         cutscenes.showDebugControls = true
 
         pointLight = PointLight().apply {
-            position = Vector3f(0f, 3000f, 0f)
+            position = Vector3f(0f, 30f, 0f)
             ambient = Vector3f(0.1f, 0.1f, 0.1f)
             diffuse = Vector3f(1f, 1f, 1f)
             specular = Vector3f(1f, 1f, 1f)
@@ -61,8 +89,12 @@ class TestLevel : Level() {
         }
         scene.lights.add(pointLight)
 
-        scene.skybox = Skyboxes.SKY1
-        scene.skyColor = skyColorTestPalette[skyColorPaletteIndex]
+        if (scene.skybox == Skyboxes.DEFAULT) {
+            scene.skybox = Skyboxes.SKY1
+        }
+        if (isDefaultSkyColor()) {
+            scene.skyColor = skyColorTestPalette[skyColorPaletteIndex]
+        }
 
         SMF.renderer.debugRenderer.setCollisionDebugEnabled(false)
     }
@@ -74,10 +106,19 @@ class TestLevel : Level() {
         }
     }
 
+    private fun isDefaultSkyColor(): Boolean {
+        return scene.skyColor.x == 1f && scene.skyColor.y == 1f && scene.skyColor.z == 1f
+    }
+
     override fun start() {
+    }
+
+    private fun startIntroductionCutscene() {
+        if (cutscenes.isPlaying) return
+
         cutsceneCamera = Camera().apply {
             val playerEye = player.camera.position
-            position = playerEye.add(Vector3f(-60f, 40f, 60f))
+            position = playerEye.add(Vector3f(-0.6f, 0.4f, 0.6f))
             setFront(playerEye.subtract(position))
             scene.camera = this
         }
@@ -130,7 +171,7 @@ class TestLevel : Level() {
         } else {
             GlbLevelLoader.load("assets/level/test_level.glb")
         }
-        triggers.addAll(
+        eventTasks.addAll(
             GlbLevelApplier.apply(
                 level = glbLevel,
                 scene = scene,
@@ -159,8 +200,8 @@ class TestLevel : Level() {
         PhysicsWorld.update(scene.entities, scene.terrainHeightProvider ?: scene.terrain, delta)
         player.update()
 
-        for (trigger in triggers) {
-            trigger.update(delta)
+        for (task in eventTasks) {
+            task.update(delta)
         }
     }
 

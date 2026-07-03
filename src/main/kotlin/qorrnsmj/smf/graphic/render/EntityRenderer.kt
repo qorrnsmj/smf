@@ -7,6 +7,7 @@ import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.graphic.`object`.Model
 import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.graphic.ViewportShadingMode
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.graphic.light.Light
 import qorrnsmj.smf.graphic.render.shader.EntityShaderProgram
@@ -19,6 +20,7 @@ class EntityRenderer : SceneRenderer, Resizable {
         const val FOG_DENSITY = 0.00045f
         const val FOG_GRADIENT = 1.5f
     }
+    private var cullingEnabled = true
 
     // TODO: locationはシェーダークラスに書く?
     val program = EntityShaderProgram()
@@ -29,6 +31,7 @@ class EntityRenderer : SceneRenderer, Resizable {
     val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
     val locationCameraPosition = glGetUniformLocation(program.id, "cameraPosition")
     val locationLightCount = glGetUniformLocation(program.id, "lightCount")
+    val locationViewportShadingMode = glGetUniformLocation(program.id, "viewportShadingMode")
     val locationFogDensity = glGetUniformLocation(program.id, "fogDensity")
     val locationFogGradient = glGetUniformLocation(program.id, "fogGradient")
     val locationLights = mutableMapOf<Int, HashMap<String, Int>>()
@@ -62,10 +65,12 @@ class EntityRenderer : SceneRenderer, Resizable {
     }
 
     override fun render(scene: Scene) {
+        cullingEnabled = scene.cullingEnabled
         start()
         loadCamera(scene.camera)
         loadLights(scene.lights)
         loadSkyColor(scene.skyColor)
+        loadViewportShadingMode(scene.viewportShadingMode)
         loadFog(FOG_DENSITY, FOG_GRADIENT)
         renderEntities(scene.camera, scene.entities)
         stop()
@@ -194,14 +199,23 @@ class EntityRenderer : SceneRenderer, Resizable {
         // render states
         setUniform(locationMaterials["alphaMode"]!!, m.alphaMode.ordinal)
         setUniform(locationMaterials["alphaCutoff"]!!, m.alphaCutoff)
-        if (m.doubleSided) glDisable(GL_CULL_FACE)
+        if (m.doubleSided || !cullingEnabled) {
+            glDisable(GL_CULL_FACE)
+        } else {
+            glEnable(GL_CULL_FACE)
+            glCullFace(GL_BACK)
+        }
     }
 
     private fun unbindModel() {
         glBindVertexArray(0)
 
-        glEnable(GL_CULL_FACE)
-        glCullFace(GL_BACK)
+        if (cullingEnabled) {
+            glEnable(GL_CULL_FACE)
+            glCullFace(GL_BACK)
+        } else {
+            glDisable(GL_CULL_FACE)
+        }
 
         for (i in 0..4) {
             glActiveTexture(GL_TEXTURE0 + i)
@@ -230,6 +244,10 @@ class EntityRenderer : SceneRenderer, Resizable {
 
     private fun loadSkyColor(skyColor: Vector3f) {
         setUniform(locationSkyColor, skyColor)
+    }
+
+    private fun loadViewportShadingMode(mode: ViewportShadingMode) {
+        setUniform(locationViewportShadingMode, mode.ordinal)
     }
 
     private fun loadFog(density: Float, gradient: Float) {

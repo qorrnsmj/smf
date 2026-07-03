@@ -51,6 +51,10 @@ class DebugRenderer : SceneRenderer, Resizable {
     private val floatsPerVertex = 7 // position (3) + color (4)
     private val maxVertices = maxLines * verticesPerLine * floatsPerVertex
     private var playerBounds: AABB? = null
+    private val editorBoxes = mutableListOf<EditorDebugBox>()
+    private val editorSpheres = mutableListOf<EditorDebugSphere>()
+    private val editorCapsules = mutableListOf<EditorDebugCapsule>()
+    private val editorLines = mutableListOf<EditorDebugLine>()
 
     init {
         initializeRenderer()
@@ -132,7 +136,11 @@ class DebugRenderer : SceneRenderer, Resizable {
     // F4: Physics Info
     // F5: Entity Hierarchy
 
-    fun isAnyDebugEnabled(): Boolean = collisionDebugEnabled
+    fun isAnyDebugEnabled(): Boolean = collisionDebugEnabled ||
+        editorBoxes.isNotEmpty() ||
+        editorSpheres.isNotEmpty() ||
+        editorCapsules.isNotEmpty() ||
+        editorLines.isNotEmpty()
     // When adding more features, update this method:
     // fun isAnyDebugEnabled(): Boolean = collisionDebugEnabled || velocityVectorsEnabled || lightingDebugEnabled
 
@@ -187,7 +195,49 @@ class DebugRenderer : SceneRenderer, Resizable {
             generateCollisionVertices(entities, vertices)
         }
 
+        generateEditorCollisionVertices(vertices)
+        generateEditorLineVertices(vertices)
+
         return vertices.toFloatArray()
+    }
+
+    fun setEditorCollisionDebug(
+        boxes: List<EditorDebugBox>,
+        spheres: List<EditorDebugSphere>,
+        capsules: List<EditorDebugCapsule> = emptyList(),
+    ) {
+        editorBoxes.clear()
+        editorBoxes.addAll(boxes)
+        editorSpheres.clear()
+        editorSpheres.addAll(spheres)
+        editorCapsules.clear()
+        editorCapsules.addAll(capsules)
+    }
+
+    fun setEditorTerrainDebug(lines: List<EditorDebugLine>) {
+        editorLines.clear()
+        editorLines.addAll(lines)
+    }
+
+    private fun generateEditorCollisionVertices(vertices: MutableList<Float>) {
+        for (box in editorBoxes) {
+            generateOrientedBoxWireframe(box.center, box.size, box.rotation, box.color, vertices)
+        }
+
+        for (sphere in editorSpheres) {
+            generateSphereWireframe(sphere.center, SphereCollider(sphere.radius), sphere.color, vertices)
+        }
+
+        for (capsule in editorCapsules) {
+            generateCapsuleWireframe(capsule.feetPosition, CapsuleCollider(capsule.radius, capsule.height), capsule.color, vertices)
+        }
+    }
+
+    private fun generateEditorLineVertices(vertices: MutableList<Float>) {
+        for (line in editorLines) {
+            appendVertex(vertices, line.from, line.color)
+            appendVertex(vertices, line.to, line.color)
+        }
     }
 
     private fun generateCollisionVertices(entities: List<Entity>, vertices: MutableList<Float>) {
@@ -344,6 +394,58 @@ class DebugRenderer : SceneRenderer, Resizable {
         }
     }
 
+    private fun generateOrientedBoxWireframe(
+        center: Vector3f,
+        size: Vector3f,
+        rotation: Vector3f,
+        color: Vector4f,
+        vertices: MutableList<Float>,
+    ) {
+        val half = size.scale(0.5f)
+        val corners = arrayOf(
+            Vector3f(-half.x, -half.y, -half.z),
+            Vector3f(half.x, -half.y, -half.z),
+            Vector3f(half.x, half.y, -half.z),
+            Vector3f(-half.x, half.y, -half.z),
+            Vector3f(-half.x, -half.y, half.z),
+            Vector3f(half.x, -half.y, half.z),
+            Vector3f(half.x, half.y, half.z),
+            Vector3f(-half.x, half.y, half.z),
+        ).map { rotateEuler(it, rotation).add(center) }
+
+        val edges = arrayOf(
+            intArrayOf(0, 1), intArrayOf(1, 2), intArrayOf(2, 3), intArrayOf(3, 0),
+            intArrayOf(4, 5), intArrayOf(5, 6), intArrayOf(6, 7), intArrayOf(7, 4),
+            intArrayOf(0, 4), intArrayOf(1, 5), intArrayOf(2, 6), intArrayOf(3, 7),
+        )
+
+        for (edge in edges) {
+            appendVertex(vertices, corners[edge[0]], color)
+            appendVertex(vertices, corners[edge[1]], color)
+        }
+    }
+
+    private fun rotateEuler(value: Vector3f, rotationDegrees: Vector3f): Vector3f {
+        val rx = Math.toRadians(rotationDegrees.x.toDouble()).toFloat()
+        val ry = Math.toRadians(rotationDegrees.y.toDouble()).toFloat()
+        val rz = Math.toRadians(rotationDegrees.z.toDouble()).toFloat()
+
+        val cx = cos(rx)
+        val sx = sin(rx)
+        val cy = cos(ry)
+        val sy = sin(ry)
+        val cz = cos(rz)
+        val sz = sin(rz)
+
+        val y1 = value.y * cx - value.z * sx
+        val z1 = value.y * sx + value.z * cx
+        val x2 = value.x * cy + z1 * sy
+        val z2 = -value.x * sy + z1 * cy
+        val x3 = x2 * cz - y1 * sz
+        val y3 = x2 * sz + y1 * cz
+        return Vector3f(x3, y3, z2)
+    }
+
     private fun generateSphereWireframe(position: Vector3f, sphere: SphereCollider, color: Vector4f, vertices: MutableList<Float>) {
         val radius = sphere.radius
         val angleStep = (2.0 * Math.PI / circleSegments).toFloat()
@@ -420,3 +522,29 @@ class DebugRenderer : SceneRenderer, Resizable {
         projectionMatrix = MVP.getPerspectiveMatrix(width / height.toFloat())
     }
 }
+
+data class EditorDebugBox(
+    val center: Vector3f,
+    val size: Vector3f,
+    val rotation: Vector3f,
+    val color: Vector4f,
+)
+
+data class EditorDebugSphere(
+    val center: Vector3f,
+    val radius: Float,
+    val color: Vector4f,
+)
+
+data class EditorDebugCapsule(
+    val feetPosition: Vector3f,
+    val radius: Float,
+    val height: Float,
+    val color: Vector4f,
+)
+
+data class EditorDebugLine(
+    val from: Vector3f,
+    val to: Vector3f,
+    val color: Vector4f,
+)

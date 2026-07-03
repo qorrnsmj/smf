@@ -8,15 +8,15 @@ import qorrnsmj.smf.physics.collision.shape.BoxCollider
 
 class StallEntity : ObjectEntity(
     transform = Transform(
-        position = Vector3f(180f, 2f, 180f),
-        scale = Vector3f(35f, 35f, 35f),
+        position = Vector3f(1.8f, 0.02f, 1.8f),
+        scale = Vector3f(1f, 1f, 1f),
     ),
     physicsComponent = DynamicPhysics(
         mass = 50f,
         restitution = 0.1f,
         friction = 0.8f,
         drag = 0.05f,
-        collider = BoxCollider(223f, 133f, 132f, Vector3f(-1.5f, 64.8f, 30.6f))
+        collider = BoxCollider(2.23f, 1.33f, 1.32f, Vector3f(-0.015f, 0.648f, 0.306f))
     )
 ) {
     // Child entities with local positions relative to stall center
