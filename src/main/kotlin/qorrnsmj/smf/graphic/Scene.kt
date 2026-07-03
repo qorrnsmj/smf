@@ -4,6 +4,9 @@ import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.game.map.GameMap
 import qorrnsmj.smf.graphic.light.Light
+import qorrnsmj.smf.graphic.light.DirectionalLight
+import qorrnsmj.smf.graphic.render.RenderProfile
+import qorrnsmj.smf.graphic.render.RenderProfiles
 import qorrnsmj.smf.graphic.skybox.Skybox
 import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.graphic.effect.Effect
@@ -19,6 +22,8 @@ data class Scene(
     var terrainHeightProvider: HeightProvider? = null,
     var skybox: Skybox = Skyboxes.DEFAULT,
     var skyColor: Vector3f = Vector3f(1f, 1f, 1f),
+    var renderProfile: RenderProfile = RenderProfiles.SHADOWED,
+    var sunLight: DirectionalLight? = null,
     val lights: MutableList<Light> = mutableListOf(),
     val entities: MutableList<Entity> = mutableListOf(),
     val effects: MutableList<Effect> = mutableListOf(),

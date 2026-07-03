@@ -15,7 +15,7 @@ class IntroductionCutscene(
         val destinationLookAt = destinationEyePosition.add(destinationFront.normalize().scale(10f))
 
         letterbox(0.1f)
-        fade(startSeconds = 0f, durationSeconds = 0.8f, fromAlpha = 1f, toAlpha = 0f)
+        fade(startSeconds = 0f, durationSeconds = 0.18f, fromAlpha = 0.35f, toAlpha = 0f)
         subtitle(
             startSeconds = 0.8f,
             durationSeconds = 2.8f,

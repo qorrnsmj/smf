@@ -37,7 +37,6 @@ void main() {
     viewPosition = vec3(inverse(view)[3]);
     lightSpacePosition = lightSpaceMatrix * world;
 
-    // fog visibility
     float distance = length(viewPosition - worldPosition);
     visibility = exp(-pow(distance * fogDensity, fogGradient));
     visibility = clamp(visibility, 0.0, 1.0);

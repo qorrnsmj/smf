@@ -14,6 +14,7 @@ object LevelDefinitionLoader {
             resourcePath = resourcePath,
             glbPath = root.string("glb") ?: root.string("glbPath"),
             className = root.string("class") ?: root.string("className"),
+            renderProfile = root.string("renderProfile"),
             entityModels = root.stringList("entityModels"),
         )
     }

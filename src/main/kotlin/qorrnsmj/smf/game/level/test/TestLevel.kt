@@ -3,14 +3,19 @@ package qorrnsmj.smf.game.level.test
 import org.lwjgl.glfw.GLFW.GLFW_KEY_F2
 import org.lwjgl.glfw.GLFW.GLFW_KEY_F3
 import org.lwjgl.glfw.GLFW.GLFW_KEY_F4
+import org.lwjgl.glfw.GLFW.GLFW_KEY_F5
 import org.lwjgl.glfw.GLFW.GLFW_KEY_F6
 import org.lwjgl.glfw.GLFW.GLFW_KEY_F7
+import org.lwjgl.glfw.GLFW.GLFW_KEY_F12
+import org.lwjgl.glfw.GLFW.GLFW_KEY_R
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.glfwGetKey
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
+import qorrnsmj.smf.game.entity.custom.ShadowTestBlockEntity
 import qorrnsmj.smf.game.entity.custom.StallEntity
+import qorrnsmj.smf.game.entity.custom.Transform
 import qorrnsmj.smf.game.entity.mob.SlimeEntity
 import qorrnsmj.smf.game.entity.player.Player
 import qorrnsmj.smf.game.entity.projectile.ArrowEntity
@@ -25,11 +30,19 @@ import qorrnsmj.smf.game.progress.GameProgress
 import qorrnsmj.smf.game.progress.GameProgressManager
 import qorrnsmj.smf.game.task.cutscene.IntroductionCutscene
 import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
+import qorrnsmj.smf.graphic.text.TextElement
 import qorrnsmj.smf.graphic.light.PointLight
+import qorrnsmj.smf.graphic.light.SpotLight
+import qorrnsmj.smf.graphic.light.SunLight
+import qorrnsmj.smf.graphic.render.RenderProfileManager
+import qorrnsmj.smf.graphic.render.RenderProfiles
 import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.graphic.text.DebugTextManager
+import qorrnsmj.smf.graphic.text.Font
 import qorrnsmj.smf.graphic.text.FontLoader
+import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.math.Vector4f
 import qorrnsmj.smf.physics.PhysicsWorld
 import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
 
@@ -38,16 +51,22 @@ class TestLevel(
 ) : Level() {
     private companion object {
         const val USE_TEMPORARY_GLB_LEVEL = false
+        const val SHADOW_NORMAL_STRENGTH = 0.86f
+        const val SHADOW_STRONG_STRENGTH = 0.96f
+        const val SHADOW_NORMAL_AMBIENT = 0.12f
+        const val SHADOW_STRONG_AMBIENT = 0.06f
     }
 
     private lateinit var pointLight: PointLight
+    private lateinit var spotLight: SpotLight
     private lateinit var cutsceneCamera: Camera
+    private lateinit var shadowDebugFont: Font
     private val triggers: MutableList<AreaEnterTrigger> = mutableListOf()
     private val debugTextManager = DebugTextManager()
     private val skyColorTestPalette = listOf(
-        Vector3f(0.55f, 0.72f, 0.98f),
-        Vector3f(0.95f, 0.55f, 0.35f),
-        Vector3f(0.22f, 0.28f, 0.45f)
+        Vector3f(0.035f, 0.045f, 0.095f),
+        Vector3f(0.06f, 0.07f, 0.13f),
+        Vector3f(0.11f, 0.10f, 0.16f)
     )
     private var skyColorPaletteIndex = 0
     private var skyColorTogglePressed = false
@@ -56,8 +75,15 @@ class TestLevel(
     private var loadProgressPressed = false
     private var moveToSavePointPressed = false
     private var levelSwitchTestPressed = false
+    private var shadowTogglePressed = false
+    private var shadowMode = ShadowDebugMode.NORMAL
+    private var renderProfileTogglePressed = false
+    private var localLightShadowTogglePressed = false
+    private var localLightShadowMode = LocalLightShadowMode.BOTH
 
     override fun load() {
+        RenderProfileManager.applyTo(scene, RenderProfiles.SHADOWED)
+
         player = Player(moveSpeed = 5.5f, jumpSpeed = 10f)
         scene.entities.add(player)
         logPlayerCapsuleCollision()
@@ -66,24 +92,74 @@ class TestLevel(
         loadSavedProgressIfPresent()
 
         debugTextManager.initialize()
+        shadowDebugFont = FontLoader.loadAssetFont("Inconsolata.ttf", 16f)
         cutscenes.setSubtitleFont(FontLoader.loadAssetFont("Inconsolata.ttf", 28f))
         cutscenes.showDebugControls = true
 
         pointLight = PointLight().apply {
-            position = Vector3f(0f, 3000f, 0f)
-            ambient = Vector3f(0.1f, 0.1f, 0.1f)
-            diffuse = Vector3f(1f, 1f, 1f)
-            specular = Vector3f(1f, 1f, 1f)
+            position = Vector3f(270f, 130f, 320f)
+            diffuse = Vector3f(1f, 0.58f, 0.28f)
+            specular = Vector3f(1f, 0.82f, 0.58f)
             shininess = 32f
+            intensity = 12.0f
             constant = 1f
-            linear = 0f
-            quadratic = 0f
+            linear = 0.006f
+            quadratic = 0.00002f
+            castsShadow = true
+            shadowStrength = 0.62f
         }
+        scene.sunLight = SunLight(
+            direction = Vector3f(-0.42f, -1f, -0.28f),
+            color = Vector3f(1f, 0.92f, 0.78f),
+            intensity = 0f,
+            ambientColor = Vector3f(0.08f, 0.09f, 0.14f),
+            ambientIntensity = 0.12f,
+            shadowStrength = 0f,
+        )
         scene.lights.add(pointLight)
+        spotLight = SpotLight().apply {
+            position = Vector3f(235f, 260f, 360f)
+            direction = Vector3f(0f, -1.0f, 0f)
+            diffuse = Vector3f(0.55f, 0.72f, 1f)
+            specular = Vector3f(0.7f, 0.86f, 1f)
+            intensity = 42f
+            constant = 1f
+            linear = 0.006f
+            quadratic = 0.00002f
+            innerCutOffDegrees = 18f
+            outerCutOffDegrees = 30f
+            castsShadow = true
+            shadowStrength = 0.7f
+        }
+        scene.lights.add(spotLight)
 
         scene.skybox = Skyboxes.SKY1
         scene.skyColor = skyColorTestPalette[skyColorPaletteIndex]
-        scene.entities.add(StallEntity())
+        scene.entities.add(StallEntity().apply {
+            localTransform = Transform(
+                position = Vector3f(180f, 2f, 400f),
+                rotation = Quaternion.fromEulerDegrees(Vector3f(90f, 0f, 0f)),
+                scale = Vector3f(35f, 35f, 35f),
+            )
+        })
+        scene.entities.add(
+            ShadowTestBlockEntity(
+                transform = Transform(
+                    position = Vector3f(220f, 32f, 332f),
+                    scale = Vector3f(56f, 64f, 56f),
+                ),
+                color = Vector4f(0.76f, 0.72f, 0.64f, 1f),
+            )
+        )
+        scene.entities.add(
+            ShadowTestBlockEntity(
+                transform = Transform(
+                    position = Vector3f(255f, 46f, 355f),
+                    scale = Vector3f(56f, 92f, 56f),
+                ),
+                color = Vector4f(0.62f, 0.68f, 0.76f, 1f),
+            )
+        )
         scene.entities.add(SlimeEntity(Vector3f(120f, 5f, 160f)))
         scene.entities.add(ArrowEntity(Vector3f(80f, 80f, 160f), Vector3f(1f, 0f, 0f)))
 
@@ -112,7 +188,7 @@ class TestLevel(
             destinationFront = player.camera.getFront(),
             onAreaReveal = {
                 pointLight.diffuse = Vector3f(1f, 0.75f, 0.35f)
-                scene.skyColor = skyColorTestPalette[1]
+                scene.skyColor = skyColorTestPalette[0]
                 Logger.info("Introduction cutscene event fired at 2.5 seconds")
             },
             onComplete = {
@@ -131,6 +207,9 @@ class TestLevel(
             handleSkyColorTestInput()
             handleProgressTestInput()
             handleLevelSwitchTestInput()
+            handleShadowDebugInput()
+            handleRenderProfileInput()
+            handleLocalLightShadowInput()
             return
         }
 
@@ -138,6 +217,69 @@ class TestLevel(
         handleSkyColorTestInput()
         handleProgressTestInput()
         handleLevelSwitchTestInput()
+        handleShadowDebugInput()
+        handleRenderProfileInput()
+        handleLocalLightShadowInput()
+    }
+
+    private fun handleShadowDebugInput() {
+        val isPressed = glfwGetKey(SMF.window.id, GLFW_KEY_F5) == GLFW_PRESS
+        if (isPressed && !shadowTogglePressed) {
+            shadowMode = shadowMode.next()
+            applyShadowDebugMode()
+            Logger.info("Shadow debug mode switched to {}", shadowMode.label)
+        }
+
+        shadowTogglePressed = isPressed
+    }
+
+    private fun applyShadowDebugMode() {
+        val sun = scene.sunLight ?: return
+        when (shadowMode) {
+            ShadowDebugMode.OFF -> {
+                sun.shadowStrength = 0f
+                sun.ambientIntensity = SHADOW_NORMAL_AMBIENT
+            }
+            ShadowDebugMode.NORMAL -> {
+                sun.shadowStrength = SHADOW_NORMAL_STRENGTH
+                sun.ambientIntensity = SHADOW_NORMAL_AMBIENT
+            }
+            ShadowDebugMode.STRONG -> {
+                sun.shadowStrength = SHADOW_STRONG_STRENGTH
+                sun.ambientIntensity = SHADOW_STRONG_AMBIENT
+            }
+        }
+    }
+
+    private fun handleRenderProfileInput() {
+        val isPressed = glfwGetKey(SMF.window.id, GLFW_KEY_R) == GLFW_PRESS
+        if (isPressed && !renderProfileTogglePressed) {
+            val nextProfile = if (scene.renderProfile.shadowsEnabled) {
+                RenderProfiles.UNSHADOWED
+            } else {
+                RenderProfiles.SHADOWED
+            }
+            RenderProfileManager.applyTo(scene, nextProfile)
+            Logger.info("Render profile switched: shadowsEnabled={}", nextProfile.shadowsEnabled)
+        }
+
+        renderProfileTogglePressed = isPressed
+    }
+
+    private fun handleLocalLightShadowInput() {
+        val isPressed = glfwGetKey(SMF.window.id, GLFW_KEY_F12) == GLFW_PRESS
+        if (isPressed && !localLightShadowTogglePressed) {
+            localLightShadowMode = localLightShadowMode.next()
+            applyLocalLightShadowMode()
+            Logger.info("Local light shadow caster switched to {}", localLightShadowMode.label)
+        }
+
+        localLightShadowTogglePressed = isPressed
+    }
+
+    private fun applyLocalLightShadowMode() {
+        pointLight.castsShadow = localLightShadowMode == LocalLightShadowMode.BOTH || localLightShadowMode == LocalLightShadowMode.POINT
+        spotLight.castsShadow = localLightShadowMode == LocalLightShadowMode.BOTH || localLightShadowMode == LocalLightShadowMode.SPOT
     }
 
     private fun handleSkyColorTestInput() {
@@ -266,6 +408,21 @@ class TestLevel(
         debugTextManager.updateDebugInfo(player.worldTransform.position, SMF.timer.getFPS(), SMF.timer.getUPS(), collisionDebugEnabled)
         scene.textElements.clear()
         scene.textElements.addAll(debugTextManager.getDebugElements())
+        addShadowDebugText()
+    }
+
+    private fun addShadowDebugText() {
+        val color = if (shadowMode == ShadowDebugMode.OFF) Vector3f(0.3f, 0.3f, 0.3f) else Vector3f(0.2f, 0.75f, 0.35f)
+        val profileLabel = if (scene.renderProfile.shadowsEnabled) "Shadowed" else "Unshadowed"
+        scene.textElements.add(
+            TextElement(
+                text = "Render $profileLabel (R) / ${localLightShadowMode.label} local shadows (F12) / Sun shadow ${shadowMode.label} (F5)",
+                font = shadowDebugFont,
+                x = 10f,
+                y = 125f,
+                color = color,
+            )
+        )
     }
 
     private fun updateWorld(delta: Float) {
@@ -278,8 +435,39 @@ class TestLevel(
         }
     }
 
+    private enum class ShadowDebugMode(val label: String) {
+        OFF("OFF"),
+        NORMAL("NORMAL"),
+        STRONG("STRONG");
+
+        fun next(): ShadowDebugMode = when (this) {
+            OFF -> NORMAL
+            NORMAL -> STRONG
+            STRONG -> OFF
+        }
+    }
+    private enum class LocalLightShadowMode(val label: String) {
+        BOTH("Both"),
+        SPOT("Spot"),
+        POINT("Point"),
+        OFF("Off");
+
+        fun next(): LocalLightShadowMode = when (this) {
+            BOTH -> SPOT
+            SPOT -> POINT
+            POINT -> OFF
+            OFF -> BOTH
+        }
+    }
+
     override fun unload() {
         triggers.clear()
         super.unload()
     }
 }
+
+
+
+
+
+

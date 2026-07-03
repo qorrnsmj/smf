@@ -8,9 +8,6 @@ import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.glfwGetKey
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.graphic.Scene
-import qorrnsmj.smf.graphic.effect.PostEffectOrder
-import qorrnsmj.smf.graphic.effect.addPostEffect
-import qorrnsmj.smf.graphic.effect.custom.CinematicEffect
 import qorrnsmj.smf.graphic.text.Font
 import qorrnsmj.smf.graphic.text.TextAnchor
 import qorrnsmj.smf.graphic.text.TextElement
@@ -29,7 +26,6 @@ class CutsceneManager(
     private var pausePressed = false
     private var fastForwardPressed = false
     private var restartPressed = false
-    private val cinematicEffect = CinematicEffect()
 
     var showDebugControls: Boolean = false
 
@@ -60,7 +56,6 @@ class CutsceneManager(
         isPaused = false
         playbackSpeed = 1f
         cutscene.reset()
-        enableCinematicEffect()
         applyVisuals(cutscene)
     }
 
@@ -105,7 +100,6 @@ class CutsceneManager(
         isPaused = false
         playbackSpeed = 1f
         scene.cinematicOverlay.clear()
-        disableCinematicEffect()
     }
 
     fun setSubtitleFont(font: Font) {
@@ -129,7 +123,6 @@ class CutsceneManager(
         isPaused = false
         playbackSpeed = 1f
         scene.cinematicOverlay.clear()
-        disableCinematicEffect()
     }
 
     private fun restoreGameplayCamera() {
@@ -173,16 +166,8 @@ class CutsceneManager(
         } else {
             null
         }
-        cinematicEffect.update(scene.cinematicOverlay)
     }
 
-    private fun enableCinematicEffect() {
-        scene.effects.addPostEffect(cinematicEffect, PostEffectOrder.CINEMATIC)
-    }
-
-    private fun disableCinematicEffect() {
-        scene.effects.remove(cinematicEffect)
-    }
 
     private fun handleEdge(
         window: Window,
