@@ -19,6 +19,8 @@ import qorrnsmj.smf.math.Vector4f
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
+import java.nio.file.Files
+import java.nio.file.Path
 
 object EntityLoader  {
     private val vaos = mutableListOf<Int>()
@@ -32,9 +34,19 @@ object EntityLoader  {
     }
 
     fun loadModelFromResource(resourcePath: String): Map<String, Model> {
+        return loadModelFromStream(resourcePath, getResourceAsStream(resourcePath))
+    }
+
+    fun loadModelFromFile(path: Path): Map<String, Model> {
+        return Files.newInputStream(path).use { stream ->
+            loadModelFromStream(path.toString(), stream)
+        }
+    }
+
+    private fun loadModelFromStream(sourceName: String, inputStream: InputStream): Map<String, Model> {
         try {
             val gltfModel = GltfModelReader()
-                .readWithoutReferences(getResourceAsStream(resourcePath))
+                .readWithoutReferences(inputStream)
             val models = hashMapOf<String, Model>()
 
             gltfModel.sceneModels.forEach { scene: SceneModel ->
@@ -52,7 +64,7 @@ object EntityLoader  {
             }
 
             val faceCount = models.values.sumOf { it.mesh.vertexCount }.div(3)
-            Logger.info("\"$resourcePath\" loaded ($faceCount faces)")
+            Logger.info("\"$sourceName\" loaded ($faceCount faces)")
 
             return models
         } catch (e: Exception) {

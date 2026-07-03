@@ -108,7 +108,8 @@ class Window(width: Int, height: Int, title: String, vsync: Boolean = true) : Re
     }
 
     override fun resize(width: Int, height: Int) {
-        glfwSetWindowSize(id, width, height)
+        this.width = width
+        this.height = height
     }
 
     fun toggleFullscreen() {

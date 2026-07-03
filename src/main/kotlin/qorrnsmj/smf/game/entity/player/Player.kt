@@ -13,13 +13,13 @@ import qorrnsmj.smf.physics.component.DynamicPhysics
 import qorrnsmj.smf.window.Window
 
 class Player(
-    private val eyeHeight: Float = 170f,
-    private val moveSpeed: Float = 4f,
-    private val jumpSpeed: Float = 8f,
-    collisionHalfWidth: Float = 22f,
+    private val eyeHeight: Float = 1.7f,
+    private val moveSpeed: Float = 0.04f,
+    private val jumpSpeed: Float = 0.08f,
+    collisionHalfWidth: Float = 0.22f,
     collisionHeight: Float = eyeHeight,
-    collisionHalfDepth: Float = 22f,
-    groundProbeDistance: Float = 1f,
+    collisionHalfDepth: Float = 0.22f,
+    groundProbeDistance: Float = 0.01f,
 ) : LivingEntity(
     transform = Transform(position = Vector3f(0f, 0f, 0f)),
     model = EntityModels.EMPTY,
@@ -33,6 +33,7 @@ class Player(
     )
 ) {
     var camera = Camera()
+    private var jumpKeyWasDown = false
 
     init {
         syncCameraWithEntity()
@@ -86,10 +87,12 @@ class Player(
 
     private fun handleJump(window: Window) {
         val physics = physicsComponent
-        if (physics.isGrounded && GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_SPACE) == GLFW.GLFW_PRESS) {
+        val jumpKeyDown = GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_SPACE) == GLFW.GLFW_PRESS
+        if (physics.isGrounded && jumpKeyDown && !jumpKeyWasDown) {
             physics.velocity = Vector3f(physics.velocity.x, jumpSpeed, physics.velocity.z)
             physics.isGrounded = false
         }
+        jumpKeyWasDown = jumpKeyDown
     }
 
     private fun syncCameraWithEntity() {

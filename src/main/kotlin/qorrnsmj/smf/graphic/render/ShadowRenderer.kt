@@ -4,7 +4,6 @@ import de.javagl.jgltf.model.v2.MaterialModelV2.AlphaMode
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.custom.Entity
-import qorrnsmj.smf.game.map.GameMap
 import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.graphic.`object`.LocalShadowFrameBuffer
 import qorrnsmj.smf.graphic.`object`.Model
@@ -199,7 +198,6 @@ class ShadowRenderer {
         UniformUtils.setUniform(locationPointLightPosition, pointLightPosition ?: Vector3f())
 
         scene.terrain?.let { renderTerrain(it) }
-        scene.map?.let { renderMap(it) }
         renderEntities(scene.entities)
 
         if (cullWasEnabled) {
@@ -315,20 +313,10 @@ class ShadowRenderer {
             val size = terrain.model.mesh.size
             include(terrain.position, Vector3f(terrain.position.x + size.x, terrain.position.y, terrain.position.z + size.y))
         }
-        scene.map?.brushes?.forEach { brush -> include(brush.bounds.min, brush.bounds.max) }
         scene.entities.forEach { includeEntity(it) }
 
         if (!hasBounds) return Vector3f()
         return Vector3f((minX + maxX) * 0.5f, (minY + maxY) * 0.5f, (minZ + maxZ) * 0.5f)
-    }
-
-    private fun renderMap(gameMap: GameMap) {
-        UniformUtils.setUniform(locationModel, MVP.getModelMatrix(Vector3f(), Quaternion.identity(), Vector3f(1f, 1f, 1f)))
-        for (mesh in gameMap.meshesByTexture.values) {
-            glBindVertexArray(mesh.vao)
-            glDrawElements(GL_TRIANGLES, mesh.vertexCount, GL_UNSIGNED_INT, 0)
-        }
-        glBindVertexArray(0)
     }
 
     private fun renderTerrain(terrain: Terrain) {

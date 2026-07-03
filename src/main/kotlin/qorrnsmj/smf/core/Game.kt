@@ -22,16 +22,16 @@ abstract class Game {
 
     protected abstract fun gameloop()
 
-    protected fun input() {
+    protected open fun input() {
         stateMachine.input()
     }
 
-    protected fun update() {
+    protected open fun update() {
         stateMachine.update()
         audioManager.update()
     }
 
-    protected fun render() {
+    protected open fun render() {
         stateMachine.render()
     }
 }

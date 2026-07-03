@@ -21,6 +21,10 @@ import qorrnsmj.smf.game.entity.mob.SlimeEntity
 import qorrnsmj.smf.game.entity.player.Player
 import qorrnsmj.smf.game.entity.projectile.ArrowEntity
 import qorrnsmj.smf.game.entity.projectile.ProjectileEntity
+import qorrnsmj.smf.game.event.EditorMapEventLoader
+import qorrnsmj.smf.game.event.EventAreaDefinition
+import qorrnsmj.smf.game.level.EditorMapLevelLoader
+import qorrnsmj.smf.game.level.EditorMapStaticObjectLoader
 import qorrnsmj.smf.game.level.GlbLevel
 import qorrnsmj.smf.game.level.GlbLevelApplier
 import qorrnsmj.smf.game.level.GlbLevelLoader
@@ -29,8 +33,8 @@ import qorrnsmj.smf.game.level.Level
 import qorrnsmj.smf.game.level.LevelDefinition
 import qorrnsmj.smf.game.progress.GameProgress
 import qorrnsmj.smf.game.progress.GameProgressManager
+import qorrnsmj.smf.game.task.Task
 import qorrnsmj.smf.game.task.cutscene.IntroductionCutscene
-import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
 import qorrnsmj.smf.game.task.trigger.ContainmentMode
 import qorrnsmj.smf.game.task.trigger.TeleportFacing
 import qorrnsmj.smf.game.task.trigger.TeleportLook
@@ -59,6 +63,8 @@ class TestLevel(
 ) : Level() {
     private companion object {
         const val USE_TEMPORARY_GLB_LEVEL = false
+        const val LOAD_GLB_TEST_LEVEL = false
+        const val EDITOR_STAGE_PATH = "assets/level/stage.json"
         const val USE_WIDE_TERRAIN_FOG_TEST = true
         const val SHADOW_NORMAL_STRENGTH = 0.86f
         const val SHADOW_STRONG_STRENGTH = 0.96f
@@ -70,7 +76,12 @@ class TestLevel(
     private lateinit var spotLight: SpotLight
     private lateinit var cutsceneCamera: Camera
     private lateinit var shadowDebugFont: Font
-    private val triggers: MutableList<AreaEnterTrigger> = mutableListOf()
+    private val eventTasks: MutableList<Task> = mutableListOf()
+    private val eventHandlers: Map<String, (EventAreaDefinition) -> Unit> by lazy {
+        mapOf(
+            "cutscene_start_trigger" to { startIntroductionCutscene() },
+        )
+    }
     private val debugTextManager = DebugTextManager()
     private val skyColorTestPalette = listOf(
         Vector3f(0.035f, 0.045f, 0.095f),
@@ -99,7 +110,10 @@ class TestLevel(
         scene.entities.add(player)
         logPlayerCapsuleCollision()
 
-        loadGlbLevel()
+        if (LOAD_GLB_TEST_LEVEL) {
+            loadGlbLevel()
+        }
+        loadEditorStage()
         loadSavedProgressIfPresent()
         addTeleportTriggerTestFixture()
         if (USE_WIDE_TERRAIN_FOG_TEST) {
@@ -191,9 +205,14 @@ class TestLevel(
     }
 
     override fun start() {
+    }
+
+    private fun startIntroductionCutscene() {
+        if (cutscenes.isPlaying) return
+
         cutsceneCamera = Camera().apply {
             val playerEye = player.camera.position
-            position = playerEye.add(Vector3f(-60f, 40f, 60f))
+            position = playerEye.add(Vector3f(-0.6f, 0.4f, 0.6f))
             setFront(playerEye.subtract(position))
             scene.camera = this
         }
@@ -427,7 +446,7 @@ class TestLevel(
         } else {
             GlbLevelLoader.load(definition.glbPath ?: error("TestLevel requires glb in ${definition.resourcePath}"))
         }
-        triggers.addAll(
+        eventTasks.addAll(
             GlbLevelApplier.apply(
                 level = glbLevel,
                 scene = scene,
@@ -444,7 +463,7 @@ class TestLevel(
         val triggerCenter = origin.add(Vector3f(180f, 85f, 0f))
         val destination = origin.add(Vector3f(360f, 0f, 180f))
 
-        triggers.add(
+        eventTasks.add(
             TeleportTrigger(
                 areaCenter = triggerCenter,
                 areaHalfExtents = Vector3f(45f, 100f, 45f),
@@ -462,6 +481,24 @@ class TestLevel(
                 },
             )
         )
+    }
+
+    private fun loadEditorStage() {
+        EditorMapLevelLoader.loadInto(scene, EDITOR_STAGE_PATH)
+        EditorMapStaticObjectLoader.loadInto(scene, EDITOR_STAGE_PATH)
+        eventTasks.addAll(
+            EditorMapEventLoader.loadInto(
+                scene = scene,
+                player = player,
+                path = EDITOR_STAGE_PATH,
+                onAreaTriggerEvent = { eventArea ->
+                    Logger.info("TestLevel editor event fired: {} ({})", eventArea.id, eventArea.name)
+                    eventHandlers[eventArea.id]?.invoke(eventArea)
+                        ?: Logger.info("No editor event handler registered: {}", eventArea.id)
+                },
+            )
+        )
+        scene.camera = player.camera
     }
 
     private fun handleAreaTriggerEvent(eventName: String, trigger: GlbTrigger) {
@@ -512,8 +549,8 @@ class TestLevel(
         scene.entities.forEach { it.update(delta) }
         scene.entities.removeAll { it is ProjectileEntity && it.isExpired }
 
-        for (trigger in triggers) {
-            trigger.update(delta)
+        for (task in eventTasks) {
+            task.update(delta)
         }
     }
 
@@ -543,7 +580,7 @@ class TestLevel(
     }
 
     override fun unload() {
-        triggers.clear()
+        eventTasks.clear()
         super.unload()
     }
 }

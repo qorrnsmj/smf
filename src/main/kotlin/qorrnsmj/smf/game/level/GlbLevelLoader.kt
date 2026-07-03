@@ -24,7 +24,7 @@ import kotlin.math.sqrt
 
 object GlbLevelLoader {
     private const val JSON_CHUNK_TYPE = 0x4E4F534A
-    private const val BLENDER_METER_TO_GAME_UNIT = 100f
+    private const val BLENDER_METER_TO_GAME_UNIT = 1f
 
     fun loadIfPresent(resourcePath: String): GlbLevel? {
         return if (ClassLoader.getSystemResource(resourcePath) == null) {

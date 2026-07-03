@@ -10,4 +10,3 @@ data class Mesh(
     val vertexCount: Int = 0,
     val vertexType: Int = GL_UNSIGNED_INT
 )
-

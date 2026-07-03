@@ -36,14 +36,19 @@ object SkyboxLoader  {
     )
 
     fun loadSkybox(id: String): Skybox {
-        val model = loadModel(id)
+        val model = loadModel("assets/texture/skybox/$id")
         return Skybox(model)
     }
 
-    private fun loadModel(id: String): Model {
+    fun loadSkyboxResource(resourcePrefix: String): Skybox {
+        val model = loadModel(resourcePrefix)
+        return Skybox(model)
+    }
+
+    private fun loadModel(resourcePrefix: String): Model {
         val mesh = loadMesh()
         val texture = TextureLoader.loadCubemapTexture(
-            "assets/texture/skybox/$id",
+            resourcePrefix,
             TexturePresets.SKYBOX
         )
         val material = Material(
@@ -55,7 +60,7 @@ object SkyboxLoader  {
         )
 
         val faceCount = mesh.vertexCount.div(3)
-        Logger.info("\"${id}\" loaded ($faceCount faces)")
+        Logger.info("\"${resourcePrefix}\" loaded ($faceCount faces)")
 
         return Model(mesh, material)
     }

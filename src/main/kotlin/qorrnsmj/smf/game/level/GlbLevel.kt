@@ -19,14 +19,14 @@ data class GlbLevel(
         fun createTemporaryTestLevel(): GlbLevel {
             val terrainTriangles = listOf(
                 GlbTerrainTriangle(
-                    Vector3f(-1000f, 0f, -1000f),
-                    Vector3f(1000f, 0f, -1000f),
-                    Vector3f(-1000f, 0f, 1000f),
+                    Vector3f(-10f, 0f, -10f),
+                    Vector3f(10f, 0f, -10f),
+                    Vector3f(-10f, 0f, 10f),
                 ),
                 GlbTerrainTriangle(
-                    Vector3f(1000f, 0f, -1000f),
-                    Vector3f(1000f, 180f, 1000f),
-                    Vector3f(-1000f, 0f, 1000f),
+                    Vector3f(10f, 0f, -10f),
+                    Vector3f(10f, 1.8f, 10f),
+                    Vector3f(-10f, 0f, 10f),
                 ),
             )
             val terrain = GlbTerrain(
@@ -34,10 +34,10 @@ data class GlbLevel(
                 triangles = terrainTriangles,
             )
             val testBlock = ObjectEntity(
-                transform = Transform(position = Vector3f(350f, 50f, 350f)),
+                transform = Transform(position = Vector3f(3.5f, 0.5f, 3.5f)),
                 model = EntityModels.EMPTY,
                 physicsComponent = StaticPhysics(
-                    collider = BoxCollider(width = 200f, height = 100f, depth = 200f),
+                    collider = BoxCollider(width = 2f, height = 1f, depth = 2f),
                 ),
             )
 
@@ -50,7 +50,7 @@ data class GlbLevel(
                         name = "Temp_PlayerSpawn",
                         type = "player",
                         spawnPoint = true,
-                        transform = Transform(position = Vector3f(0f, 20f, 0f)),
+                        transform = Transform(position = Vector3f(0f, 0.2f, 0f)),
                         properties = emptyMap(),
                     ),
                 ),
@@ -58,8 +58,8 @@ data class GlbLevel(
                     GlbTrigger(
                         name = "Temp_Trigger",
                         eventName = "temporary_test_trigger",
-                        center = Vector3f(250f, 50f, 250f),
-                        halfExtents = Vector3f(120f, 80f, 120f),
+                        center = Vector3f(2.5f, 0.5f, 2.5f),
+                        halfExtents = Vector3f(1.2f, 0.8f, 1.2f),
                         properties = emptyMap(),
                     ),
                 ),

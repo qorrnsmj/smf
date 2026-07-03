@@ -2,7 +2,6 @@ package qorrnsmj.smf.graphic
 
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.custom.Entity
-import qorrnsmj.smf.game.map.GameMap
 import qorrnsmj.smf.graphic.light.Light
 import qorrnsmj.smf.graphic.light.DirectionalLight
 import qorrnsmj.smf.graphic.render.RenderProfile
@@ -17,10 +16,14 @@ import qorrnsmj.smf.math.Vector3f
 
 data class Scene(
     var camera: Camera = Camera(),
-    var map: GameMap? = null,
     var terrain: Terrain? = null,
     var terrainHeightProvider: HeightProvider? = null,
     var skyboxEnabled: Boolean = true,
+    var terrainGrayView: Boolean = false,
+    var terrainWireframeView: Boolean = false,
+    var viewportShadingMode: ViewportShadingMode = ViewportShadingMode.RENDERED,
+    var cullingEnabled: Boolean = true,
+    var skyVisible: Boolean = true,
     var skybox: Skybox = Skyboxes.DEFAULT,
     var skyColor: Vector3f = Vector3f(1f, 1f, 1f),
     var renderProfile: RenderProfile = RenderProfiles.SHADOWED,
