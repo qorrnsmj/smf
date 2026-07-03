@@ -1,19 +1,20 @@
 package qorrnsmj.smf.game.level
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import qorrnsmj.smf.util.ResourceUtils
 
 object LevelDefinitionLoader {
+    private val objectMapper = ObjectMapper()
+
     fun load(levelName: String): LevelDefinition {
         val resourcePath = toResourcePath(levelName)
-        val root = GlbJson.parse(ResourceUtils.getResourceAsStream(resourcePath).readAllBytes().toString(Charsets.UTF_8))
-            as? Map<*, *>
-            ?: error("Level definition root must be a JSON object: $resourcePath")
+        val root = ResourceUtils.getResourceAsStream(resourcePath).use { stream ->
+            objectMapper.readValue(stream, Map::class.java)
+        }
 
         return LevelDefinition(
             name = root.string("name") ?: levelName.removeSuffix(".json").substringAfterLast('/'),
             resourcePath = resourcePath,
-            glbPath = root.string("glb") ?: root.string("glbPath"),
-            className = root.string("class") ?: root.string("className"),
             renderProfile = root.string("renderProfile"),
             entityModels = root.stringList("entityModels"),
         )

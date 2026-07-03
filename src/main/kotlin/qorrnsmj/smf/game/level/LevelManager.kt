@@ -131,6 +131,6 @@ class LevelManager {
     )
 
     companion object {
-        const val HOME_LEVEL_NAME = "home"
+        const val HOME_LEVEL_NAME = "stage"
     }
 }

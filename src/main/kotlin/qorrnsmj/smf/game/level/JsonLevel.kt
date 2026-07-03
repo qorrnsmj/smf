@@ -4,7 +4,9 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.player.Player
-import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
+import qorrnsmj.smf.game.event.EditorMapEventLoader
+import qorrnsmj.smf.game.event.EventAreaDefinition
+import qorrnsmj.smf.game.task.Task
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.light.SunLight
 import qorrnsmj.smf.graphic.render.RenderProfileManager
@@ -16,7 +18,7 @@ import qorrnsmj.smf.physics.PhysicsWorld
 open class JsonLevel(
     protected val definition: LevelDefinition,
 ) : Level() {
-    private val triggers: MutableList<AreaEnterTrigger> = mutableListOf()
+    private val eventTasks: MutableList<Task> = mutableListOf()
 
     override fun load() {
         EntityModels.loadStageModels(definition.entityModels)
@@ -25,16 +27,17 @@ open class JsonLevel(
         player = Player()
         scene.entities.add(player)
 
-        definition.glbPath?.let { glbPath ->
-            triggers.addAll(
-                GlbLevelApplier.apply(
-                    level = GlbLevelLoader.load(glbPath),
-                    scene = scene,
-                    player = player,
-                    onAreaTriggerEvent = ::handleAreaTriggerEvent,
-                )
+        EditorMapLevelLoader.loadInto(scene, definition.resourcePath)
+        EditorMapStaticObjectLoader.loadInto(scene, definition.resourcePath)
+        eventTasks.addAll(
+            EditorMapEventLoader.loadInto(
+                scene = scene,
+                player = player,
+                path = definition.resourcePath,
+                onAreaTriggerEvent = ::handleAreaTriggerEvent,
             )
-        }
+        )
+        scene.camera = player.camera
 
         scene.sunLight = SunLight(
             direction = Vector3f(-0.35f, -1f, -0.25f),
@@ -67,26 +70,26 @@ open class JsonLevel(
     override fun update(delta: Float) {
         PhysicsWorld.update(scene.entities, scene.terrainHeightProvider ?: scene.terrain, delta)
         player.update()
-        triggers.forEach { it.update(delta) }
+        eventTasks.forEach { it.update(delta) }
     }
 
-    protected open fun handleAreaTriggerEvent(eventName: String, trigger: GlbTrigger) {
-        val targetLevel = trigger.properties["switchLevel"]
-            ?: trigger.properties["levelName"]
-            ?: eventName.substringAfter("switchLevel:", missingDelimiterValue = "")
-                .takeIf { eventName.startsWith("switchLevel:") }
+    protected open fun handleAreaTriggerEvent(eventArea: EventAreaDefinition) {
+        val targetLevel = eventArea.properties["switchLevel"]
+            ?: eventArea.properties["levelName"]
+            ?: eventArea.id.substringAfter("switchLevel:", missingDelimiterValue = "")
+                .takeIf { eventArea.id.startsWith("switchLevel:") }
 
         if (!targetLevel.isNullOrBlank()) {
-            Logger.info("Switching level from trigger: {} -> {}", trigger.name, targetLevel)
+            Logger.info("Switching level from editor trigger: {} -> {}", eventArea.name, targetLevel)
             switchLevel(targetLevel)
             return
         }
 
-        Logger.info("GLB area trigger fired: {} ({})", eventName, trigger.name)
+        Logger.info("Editor area trigger fired: {} ({})", eventArea.id, eventArea.name)
     }
 
     override fun unload() {
-        triggers.clear()
+        eventTasks.clear()
         super.unload()
     }
 }

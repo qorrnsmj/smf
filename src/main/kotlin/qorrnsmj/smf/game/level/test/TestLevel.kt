@@ -25,10 +25,6 @@ import qorrnsmj.smf.game.event.EditorMapEventLoader
 import qorrnsmj.smf.game.event.EventAreaDefinition
 import qorrnsmj.smf.game.level.EditorMapLevelLoader
 import qorrnsmj.smf.game.level.EditorMapStaticObjectLoader
-import qorrnsmj.smf.game.level.GlbLevel
-import qorrnsmj.smf.game.level.GlbLevelApplier
-import qorrnsmj.smf.game.level.GlbLevelLoader
-import qorrnsmj.smf.game.level.GlbTrigger
 import qorrnsmj.smf.game.level.Level
 import qorrnsmj.smf.game.level.LevelDefinition
 import qorrnsmj.smf.game.progress.GameProgress
@@ -62,8 +58,6 @@ class TestLevel(
     private val definition: LevelDefinition,
 ) : Level() {
     private companion object {
-        const val USE_TEMPORARY_GLB_LEVEL = false
-        const val LOAD_GLB_TEST_LEVEL = false
         const val EDITOR_STAGE_PATH = "assets/level/stage.json"
         const val USE_WIDE_TERRAIN_FOG_TEST = true
         const val SHADOW_NORMAL_STRENGTH = 0.86f
@@ -110,9 +104,6 @@ class TestLevel(
         scene.entities.add(player)
         logPlayerCapsuleCollision()
 
-        if (LOAD_GLB_TEST_LEVEL) {
-            loadGlbLevel()
-        }
         loadEditorStage()
         loadSavedProgressIfPresent()
         addTeleportTriggerTestFixture()
@@ -415,7 +406,7 @@ class TestLevel(
     private fun handleLevelSwitchTestInput() {
         val isPressed = glfwGetKey(SMF.window.id, GLFW_KEY_F7) == GLFW_PRESS
         if (isPressed && !levelSwitchTestPressed) {
-            val targetLevel = if (definition.name == "home") "test_level" else "home"
+            val targetLevel = "stage"
             Logger.info("TestLevel manual level switch requested: {} -> {}", definition.name, targetLevel)
             switchLevel(targetLevel)
         }
@@ -438,24 +429,6 @@ class TestLevel(
             )
         )
         Logger.info("Wide terrain fog test enabled")
-    }
-
-    private fun loadGlbLevel() {
-        val glbLevel = if (USE_TEMPORARY_GLB_LEVEL) {
-            GlbLevel.createTemporaryTestLevel()
-        } else {
-            GlbLevelLoader.load(definition.glbPath ?: error("TestLevel requires glb in ${definition.resourcePath}"))
-        }
-        eventTasks.addAll(
-            GlbLevelApplier.apply(
-                level = glbLevel,
-                scene = scene,
-                player = player,
-                onAreaTriggerEvent = { eventName, trigger ->
-                    handleAreaTriggerEvent(eventName, trigger)
-                },
-            )
-        )
     }
 
     private fun addTeleportTriggerTestFixture() {
@@ -501,19 +474,19 @@ class TestLevel(
         scene.camera = player.camera
     }
 
-    private fun handleAreaTriggerEvent(eventName: String, trigger: GlbTrigger) {
-        val targetLevel = trigger.properties["switchLevel"]
-            ?: trigger.properties["levelName"]
-            ?: eventName.substringAfter("switchLevel:", missingDelimiterValue = "")
-                .takeIf { eventName.startsWith("switchLevel:") }
+    private fun handleAreaTriggerEvent(eventArea: EventAreaDefinition) {
+        val targetLevel = eventArea.properties["switchLevel"]
+            ?: eventArea.properties["levelName"]
+            ?: eventArea.id.substringAfter("switchLevel:", missingDelimiterValue = "")
+                .takeIf { eventArea.id.startsWith("switchLevel:") }
 
         if (!targetLevel.isNullOrBlank()) {
-            Logger.info("TestLevel trigger requested level switch: {} -> {}", trigger.name, targetLevel)
+            Logger.info("TestLevel trigger requested level switch: {} -> {}", eventArea.name, targetLevel)
             switchLevel(targetLevel)
             return
         }
 
-        Logger.info("TestLevel GLB AreaTrigger fired: {} ({})", eventName, trigger.name)
+        Logger.info("TestLevel editor AreaTrigger fired: {} ({})", eventArea.id, eventArea.name)
     }
 
     override fun update(delta: Float) {
