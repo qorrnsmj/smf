@@ -3,6 +3,7 @@ package qorrnsmj.smf.graphic.render
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.map.GameMap
+import qorrnsmj.smf.graphic.FogSettings
 import qorrnsmj.smf.graphic.Scene
 import qorrnsmj.smf.graphic.render.shader.MapShaderProgram
 import qorrnsmj.smf.graphic.texture.Textures
@@ -13,11 +14,6 @@ import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils
 
 class MapRenderer : SceneRenderer, Resizable {
-    private companion object {
-        const val FOG_DENSITY = 0.00045f
-        const val FOG_GRADIENT = 1.5f
-    }
-
     private val program = MapShaderProgram()
     private val locationModel = glGetUniformLocation(program.id, "model")
     private val locationView = glGetUniformLocation(program.id, "view")
@@ -25,8 +21,14 @@ class MapRenderer : SceneRenderer, Resizable {
     private val locationMapTexture = glGetUniformLocation(program.id, "mapTexture")
     private val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
     private val locationCameraPosition = glGetUniformLocation(program.id, "cameraPosition")
-    private val locationFogDensity = glGetUniformLocation(program.id, "fogDensity")
-    private val locationFogGradient = glGetUniformLocation(program.id, "fogGradient")
+    private val locationFogEnabled = glGetUniformLocation(program.id, "fog.enabled")
+    private val locationFogColor = glGetUniformLocation(program.id, "fog.color")
+    private val locationFogDistanceDensity = glGetUniformLocation(program.id, "fog.distanceDensity")
+    private val locationFogDistanceGradient = glGetUniformLocation(program.id, "fog.distanceGradient")
+    private val locationFogHeightDensity = glGetUniformLocation(program.id, "fog.heightDensity")
+    private val locationFogBottomY = glGetUniformLocation(program.id, "fog.bottomY")
+    private val locationFogTopY = glGetUniformLocation(program.id, "fog.topY")
+    private val locationFogHeightFalloff = glGetUniformLocation(program.id, "fog.heightFalloff")
     private val locationLightSpaceMatrix = glGetUniformLocation(program.id, "lightSpaceMatrix")
     private val locationShadowMap = glGetUniformLocation(program.id, "shadowMap")
     private val locationShadowEnabled = glGetUniformLocation(program.id, "shadowEnabled")
@@ -41,7 +43,7 @@ class MapRenderer : SceneRenderer, Resizable {
         program.use()
         loadCamera(scene.camera)
         loadSkyColor(scene.skyColor)
-        loadFog(FOG_DENSITY, FOG_GRADIENT)
+        loadFog(scene.fog)
         loadShadow(shadowState)
         renderMap(gameMap)
     }
@@ -88,9 +90,15 @@ class MapRenderer : SceneRenderer, Resizable {
         UniformUtils.setUniform(locationSkyColor, skyColor)
     }
 
-    private fun loadFog(density: Float, gradient: Float) {
-        UniformUtils.setUniform(locationFogDensity, density)
-        UniformUtils.setUniform(locationFogGradient, gradient)
+    private fun loadFog(fog: FogSettings) {
+        UniformUtils.setUniform(locationFogEnabled, if (fog.enabled) 1 else 0)
+        UniformUtils.setUniform(locationFogColor, fog.color)
+        UniformUtils.setUniform(locationFogDistanceDensity, fog.distanceDensity)
+        UniformUtils.setUniform(locationFogDistanceGradient, fog.distanceGradient)
+        UniformUtils.setUniform(locationFogHeightDensity, fog.heightDensity)
+        UniformUtils.setUniform(locationFogBottomY, fog.bottomY)
+        UniformUtils.setUniform(locationFogTopY, fog.topY)
+        UniformUtils.setUniform(locationFogHeightFalloff, fog.heightFalloff)
     }
 
     private fun loadShadow(shadowState: ShadowRenderState) {

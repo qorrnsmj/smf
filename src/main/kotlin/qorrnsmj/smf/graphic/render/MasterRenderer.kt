@@ -44,7 +44,9 @@ class MasterRenderer : SceneRenderer, Resizable {
         glClearColor(skyColor.x, skyColor.y, skyColor.z, 1f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        skyboxRenderer.render(scene)
+        if (scene.skyboxEnabled) {
+            skyboxRenderer.render(scene)
+        }
         terrainRenderer.render(scene, shadowState)
         mapRenderer.render(scene, shadowState)
         entityRenderer.render(scene, shadowState)

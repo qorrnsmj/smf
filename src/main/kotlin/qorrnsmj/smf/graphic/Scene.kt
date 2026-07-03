@@ -17,6 +17,7 @@ data class Scene(
     var map: GameMap? = null,
     var terrain: Terrain? = null,
     var terrainHeightProvider: HeightProvider? = null,
+    var skyboxEnabled: Boolean = true,
     var skybox: Skybox = Skyboxes.DEFAULT,
     var skyColor: Vector3f = Vector3f(1f, 1f, 1f),
     val lights: MutableList<Light> = mutableListOf(),
@@ -24,4 +25,5 @@ data class Scene(
     val effects: MutableList<Effect> = mutableListOf(),
     val textElements: MutableList<TextElement> = mutableListOf(),
     val cinematicOverlay: CinematicOverlay = CinematicOverlay(),
+    val fog: FogSettings = FogSettings(),
 )
