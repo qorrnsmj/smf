@@ -3,20 +3,30 @@ package qorrnsmj.smf.graphic.render
 import de.javagl.jgltf.model.v2.MaterialModelV2.AlphaMode
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.game.entity.EntityModels
+import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.graphic.`object`.Model
 import qorrnsmj.smf.graphic.FogSettings
 import qorrnsmj.smf.graphic.Scene
-import qorrnsmj.smf.util.MVP
+import qorrnsmj.smf.graphic.light.DirectionalLight
 import qorrnsmj.smf.graphic.light.Light
+import qorrnsmj.smf.graphic.light.SpotLight
+import qorrnsmj.smf.graphic.light.SunLight
 import qorrnsmj.smf.graphic.render.shader.EntityShaderProgram
+import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils.setUniform
 
 class EntityRenderer : SceneRenderer, Resizable {
-    // TODO: locationはシェーダークラスに書く?
+    private companion object {
+        const val MAX_POINT_LIGHTS = 30
+        const val SHADOW_TEXTURE_UNIT = 5
+        const val LOCAL_SHADOW_TEXTURE_UNIT = 6
+        const val POINT_SHADOW_TEXTURE_UNIT_START = 7
+    }
+
     val program = EntityShaderProgram()
     val locationModel = glGetUniformLocation(program.id, "model")
     val locationView = glGetUniformLocation(program.id, "view")
@@ -36,14 +46,42 @@ class EntityRenderer : SceneRenderer, Resizable {
     val locationLightSpaceMatrix = glGetUniformLocation(program.id, "lightSpaceMatrix")
     val locationShadowMap = glGetUniformLocation(program.id, "shadowMap")
     val locationShadowEnabled = glGetUniformLocation(program.id, "shadowEnabled")
+    val locationShadowStrength = glGetUniformLocation(program.id, "shadowStrength")
+    val locationLocalShadowMap = glGetUniformLocation(program.id, "localShadowMap")
+    val locationLocalShadowCount = glGetUniformLocation(program.id, "localShadowCount")
+    val locationLocalShadowMatrices = glGetUniformLocation(program.id, "localShadowMatrices[0]")
+    val locationLocalShadowStrengths = glGetUniformLocation(program.id, "localShadowStrengths[0]")
+    val locationLocalLightShadowIndices = glGetUniformLocation(program.id, "localLightShadowIndices[0]")
+    val locationPointShadowCount = glGetUniformLocation(program.id, "pointShadowCount")
+    val locationPointShadowFarPlanes = glGetUniformLocation(program.id, "pointShadowFarPlanes[0]")
+    val locationPointShadowStrengths = glGetUniformLocation(program.id, "pointShadowStrengths[0]")
+    val locationPointLightShadowIndices = glGetUniformLocation(program.id, "pointLightShadowIndices[0]")
+    val locationPointShadowMaps = IntArray(MAX_POINT_LIGHT_SHADOWS) { index ->
+        glGetUniformLocation(program.id, "pointShadowMaps[$index]")
+    }
+    val locationSunLight = hashMapOf<String, Int>()
     val locationLights = mutableMapOf<Int, HashMap<String, Int>>()
     val locationMaterials = hashMapOf<String, Int>()
 
     init {
-        for (i in 0..30) {
+        locationSunLight["direction"] = glGetUniformLocation(program.id, "sunLight.direction")
+        locationSunLight["color"] = glGetUniformLocation(program.id, "sunLight.color")
+        locationSunLight["intensity"] = glGetUniformLocation(program.id, "sunLight.intensity")
+        locationSunLight["ambientColor"] = glGetUniformLocation(program.id, "sunLight.ambientColor")
+        locationSunLight["ambientIntensity"] = glGetUniformLocation(program.id, "sunLight.ambientIntensity")
+
+        for (i in 0 until MAX_POINT_LIGHTS) {
             locationLights[i] = hashMapOf(
                 "position" to glGetUniformLocation(program.id, "lights[$i].position"),
                 "color" to glGetUniformLocation(program.id, "lights[$i].color"),
+                "intensity" to glGetUniformLocation(program.id, "lights[$i].intensity"),
+                "constant" to glGetUniformLocation(program.id, "lights[$i].constant"),
+                "linear" to glGetUniformLocation(program.id, "lights[$i].linear"),
+                "quadratic" to glGetUniformLocation(program.id, "lights[$i].quadratic"),
+                "type" to glGetUniformLocation(program.id, "lights[$i].type"),
+                "direction" to glGetUniformLocation(program.id, "lights[$i].direction"),
+                "innerCutOff" to glGetUniformLocation(program.id, "lights[$i].innerCutOff"),
+                "outerCutOff" to glGetUniformLocation(program.id, "lights[$i].outerCutOff"),
             )
         }
 
@@ -51,28 +89,26 @@ class EntityRenderer : SceneRenderer, Resizable {
         locationMaterials["emissiveFactor"] = glGetUniformLocation(program.id, "material.emissiveFactor")
         locationMaterials["metallicFactor"] = glGetUniformLocation(program.id, "material.metallicFactor")
         locationMaterials["roughnessFactor"] = glGetUniformLocation(program.id, "material.roughnessFactor")
-
         locationMaterials["baseColorTexture"] = glGetUniformLocation(program.id, "material.baseColorTexture")
         locationMaterials["metallicRoughnessTexture"] = glGetUniformLocation(program.id, "material.metallicRoughnessTexture")
         locationMaterials["normalTexture"] = glGetUniformLocation(program.id, "material.normalTexture")
         locationMaterials["occlusionTexture"] = glGetUniformLocation(program.id, "material.occlusionTexture")
         locationMaterials["emissiveTexture"] = glGetUniformLocation(program.id, "material.emissiveTexture")
-
         locationMaterials["normalScale"] = glGetUniformLocation(program.id, "material.normalScale")
         locationMaterials["occlusionStrength"] = glGetUniformLocation(program.id, "material.occlusionStrength")
-
         locationMaterials["alphaMode"] = glGetUniformLocation(program.id, "material.alphaMode")
         locationMaterials["alphaCutoff"] = glGetUniformLocation(program.id, "material.alphaCutoff")
         locationMaterials["doubleSided"] = glGetUniformLocation(program.id, "material.doubleSided")
     }
 
     override fun render(scene: Scene) {
-        render(scene, ShadowRenderState(false, qorrnsmj.smf.math.Matrix4f(), 0))
+        render(scene, ShadowRenderState(false, Matrix4f(), 0))
     }
 
     fun render(scene: Scene, shadowState: ShadowRenderState) {
         start()
         loadCamera(scene.camera)
+        loadSunLight(scene.sunLight)
         loadLights(scene.lights)
         loadSkyColor(scene.skyColor)
         loadFog(scene.fog)
@@ -88,9 +124,6 @@ class EntityRenderer : SceneRenderer, Resizable {
     private fun stop() {
     }
 
-    /* Render */
-
-    // TODO: テクスチャキャッシング - 同じテクスチャは再bind しない
     private fun renderEntities(camera: Camera, entities: List<Entity>) {
         val batchMap = mutableMapOf<Model, MutableList<Entity>>()
         for (entity in entities) processEntity(entity, batchMap)
@@ -107,8 +140,7 @@ class EntityRenderer : SceneRenderer, Resizable {
         glDisable(GL_BLEND)
 
         for ((model, targets) in batchMap) {
-            if (model.material.alphaMode == AlphaMode.BLEND)
-                continue
+            if (model.material.alphaMode == AlphaMode.BLEND) continue
 
             bindModel(model)
             for (target in targets) {
@@ -124,26 +156,20 @@ class EntityRenderer : SceneRenderer, Resizable {
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-        // sort by distance from camera
         data class DrawItem(val model: Model, val entity: Entity, val distanceSq: Float)
         val blendItems = mutableListOf<DrawItem>()
         for ((model, targets) in batchMap) {
             if (model.material.alphaMode != AlphaMode.BLEND) continue
-
             for (entity in targets) {
-                // TODO: エンティティとの距離はUtilクラスに
                 val worldPos = entity.worldTransform.position
                 val dx = worldPos.x - camera.position.x
                 val dy = worldPos.y - camera.position.y
                 val dz = worldPos.z - camera.position.z
-                val distSq = dx * dx + dy * dy + dz * dz
-
-                blendItems.add(DrawItem(model, entity, distSq))
+                blendItems.add(DrawItem(model, entity, dx * dx + dy * dy + dz * dz))
             }
         }
         blendItems.sortByDescending { it.distanceSq }
 
-        // render
         var boundModel: Model? = null
         for (item in blendItems) {
             if (boundModel != item.model) {
@@ -151,75 +177,62 @@ class EntityRenderer : SceneRenderer, Resizable {
                 bindModel(item.model)
                 boundModel = item.model
             }
-
             prepareEntity(item.entity)
             glDrawElements(GL_TRIANGLES, item.model.mesh.vertexCount, item.model.mesh.vertexType, 0)
         }
         unbindModel()
     }
 
-    // Transform hierarchy support: render with world coordinates
     private fun processEntity(entity: Entity, batchMap: MutableMap<Model, MutableList<Entity>>) {
-        // parent model (use world coordinates for rendering)
         if (entity.model != EntityModels.EMPTY) {
-            val batch = batchMap.getOrPut(entity.model) { mutableListOf() }
-            batch.add(entity)
+            batchMap.getOrPut(entity.model) { mutableListOf() }.add(entity)
         }
-
-        // children model (also use world coordinates - transform hierarchy is handled automatically)
         for (child in entity.children) {
             processEntity(child, batchMap)
         }
     }
 
     private fun prepareEntity(entity: Entity) {
-        // Use world coordinates for rendering (resolves TODO: 親のpos, rot, scaleを子にも適用)
         val world = entity.worldTransform
-        
         setUniform(locationModel, MVP.getModelMatrix(world.position, world.rotation, world.scale))
     }
 
     private fun bindModel(model: Model) {
         glBindVertexArray(model.mesh.vao)
         setUniform(locationFakeLighting, if (model.fakeLighting) 1 else 0)
-        val m = model.material
+        val material = model.material
 
-        // factors
-        setUniform(locationMaterials["baseColorFactor"]!!, m.baseColorFactor)
-        setUniform(locationMaterials["emissiveFactor"]!!, m.emissiveFactor)
-        setUniform(locationMaterials["metallicFactor"]!!, m.metallicFactor)
-        setUniform(locationMaterials["roughnessFactor"]!!, m.roughnessFactor)
-
-        // textures
-        setUniform(locationMaterials["baseColorTexture"]!!, m.baseColorTexture.id, 0)
-        setUniform(locationMaterials["metallicRoughnessTexture"]!!, m.metallicRoughnessTexture.id, 1)
-        setUniform(locationMaterials["normalTexture"]!!, m.normalTexture.id, 2)
-        setUniform(locationMaterials["occlusionTexture"]!!, m.occlusionTexture.id, 3)
-        setUniform(locationMaterials["emissiveTexture"]!!, m.emissiveTexture.id, 4)
-
-        // texture params
-        setUniform(locationMaterials["normalScale"]!!, m.normalScale)
-        setUniform(locationMaterials["occlusionStrength"]!!, m.occlusionStrength)
-
-        // render states
-        setUniform(locationMaterials["alphaMode"]!!, m.alphaMode.ordinal)
-        setUniform(locationMaterials["alphaCutoff"]!!, m.alphaCutoff)
-        if (m.doubleSided) glDisable(GL_CULL_FACE)
+        setUniform(locationMaterials["baseColorFactor"]!!, material.baseColorFactor)
+        setUniform(locationMaterials["emissiveFactor"]!!, material.emissiveFactor)
+        setUniform(locationMaterials["metallicFactor"]!!, material.metallicFactor)
+        setUniform(locationMaterials["roughnessFactor"]!!, material.roughnessFactor)
+        setUniform(locationMaterials["baseColorTexture"]!!, material.baseColorTexture.id, 0)
+        setUniform(locationMaterials["metallicRoughnessTexture"]!!, material.metallicRoughnessTexture.id, 1)
+        setUniform(locationMaterials["normalTexture"]!!, material.normalTexture.id, 2)
+        setUniform(locationMaterials["occlusionTexture"]!!, material.occlusionTexture.id, 3)
+        setUniform(locationMaterials["emissiveTexture"]!!, material.emissiveTexture.id, 4)
+        setUniform(locationMaterials["normalScale"]!!, material.normalScale)
+        setUniform(locationMaterials["occlusionStrength"]!!, material.occlusionStrength)
+        setUniform(locationMaterials["alphaMode"]!!, material.alphaMode.ordinal)
+        setUniform(locationMaterials["alphaCutoff"]!!, material.alphaCutoff)
+        if (material.doubleSided) glDisable(GL_CULL_FACE)
     }
 
     private fun unbindModel() {
         glBindVertexArray(0)
-
         glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
-
-        for (i in 0..5) {
+        for (i in 0 until POINT_SHADOW_TEXTURE_UNIT_START) {
             glActiveTexture(GL_TEXTURE0 + i)
             glBindTexture(GL_TEXTURE_2D, 0)
         }
+        glActiveTexture(GL_TEXTURE0 + LOCAL_SHADOW_TEXTURE_UNIT)
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0)
+        for (i in 0 until MAX_POINT_LIGHT_SHADOWS) {
+            glActiveTexture(GL_TEXTURE0 + POINT_SHADOW_TEXTURE_UNIT_START + i)
+            glBindTexture(GL_TEXTURE_CUBE_MAP, 0)
+        }
     }
-
-    /* Uniforms */
 
     private fun loadCamera(camera: Camera) {
         setUniform(locationView, camera.getViewMatrix())
@@ -227,15 +240,38 @@ class EntityRenderer : SceneRenderer, Resizable {
     }
 
     private fun loadLights(lights: List<Light>) {
-        // TODO: dynamic light count
-        glUniform1i(locationLightCount, lights.size)
+        val visibleLights = lights.take(MAX_POINT_LIGHTS)
+        glUniform1i(locationLightCount, visibleLights.size)
 
-        lights.forEachIndexed { index, light ->
+        visibleLights.forEachIndexed { index, light ->
             val locations = locationLights[index]!!
-            setUniform(locations.get("position")!!, light.position)
-            setUniform(locations.get("color")!!, Vector3f(1.0f, 1.0f, 1.0f))
-            // TODO: light color
+            setUniform(locations["position"]!!, light.position)
+            setUniform(locations["color"]!!, light.diffuse)
+            setUniform(locations["intensity"]!!, light.intensity)
+            setUniform(locations["constant"]!!, light.constant)
+            setUniform(locations["linear"]!!, light.linear)
+            setUniform(locations["quadratic"]!!, light.quadratic)
+            if (light is SpotLight) {
+                setUniform(locations["type"]!!, 1)
+                setUniform(locations["direction"]!!, light.direction)
+                setUniform(locations["innerCutOff"]!!, light.innerCutOff)
+                setUniform(locations["outerCutOff"]!!, light.outerCutOff)
+            } else {
+                setUniform(locations["type"]!!, 0)
+                setUniform(locations["direction"]!!, Vector3f(0f, -1f, 0f))
+                setUniform(locations["innerCutOff"]!!, 1f)
+                setUniform(locations["outerCutOff"]!!, 0f)
+            }
         }
+    }
+
+    private fun loadSunLight(sunLight: DirectionalLight?) {
+        val sun = sunLight ?: SunLight(intensity = 0f, ambientIntensity = 0.08f)
+        setUniform(locationSunLight["direction"]!!, sun.direction)
+        setUniform(locationSunLight["color"]!!, sun.color)
+        setUniform(locationSunLight["intensity"]!!, sun.intensity)
+        setUniform(locationSunLight["ambientColor"]!!, sun.ambientColor)
+        setUniform(locationSunLight["ambientIntensity"]!!, sun.ambientIntensity)
     }
 
     private fun loadSkyColor(skyColor: Vector3f) {
@@ -256,8 +292,32 @@ class EntityRenderer : SceneRenderer, Resizable {
     private fun loadShadow(shadowState: ShadowRenderState) {
         setUniform(locationLightSpaceMatrix, shadowState.lightSpaceMatrix)
         setUniform(locationShadowEnabled, if (shadowState.enabled) 1 else 0)
+        setUniform(locationShadowStrength, shadowState.strength)
         if (shadowState.enabled) {
-            setUniform(locationShadowMap, shadowState.depthTextureId, 5)
+            setUniform(locationShadowMap, shadowState.depthTextureId, SHADOW_TEXTURE_UNIT)
+        }
+
+        val local = shadowState.local
+        setUniform(locationLocalShadowCount, local.count)
+        setUniform(locationLocalLightShadowIndices, local.lightShadowIndices.copyOf(MAX_LOCAL_LIGHT_SHADOWS))
+        setUniform(locationLocalShadowStrengths, local.strengths.padded(MAX_LOCAL_LIGHT_SHADOWS))
+        setUniform(locationLocalShadowMatrices, local.matrices.paddedMatrices(MAX_LOCAL_LIGHT_SHADOWS))
+        if (local.enabled) {
+            glActiveTexture(GL_TEXTURE0 + LOCAL_SHADOW_TEXTURE_UNIT)
+            glBindTexture(GL_TEXTURE_2D_ARRAY, local.depthTextureId)
+            glUniform1i(locationLocalShadowMap, LOCAL_SHADOW_TEXTURE_UNIT)
+        }
+
+        val point = shadowState.point
+        setUniform(locationPointShadowCount, point.count)
+        setUniform(locationPointShadowFarPlanes, point.farPlanes.padded(MAX_POINT_LIGHT_SHADOWS))
+        setUniform(locationPointLightShadowIndices, point.lightShadowIndices.copyOf(MAX_LOCAL_LIGHT_SHADOWS))
+        setUniform(locationPointShadowStrengths, point.strengths.padded(MAX_POINT_LIGHT_SHADOWS))
+        for (index in 0 until MAX_POINT_LIGHT_SHADOWS) {
+            val unit = POINT_SHADOW_TEXTURE_UNIT_START + index
+            glActiveTexture(GL_TEXTURE0 + unit)
+            glBindTexture(GL_TEXTURE_CUBE_MAP, point.textureIds.getOrElse(index) { 0 })
+            glUniform1i(locationPointShadowMaps[index], unit)
         }
     }
 
@@ -265,4 +325,8 @@ class EntityRenderer : SceneRenderer, Resizable {
         program.use()
         setUniform(locationProjection, MVP.getPerspectiveMatrix(width / height.toFloat()))
     }
+
+    private fun FloatArray.padded(size: Int): FloatArray = FloatArray(size) { index -> getOrElse(index) { 0f } }
+
+    private fun List<Matrix4f>.paddedMatrices(size: Int): List<Matrix4f> = List(size) { index -> getOrElse(index) { Matrix4f() } }
 }

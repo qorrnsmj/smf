@@ -13,6 +13,22 @@ object UniformUtils {
         glUniform1f(location, value)
     }
 
+    fun setUniform(location: Int, value: IntArray) {
+        MemoryStack.stackPush().use {
+            val buffer = it.mallocInt(value.size)
+            buffer.put(value).flip()
+            glUniform1iv(location, buffer)
+        }
+    }
+
+    fun setUniform(location: Int, value: FloatArray) {
+        MemoryStack.stackPush().use {
+            val buffer = it.mallocFloat(value.size)
+            buffer.put(value).flip()
+            glUniform1fv(location, buffer)
+        }
+    }
+
     fun setUniform(location: Int, value: Vector2f) {
         glUniform2f(location, value.x, value.y)
     }
@@ -45,6 +61,20 @@ object UniformUtils {
         MemoryStack.stackPush().use {
             val buffer = it.mallocFloat(4 * 4)
             value.toBuffer(buffer)
+            glUniformMatrix4fv(location, false, buffer)
+        }
+    }
+
+    fun setUniform(location: Int, values: List<Matrix4f>) {
+        MemoryStack.stackPush().use {
+            val buffer = it.mallocFloat(values.size * 16)
+            values.forEach { matrix ->
+                buffer.put(matrix.m00).put(matrix.m10).put(matrix.m20).put(matrix.m30)
+                buffer.put(matrix.m01).put(matrix.m11).put(matrix.m21).put(matrix.m31)
+                buffer.put(matrix.m02).put(matrix.m12).put(matrix.m22).put(matrix.m32)
+                buffer.put(matrix.m03).put(matrix.m13).put(matrix.m23).put(matrix.m33)
+            }
+            buffer.flip()
             glUniformMatrix4fv(location, false, buffer)
         }
     }

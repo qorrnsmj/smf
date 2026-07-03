@@ -6,6 +6,9 @@ import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.player.Player
 import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
 import qorrnsmj.smf.graphic.light.PointLight
+import qorrnsmj.smf.graphic.light.SunLight
+import qorrnsmj.smf.graphic.render.RenderProfileManager
+import qorrnsmj.smf.graphic.render.RenderProfiles
 import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.PhysicsWorld
@@ -17,6 +20,7 @@ open class JsonLevel(
 
     override fun load() {
         EntityModels.loadStageModels(definition.entityModels)
+        RenderProfileManager.applyTo(scene, RenderProfiles.fromName(definition.renderProfile))
 
         player = Player()
         scene.entities.add(player)
@@ -32,16 +36,25 @@ open class JsonLevel(
             )
         }
 
+        scene.sunLight = SunLight(
+            direction = Vector3f(-0.35f, -1f, -0.25f),
+            color = Vector3f(1f, 0.92f, 0.78f),
+            intensity = 2.4f,
+            ambientColor = Vector3f(0.38f, 0.45f, 0.55f),
+            ambientIntensity = 0.2f,
+            shadowStrength = 0.68f,
+        )
         scene.lights.add(
             PointLight().apply {
-                position = Vector3f(0f, 3000f, 0f)
-                ambient = Vector3f(0.1f, 0.1f, 0.1f)
-                diffuse = Vector3f(1f, 1f, 1f)
-                specular = Vector3f(1f, 1f, 1f)
-                shininess = 32f
+                position = Vector3f(180f, 180f, 180f)
+                diffuse = Vector3f(1f, 0.62f, 0.32f)
+                specular = Vector3f(1f, 0.8f, 0.6f)
+                intensity = 4f
                 constant = 1f
-                linear = 0f
-                quadratic = 0f
+                linear = 0.006f
+                quadratic = 0.00002f
+                castsShadow = true
+                shadowStrength = 0.5f
             }
         )
         scene.skybox = Skyboxes.SKY1

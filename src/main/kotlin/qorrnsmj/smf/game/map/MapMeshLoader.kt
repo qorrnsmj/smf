@@ -34,6 +34,7 @@ object MapMeshLoader {
             loadMeshInternal(
                 positions = meshData.positions.toFloatArray(),
                 texCoords = meshData.texCoords.toFloatArray(),
+                normals = meshData.normals.toFloatArray(),
                 indices = meshData.indices.toIntArray(),
             )
         }
@@ -47,7 +48,7 @@ object MapMeshLoader {
             val faceVertices = MapGeometryBuilder.buildFaceVertices(brush, face)
             if (faceVertices.size >= 3) {
                 val meshData = meshes.getOrPut(face.texture.lowercase()) { MeshData() }
-                appendFace(face, faceVertices, meshData.positions, meshData.texCoords, meshData.indices)
+                appendFace(face, faceVertices, meshData.positions, meshData.texCoords, meshData.normals, meshData.indices)
             }
         }
     }
@@ -57,9 +58,11 @@ object MapMeshLoader {
         vertices: List<Vector3f>,
         positions: MutableList<Float>,
         texCoords: MutableList<Float>,
+        normals: MutableList<Float>,
         indices: MutableList<Int>,
     ) {
         val startIndex = positions.size / 3
+        val normal = MapGeometryBuilder.toPlane(face).normal
 
         for (vertex in vertices) {
             positions.add(vertex.x)
@@ -68,6 +71,9 @@ object MapMeshLoader {
             val uv = calculateUv(face, vertex)
             texCoords.add(uv.first)
             texCoords.add(uv.second)
+            normals.add(normal.x)
+            normals.add(normal.y)
+            normals.add(normal.z)
         }
 
         for (index in 1 until vertices.lastIndex) {
@@ -110,6 +116,7 @@ object MapMeshLoader {
     private fun loadMeshInternal(
         positions: FloatArray,
         texCoords: FloatArray,
+        normals: FloatArray,
         indices: IntArray,
     ): Mesh {
         val vao = VertexArrayObject()
@@ -118,10 +125,12 @@ object MapMeshLoader {
 
         bindVbo(0, 3, positions)
         bindVbo(1, 2, texCoords)
+        bindVbo(2, 3, normals)
         bindEbo(indices)
 
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
+        glEnableVertexAttribArray(2)
 
         glBindVertexArray(0)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
@@ -161,6 +170,7 @@ object MapMeshLoader {
     private data class MeshData(
         val positions: MutableList<Float> = mutableListOf(),
         val texCoords: MutableList<Float> = mutableListOf(),
+        val normals: MutableList<Float> = mutableListOf(),
         val indices: MutableList<Int> = mutableListOf(),
     )
 }

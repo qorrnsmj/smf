@@ -34,7 +34,7 @@ class MasterRenderer : SceneRenderer, Resizable {
     }
 
     override fun render(scene: Scene) {
-        val shadowState = shadowRenderer.render(scene)
+        val shadowState = RenderProfileManager.createShadowState(scene, shadowRenderer)
         glViewport(0, 0, viewportWidth, viewportHeight)
 
         // If there are no effects, render directly to the default frame-buffer

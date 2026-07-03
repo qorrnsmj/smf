@@ -19,7 +19,7 @@ class PostProcessor : Resizable {
         -1f, -1f, 0f, 0f, 0f,
         1f, -1f, 0f, 1f, 0f,
         -1f, 1f, 0f, 0f, 1f,
-        1f, 1f, 0f, 1f, 1f
+        1f, 1f, 0f, 1f, 1f,
     )
 
     init {
@@ -46,9 +46,9 @@ class PostProcessor : Resizable {
     fun applyPostProcess(effects: List<Effect>) {
         this.effects = effects
 
-        // Apply each effect except the last one
         for (effect in effects.dropLast(1)) {
             outFbo.bind()
+            prepareEffect(effect, inFbo)
             effect.use()
             renderScreenQuad()
             effect.unuse()
@@ -58,26 +58,26 @@ class PostProcessor : Resizable {
             outFbo = tmp
         }
 
-        // Bind default FBO
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-        // Apply the last effect
         val lastEffect = effects.last()
+        prepareEffect(lastEffect, inFbo)
         lastEffect.use()
         renderScreenQuad()
         lastEffect.unuse()
     }
 
+    private fun prepareEffect(effect: Effect, source: FrameBufferObject) {
+    }
+
     private fun renderScreenQuad() {
         quadVao.bind()
+        glActiveTexture(GL_TEXTURE0)
         inFbo.colorTexture.bind()
 
-        // Render the screen quad
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
     }
-
-    /* Misc */
 
     override fun resize(width: Int, height: Int) {
         this.width = width

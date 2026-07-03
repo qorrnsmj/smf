@@ -9,6 +9,7 @@ abstract class Light(
     var diffuse: Vector3f,
     var specular: Vector3f,
     var shininess: Float,
+    var intensity: Float,
     var constant: Float,
     var linear: Float,
     var quadratic: Float
