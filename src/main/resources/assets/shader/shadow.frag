@@ -1,4 +1,5 @@
 #version 330 core
+#extension GL_ARB_separate_shader_objects : enable
 
 uniform bool pointShadowPass;
 uniform vec3 pointLightPosition;

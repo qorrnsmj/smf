@@ -1,4 +1,5 @@
 #version 330 core
+#extension GL_ARB_separate_shader_objects : enable
 
 const int MAX_LOCAL_LIGHTS = 30;
 const int MAX_POINT_SHADOWS = 8;

@@ -1,6 +1,6 @@
 {
     "name": "test",
-    "renderProfile": "unshadowed",
+    "renderProfile": "shadowed",
     "editor_version": "1.0",
     "environment": {
         "skybox": "",

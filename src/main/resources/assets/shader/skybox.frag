@@ -1,4 +1,5 @@
 #version 330 core
+#extension GL_ARB_separate_shader_objects : enable
 
 uniform samplerCube texImage;
 uniform vec3 skyColor;

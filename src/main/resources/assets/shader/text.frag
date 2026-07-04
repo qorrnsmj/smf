@@ -1,4 +1,5 @@
 #version 330 core
+#extension GL_ARB_separate_shader_objects : enable
 
 in vec2 v_texCoords;
 out vec4 FragColor;

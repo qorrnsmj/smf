@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "qorrnsmj"
-version = "0.4.0"
+version = "0.4.1"
 
 plugins {
     kotlin("jvm") version "2.0.0"
