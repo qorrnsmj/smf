@@ -2,7 +2,9 @@ package qorrnsmj.smf.graphic.render
 
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.camera.Camera
+import qorrnsmj.smf.graphic.FogSettings
 import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.graphic.ViewportShadingMode
 import qorrnsmj.smf.graphic.light.DirectionalLight
 import qorrnsmj.smf.graphic.light.Light
 import qorrnsmj.smf.graphic.light.SpotLight
@@ -12,10 +14,10 @@ import qorrnsmj.smf.graphic.terrain.Terrain
 import qorrnsmj.smf.graphic.terrain.component.BlendedTexture
 import qorrnsmj.smf.graphic.terrain.component.SingleTexture
 import qorrnsmj.smf.graphic.terrain.component.TerrainTextureMode
-import qorrnsmj.smf.graphic.FogSettings
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.math.Vector4f
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils
@@ -26,6 +28,7 @@ class TerrainRenderer : SceneRenderer, Resizable {
         const val SHADOW_TEXTURE_UNIT = 5
         const val LOCAL_SHADOW_TEXTURE_UNIT = 6
         const val POINT_SHADOW_TEXTURE_UNIT_START = 7
+        val SOLID_VIEW_COLOR = Vector4f(0.52f, 0.54f, 0.56f, 1f)
     }
 
     val program = TerrainShaderProgram()
@@ -38,6 +41,8 @@ class TerrainRenderer : SceneRenderer, Resizable {
     val locationTexFlower = glGetUniformLocation(program.id, "texFlower")
     val locationTexDirt = glGetUniformLocation(program.id, "texDirt")
     val locationTexPath = glGetUniformLocation(program.id, "texPath")
+    val locationGrayView = glGetUniformLocation(program.id, "grayView")
+    val locationGrayColor = glGetUniformLocation(program.id, "grayColor")
     val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
     val locationCameraPosition = glGetUniformLocation(program.id, "cameraPosition")
     val locationFogEnabled = glGetUniformLocation(program.id, "fog.enabled")
@@ -105,6 +110,7 @@ class TerrainRenderer : SceneRenderer, Resizable {
         loadSkyColor(scene.skyColor)
         loadFog(scene.fog)
         loadShadow(shadowState)
+        loadViewportShading(scene.viewportShadingMode)
         renderTerrains(terrain)
         stop()
     }
@@ -180,6 +186,12 @@ class TerrainRenderer : SceneRenderer, Resizable {
 
     private fun loadSkyColor(skyColor: Vector3f) {
         UniformUtils.setUniform(locationSkyColor, skyColor)
+    }
+
+    private fun loadViewportShading(mode: ViewportShadingMode) {
+        val grayView = mode == ViewportShadingMode.SOLID || mode == ViewportShadingMode.WIRE
+        UniformUtils.setUniform(locationGrayView, if (grayView) 1 else 0)
+        UniformUtils.setUniform(locationGrayColor, SOLID_VIEW_COLOR)
     }
 
     private fun loadFog(fog: FogSettings) {

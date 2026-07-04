@@ -49,6 +49,8 @@ uniform Light lights[MAX_LOCAL_LIGHTS];
 uniform SunLight sunLight;
 uniform vec3 cameraPosition;
 uniform vec3 skyColor;
+uniform bool grayView;
+uniform vec4 grayColor;
 uniform sampler2D shadowMap;
 uniform bool shadowEnabled;
 uniform float shadowStrength;
@@ -221,6 +223,9 @@ void main() {
     vec4 baseColor = texture(material.baseColorTexture, texCoord) * material.baseColorFactor;
     if (material.alphaMode == 1 && baseColor.a < material.alphaCutoff) {
         discard;
+    }
+    if (grayView) {
+        baseColor = vec4(grayColor.rgb, baseColor.a * grayColor.a);
     }
 
     vec3 N = normalize(worldNormal);

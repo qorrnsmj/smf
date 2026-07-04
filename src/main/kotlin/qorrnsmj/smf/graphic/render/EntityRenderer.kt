@@ -8,6 +8,7 @@ import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.graphic.`object`.Model
 import qorrnsmj.smf.graphic.FogSettings
 import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.graphic.ViewportShadingMode
 import qorrnsmj.smf.graphic.light.DirectionalLight
 import qorrnsmj.smf.graphic.light.Light
 import qorrnsmj.smf.graphic.light.SpotLight
@@ -15,6 +16,7 @@ import qorrnsmj.smf.graphic.light.SunLight
 import qorrnsmj.smf.graphic.render.shader.EntityShaderProgram
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
+import qorrnsmj.smf.math.Vector4f
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils.setUniform
@@ -25,6 +27,7 @@ class EntityRenderer : SceneRenderer, Resizable {
         const val SHADOW_TEXTURE_UNIT = 5
         const val LOCAL_SHADOW_TEXTURE_UNIT = 6
         const val POINT_SHADOW_TEXTURE_UNIT_START = 7
+        val SOLID_VIEW_COLOR = Vector4f(0.52f, 0.54f, 0.56f, 1f)
     }
 
     val program = EntityShaderProgram()
@@ -32,6 +35,8 @@ class EntityRenderer : SceneRenderer, Resizable {
     val locationView = glGetUniformLocation(program.id, "view")
     val locationProjection = glGetUniformLocation(program.id, "projection")
     val locationFakeLighting = glGetUniformLocation(program.id, "fakeLighting")
+    val locationGrayView = glGetUniformLocation(program.id, "grayView")
+    val locationGrayColor = glGetUniformLocation(program.id, "grayColor")
     val locationSkyColor = glGetUniformLocation(program.id, "skyColor")
     val locationCameraPosition = glGetUniformLocation(program.id, "cameraPosition")
     val locationLightCount = glGetUniformLocation(program.id, "lightCount")
@@ -113,6 +118,7 @@ class EntityRenderer : SceneRenderer, Resizable {
         loadSkyColor(scene.skyColor)
         loadFog(scene.fog)
         loadShadow(shadowState)
+        loadViewportShading(scene.viewportShadingMode)
         renderEntities(scene.camera, scene.entities)
         stop()
     }
@@ -276,6 +282,12 @@ class EntityRenderer : SceneRenderer, Resizable {
 
     private fun loadSkyColor(skyColor: Vector3f) {
         setUniform(locationSkyColor, skyColor)
+    }
+
+    private fun loadViewportShading(mode: ViewportShadingMode) {
+        val grayView = mode == ViewportShadingMode.SOLID || mode == ViewportShadingMode.WIRE
+        setUniform(locationGrayView, if (grayView) 1 else 0)
+        setUniform(locationGrayColor, SOLID_VIEW_COLOR)
     }
 
     private fun loadFog(fog: FogSettings) {

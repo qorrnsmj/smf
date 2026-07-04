@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.level
+package qorrnsmj.smf.game.level.custom
 
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.core.FixedTimestepGame

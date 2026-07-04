@@ -1,4 +1,6 @@
 {
+    "name": "test",
+    "renderProfile": "unshadowed",
     "editor_version": "1.0",
     "environment": {
         "skybox": "",
@@ -10,8 +12,8 @@
         "height_format": "png_16bit_grayscale_signed_cm",
         "min_height_cm": -32768,
         "max_height_cm": 32767,
-        "heightmap": "texture/terrain/map/stage_height.png",
-        "splatmaps": ["texture/terrain/map/stage_splat0.png"]
+        "heightmap": "texture/terrain/map/test_height.png",
+        "splatmaps": ["texture/terrain/map/test_splat0.png"]
     },
     "folders": [],
     "event": {
@@ -30,8 +32,8 @@
             "name": "CutsceneStartTrigger",
             "id": "cutscene_start_trigger",
             "folder": "",
-            "pos": [6.130933, 2.491444, 6.214334],
-            "rot": [0, 27.497219, 0],
+            "pos": [3.547751, 2.968556, 5.348565],
+            "rot": [0.856399, 89.449554, -2.355168],
             "size": [4.45685, 5.128819, 6.679835]
         }        ]
     },
@@ -45,7 +47,7 @@
             "model": "model/stall.glb",
             "folder": "",
             "pos": [3.752285, 0.254857, 7.592021],
-            "rot": [-90, -0.000003, -61.159534],
+            "rot": [90.000008, -0, -0.000002],
             "scale": [1, 1, 1],
             "collisions": []
         }

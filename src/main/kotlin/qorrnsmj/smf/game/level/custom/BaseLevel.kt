@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.level
+package qorrnsmj.smf.game.level.custom
 
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
@@ -6,6 +6,8 @@ import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.player.Player
 import qorrnsmj.smf.game.event.EditorMapEventLoader
 import qorrnsmj.smf.game.event.EventAreaDefinition
+import qorrnsmj.smf.game.level.LevelDefinition
+import qorrnsmj.smf.game.level.LevelDefinitionLoader
 import qorrnsmj.smf.game.task.Task
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.light.SunLight
@@ -15,20 +17,21 @@ import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.PhysicsWorld
 
-open class JsonLevel(
-    protected val definition: LevelDefinition,
+open class BaseLevel(
+    val levelId: String,
 ) : Level() {
+    protected lateinit var definition: LevelDefinition
     private val eventTasks: MutableList<Task> = mutableListOf()
 
     override fun load() {
+        definition = LevelDefinitionLoader.load(levelId)
         EntityModels.loadStageModels(definition.entityModels)
         RenderProfileManager.applyTo(scene, RenderProfiles.fromName(definition.renderProfile))
 
         player = Player()
         scene.entities.add(player)
 
-        EditorMapLevelLoader.loadInto(scene, definition.resourcePath)
-        EditorMapStaticObjectLoader.loadInto(scene, definition.resourcePath)
+        LevelDefinitionLoader.loadInto(scene, definition)
         eventTasks.addAll(
             EditorMapEventLoader.loadInto(
                 scene = scene,

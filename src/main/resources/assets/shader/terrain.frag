@@ -11,6 +11,8 @@ uniform sampler2D texPath;
 uniform sampler2D shadowMap;
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
+uniform bool grayView;
+uniform vec4 grayColor;
 uniform bool useSingleTexture;
 uniform bool shadowEnabled;
 uniform float shadowStrength;
@@ -161,6 +163,9 @@ void main() {
         vec4 dirtColor = texture(texDirt, tiledCoord) * blendMapColor.r;
         vec4 pathColor = texture(texPath, tiledCoord) * blendMapColor.b;
         finalColor = grassColor + flowerColor + dirtColor + pathColor;
+    }
+    if (grayView) {
+        finalColor = grayColor;
     }
 
     vec3 N = normalize(worldNormal);

@@ -6,8 +6,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import org.tinylog.kotlin.Logger
+import qorrnsmj.smf.game.level.custom.Level
 import java.util.concurrent.atomic.AtomicReference
 
+// TODO: シンプルに
 class LevelManager {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(job + Dispatchers.Default)
@@ -22,11 +24,12 @@ class LevelManager {
     val loadingState: LevelLoadingState
         get() = stateRef.get()
 
-    fun loadHomeLevel(levelName: String = HOME_LEVEL_NAME) {
+    fun loadLevel(entry: Levels.LevelEntry) {
         if (homeLevel != null || isTransitioning) return
 
+        val levelName = entry.id
+        val level = entry.create()
         stateRef.set(LevelLoadingState(isLoading = true, targetLevelName = levelName, phase = LevelLoadingPhase.LOADING))
-        val level = LevelFactory.create(levelName)
         prepareLevel(level)
         level.load()
         homeLevel = level
@@ -34,10 +37,6 @@ class LevelManager {
         activeLevelName = levelName
         stateRef.set(LevelLoadingState(targetLevelName = levelName, phase = LevelLoadingPhase.COMPLETE))
         level.start()
-    }
-
-    fun loadLevel(level: Level) {
-        switchToLevel(level, "direct")
     }
 
     fun switchLevel(levelName: String) {
@@ -58,7 +57,7 @@ class LevelManager {
         scope.launch {
             try {
                 stateRef.set(LevelLoadingState(isLoading = true, targetLevelName = levelName, phase = LevelLoadingPhase.LOADING))
-                val level = LevelFactory.create(levelName)
+                val level = createLevel(levelName)
                 pendingLoadedLevel = PendingLoadedLevel(levelName, level)
             } catch (exception: Exception) {
                 Logger.error(exception, "Failed to load level: {}", levelName)
@@ -125,12 +124,32 @@ class LevelManager {
         level.attachLevelSwitcher(::switchLevel)
     }
 
+    private fun createLevel(levelName: String): Level {
+        return Levels.create(levelName)
+    }
+
     private data class PendingLoadedLevel(
         val name: String,
         val level: Level,
     )
 
     companion object {
-        const val HOME_LEVEL_NAME = "stage"
+        const val HOME_LEVEL_NAME = "test"
+    }
+
+    data class LevelLoadingState(
+        val isLoading: Boolean = false,
+        val targetLevelName: String? = null,
+        val phase: LevelLoadingPhase = LevelLoadingPhase.IDLE,
+        val errorMessage: String? = null,
+    )
+
+    enum class LevelLoadingPhase {
+        IDLE,
+        UNLOADING,
+        LOADING,
+        STARTING,
+        COMPLETE,
+        FAILED,
     }
 }

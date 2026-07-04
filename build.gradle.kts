@@ -1,9 +1,8 @@
-import org.gradle.jvm.toolchain.JavaToolchainService
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "qorrnsmj"
-version = "0.3.5"
+version = "0.4.0"
 
 plugins {
     kotlin("jvm") version "2.0.0"
@@ -44,9 +43,7 @@ dependencies {
     implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion")
     implementation("org.lwjgl:lwjgl-openal:$lwjglVersion")
     implementation("io.github.spair:imgui-java-binding:$imguiVersion")
-    implementation("io.github.spair:imgui-java-lwjgl3:$imguiVersion") {
-        exclude(group = "org.lwjgl")
-    }
+    implementation("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
 
     runtimeOnly("org.lwjgl:lwjgl:$lwjglVersion:$nativeTarget")
     runtimeOnly("org.lwjgl:lwjgl-stb:$lwjglVersion:$nativeTarget")
@@ -97,8 +94,6 @@ tasks {
         archiveBaseName = "SMF"
         archiveVersion = "${rootProject.version}"
         archiveClassifier = ""
-        exclude("qorrnsmj/smf/editor/**")
-        exclude("imgui/**")
         manifest {
             attributes["Main-Class"] = "qorrnsmj.smf.SMF"
         }
