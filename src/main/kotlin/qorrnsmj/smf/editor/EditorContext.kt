@@ -10,9 +10,9 @@ import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.custom.ObjectEntity
 import qorrnsmj.smf.game.entity.custom.Transform
-import qorrnsmj.smf.graphic.Scene
-import qorrnsmj.smf.graphic.ViewportShadingMode
-import qorrnsmj.smf.graphic.`object`.Model
+import qorrnsmj.smf.graphic.scene.Scene
+import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
+import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
 import kotlin.math.abs
@@ -35,7 +35,7 @@ internal class EditorContext {
     val pathFolders = mutableListOf<EditorHierarchyFolder>()
     val scene = Scene()
     val secondaryCamera = Camera()
-    val cameraController = EditorCameraController(scene.camera)
+    val cameraController = EditorCameraController(scene.world.camera)
     val secondaryCameraController = EditorCameraController(secondaryCamera)
     val workspaceRoot = ImString("", 1024)
     val projectName = ImString("", 128)
@@ -69,8 +69,8 @@ internal class EditorContext {
     var terrainBrushEnabled = false
     var terrainMeshViewEnabled = false
     var terrainGrayViewEnabled = true
-    var viewportShadingMode = ViewportShadingMode.SOLID
-    var secondaryViewportShadingMode = ViewportShadingMode.RENDERED
+    var viewportShadingMode = ViewportShadingSettings.SOLID
+    var secondaryViewportShadingMode = ViewportShadingSettings.RENDERED
     var cullingEnabled = true
     var skyVisible = true
     var nightMode = false
@@ -140,17 +140,17 @@ internal class EditorContext {
 
     fun selectedCollision(): EditorCollisionState? = selectedObject()?.collisions?.getOrNull(selectedCollisionIndex)
 
-    fun activeCamera(): Camera = if (activeViewportIndex == 1) secondaryCamera else scene.camera
+    fun activeCamera(): Camera = if (activeViewportIndex == 1) secondaryCamera else scene.world.camera
 
     fun activeCameraController(): EditorCameraController = if (activeViewportIndex == 1) secondaryCameraController else cameraController
 
-    fun viewportCamera(index: Int): Camera = if (index == 1) secondaryCamera else scene.camera
+    fun viewportCamera(index: Int): Camera = if (index == 1) secondaryCamera else scene.world.camera
 
-    fun viewportShadingMode(index: Int): ViewportShadingMode = if (index == 1) secondaryViewportShadingMode else viewportShadingMode
+    fun viewportShadingMode(index: Int): ViewportShadingSettings = if (index == 1) secondaryViewportShadingMode else viewportShadingMode
 
     fun viewportTimeOfDay(index: Int): EditorTimeOfDay = if (index == 1) secondaryTimeOfDay else timeOfDay
 
-    fun setViewportShadingMode(index: Int, mode: ViewportShadingMode) {
+    fun setViewportShadingMode(index: Int, mode: ViewportShadingSettings) {
         if (index == 1) {
             secondaryViewportShadingMode = mode
         } else {

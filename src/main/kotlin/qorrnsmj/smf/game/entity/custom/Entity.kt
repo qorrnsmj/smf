@@ -1,7 +1,7 @@
 package qorrnsmj.smf.game.entity.custom
 
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.graphic.`object`.Model
+import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.physics.component.IPhysicsComponent
 import qorrnsmj.smf.physics.component.StaticPhysics
 

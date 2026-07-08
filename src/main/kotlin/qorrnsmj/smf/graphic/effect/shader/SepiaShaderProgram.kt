@@ -2,8 +2,8 @@ package qorrnsmj.smf.graphic.effect.shader
 
 import org.lwjgl.opengl.GL33C.GL_VERTEX_SHADER
 import org.lwjgl.opengl.GL33C.GL_FRAGMENT_SHADER
-import qorrnsmj.smf.graphic.`object`.Shader
-import qorrnsmj.smf.graphic.`object`.ShaderProgram
+import qorrnsmj.smf.graphic.resource.shader.Shader
+import qorrnsmj.smf.graphic.resource.shader.ShaderProgram
 
 class SepiaShaderProgram : ShaderProgram(
     Shader(GL_VERTEX_SHADER, "effect/sepia.vert"),

@@ -4,7 +4,7 @@ import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.custom.CollisionConfig
 import qorrnsmj.smf.game.entity.custom.LivingEntity
 import qorrnsmj.smf.game.entity.custom.Transform
-import qorrnsmj.smf.graphic.`object`.Model
+import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.physics.component.DynamicPhysics
 import qorrnsmj.smf.physics.component.IPhysicsComponent
 

@@ -3,7 +3,7 @@ package qorrnsmj.test.t12
 import org.lwjgl.BufferUtils
 import org.lwjgl.assimp.*
 import org.lwjgl.system.MemoryStack
-import qorrnsmj.smf.graphic.`object`.Material
+import qorrnsmj.smf.graphic.resource.model.Material
 import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.use

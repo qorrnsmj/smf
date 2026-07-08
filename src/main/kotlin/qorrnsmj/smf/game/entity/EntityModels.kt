@@ -1,8 +1,8 @@
 package qorrnsmj.smf.game.entity
 
-import qorrnsmj.smf.graphic.`object`.Mesh
-import qorrnsmj.smf.graphic.`object`.Material
-import qorrnsmj.smf.graphic.`object`.Model
+import qorrnsmj.smf.graphic.resource.model.Mesh
+import qorrnsmj.smf.graphic.resource.model.Material
+import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.graphic.texture.Textures
 
 // TODO: Entities

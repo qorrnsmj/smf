@@ -16,7 +16,7 @@ import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.graphic.terrain.Terrains
 import qorrnsmj.smf.graphic.texture.Textures
-import qorrnsmj.smf.graphic.render.MasterRenderer
+import qorrnsmj.smf.graphic.MasterRenderer
 import qorrnsmj.smf.state.StateMachine
 import qorrnsmj.smf.state.States
 import qorrnsmj.smf.window.SMFKeyCallback

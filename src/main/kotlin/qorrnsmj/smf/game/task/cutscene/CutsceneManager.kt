@@ -7,7 +7,7 @@ import org.lwjgl.glfw.GLFW.GLFW_KEY_F10
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.glfwGetKey
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.graphic.scene.Scene
 import qorrnsmj.smf.graphic.text.Font
 import qorrnsmj.smf.graphic.text.TextAnchor
 import qorrnsmj.smf.graphic.text.TextElement
@@ -44,7 +44,7 @@ class CutsceneManager(
     fun play(
         cutscene: Cutscene,
         camera: Camera,
-        returnTo: Camera = scene.camera,
+        returnTo: Camera = scene.world.camera,
         synchronizeEyePosition: ((Vector3f) -> Unit)? = null,
     ) {
         stop(restoreCamera = false)
@@ -52,7 +52,7 @@ class CutsceneManager(
         gameplayCamera = returnTo
         cutsceneCamera = camera
         this.synchronizeEyePosition = synchronizeEyePosition
-        scene.camera = camera
+        scene.world.camera = camera
         isPaused = false
         playbackSpeed = 1f
         cutscene.reset()
@@ -99,7 +99,7 @@ class CutsceneManager(
         synchronizeEyePosition = null
         isPaused = false
         playbackSpeed = 1f
-        scene.cinematicOverlay.clear()
+        scene.effects.cinematicOverlay.clear()
     }
 
     fun setSubtitleFont(font: Font) {
@@ -122,19 +122,19 @@ class CutsceneManager(
         synchronizeEyePosition = null
         isPaused = false
         playbackSpeed = 1f
-        scene.cinematicOverlay.clear()
+        scene.effects.cinematicOverlay.clear()
     }
 
     private fun restoreGameplayCamera() {
-        gameplayCamera?.let { scene.camera = it }
+        gameplayCamera?.let { scene.world.camera = it }
     }
 
     private fun applyVisuals(cutscene: Cutscene) {
         val state = cutscene.visualState()
-        scene.cinematicOverlay.fadeAlpha = state.fadeAlpha
-        scene.cinematicOverlay.fadeColor = state.fadeColor
-        scene.cinematicOverlay.letterboxRatio = state.letterboxRatio
-        scene.cinematicOverlay.subtitle = state.subtitle?.let { cue ->
+        scene.effects.cinematicOverlay.fadeAlpha = state.fadeAlpha
+        scene.effects.cinematicOverlay.fadeColor = state.fadeColor
+        scene.effects.cinematicOverlay.letterboxRatio = state.letterboxRatio
+        scene.effects.cinematicOverlay.subtitle = state.subtitle?.let { cue ->
             subtitleFont?.let { font ->
                 TextElement(
                     text = cue.text,
@@ -146,7 +146,7 @@ class CutsceneManager(
                 )
             }
         }
-        scene.cinematicOverlay.debugStatus = if (showDebugControls) {
+        scene.effects.cinematicOverlay.debugStatus = if (showDebugControls) {
             subtitleFont?.let { font ->
                 val pauseLabel = if (isPaused) "PAUSED | " else ""
                 TextElement(

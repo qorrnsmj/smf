@@ -3,10 +3,10 @@ package qorrnsmj.smf.graphic.skybox
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.graphic.`object`.Material
-import qorrnsmj.smf.graphic.`object`.Mesh
-import qorrnsmj.smf.graphic.`object`.TextureBufferObject
-import qorrnsmj.smf.graphic.`object`.Model
+import qorrnsmj.smf.graphic.resource.model.Material
+import qorrnsmj.smf.graphic.resource.model.Mesh
+import qorrnsmj.smf.graphic.resource.buffer.TextureBufferObject
+import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.graphic.texture.TextureLoader
 import qorrnsmj.smf.graphic.texture.TexturePresets
 

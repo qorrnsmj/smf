@@ -11,8 +11,8 @@ import qorrnsmj.smf.game.level.LevelDefinitionLoader
 import qorrnsmj.smf.game.task.Task
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.light.SunLight
-import qorrnsmj.smf.graphic.render.RenderProfileManager
-import qorrnsmj.smf.graphic.render.RenderProfiles
+import qorrnsmj.smf.graphic.scene.settings.RenderProfileSettingsManager
+import qorrnsmj.smf.graphic.scene.settings.RenderProfileSettingsPresets
 import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.PhysicsWorld
@@ -26,10 +26,10 @@ open class BaseLevel(
     override fun load() {
         definition = LevelDefinitionLoader.load(levelId)
         EntityModels.loadStageModels(definition.entityModels)
-        RenderProfileManager.applyTo(scene, RenderProfiles.fromName(definition.renderProfile))
+        RenderProfileSettingsManager.applyTo(scene, RenderProfileSettingsPresets.fromName(definition.renderProfile))
 
         player = Player()
-        scene.entities.add(player)
+        scene.world.entities.add(player)
 
         LevelDefinitionLoader.loadInto(scene, definition)
         eventTasks.addAll(
@@ -40,9 +40,9 @@ open class BaseLevel(
                 onAreaTriggerEvent = ::handleAreaTriggerEvent,
             )
         )
-        scene.camera = player.camera
+        scene.world.camera = player.camera
 
-        scene.sunLight = SunLight(
+        scene.environment.sunLight = SunLight(
             direction = Vector3f(-0.35f, -1f, -0.25f),
             color = Vector3f(1f, 0.92f, 0.78f),
             intensity = 2.4f,
@@ -50,7 +50,7 @@ open class BaseLevel(
             ambientIntensity = 0.2f,
             shadowStrength = 0.68f,
         )
-        scene.lights.add(
+        scene.world.lights.add(
             PointLight().apply {
                 position = Vector3f(180f, 180f, 180f)
                 diffuse = Vector3f(1f, 0.62f, 0.32f)
@@ -63,7 +63,7 @@ open class BaseLevel(
                 shadowStrength = 0.5f
             }
         )
-        scene.skybox = Skyboxes.SKY1
+        scene.environment.skybox = Skyboxes.SKY1
     }
 
     override fun input(delta: Float) {
@@ -71,7 +71,7 @@ open class BaseLevel(
     }
 
     override fun update(delta: Float) {
-        PhysicsWorld.update(scene.entities, scene.terrainHeightProvider ?: scene.terrain, delta)
+        PhysicsWorld.update(scene.world.entities, scene.world.terrainHeightProvider ?: scene.world.terrain, delta)
         player.update()
         eventTasks.forEach { it.update(delta) }
     }

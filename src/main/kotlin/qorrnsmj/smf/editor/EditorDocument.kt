@@ -6,6 +6,7 @@ import qorrnsmj.smf.game.entity.EntityLoader
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.custom.ObjectEntity
 import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.graphic.skybox.SkyboxLoader
 import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
@@ -280,7 +281,7 @@ internal class EditorDocument(private val context: EditorContext) {
         pushUndoSnapshot()
 
         for (index in targets) {
-            context.scene.entities.remove(context.placedObjects[index].root)
+            context.scene.world.entities.remove(context.placedObjects[index].root)
             context.placedObjects.removeAt(index)
         }
         context.selectedIndex = context.placedObjects.indices.lastOrNull() ?: -1
@@ -304,7 +305,7 @@ internal class EditorDocument(private val context: EditorContext) {
             root.addChild(ObjectEntity(transform = Transform(), model = model))
         }
 
-        context.scene.entities.add(root)
+        context.scene.world.entities.add(root)
         context.placedObjects.add(EditorPlacedObject(name, id, resourcePath, root, folder, collisions))
     }
 
@@ -387,7 +388,7 @@ internal class EditorDocument(private val context: EditorContext) {
         syncWorkspaceFromLevelPath(path)
         refreshAssets()
         if (recordUndo) pushUndoSnapshot()
-        context.scene.entities.removeAll(context.placedObjects.map { it.root }.toSet())
+        context.scene.world.entities.removeAll(context.placedObjects.map { it.root }.toSet())
         context.placedObjects.clear()
         context.eventAreas.clear()
         context.hierarchyFolders.clear()
@@ -558,7 +559,7 @@ internal class EditorDocument(private val context: EditorContext) {
         targets.forEach { context.eventAreas[it].folder = folder }
     }
 
-    fun loadModelsForPreview(modelPath: String): Map<String, qorrnsmj.smf.graphic.`object`.Model> {
+    fun loadModelsForPreview(modelPath: String): Map<String, Model> {
         return context.modelCache.getOrPut(modelPath) { loadModels(modelPath) }
     }
 
@@ -769,7 +770,7 @@ internal class EditorDocument(private val context: EditorContext) {
     private fun restoreSnapshot(snapshot: EditorSnapshot) {
         val selectedBefore = context.selectedIndices.filter { it in snapshot.objects.indices }.toSet()
         val selectedIndexBefore = context.selectedIndex
-        context.scene.entities.removeAll(context.placedObjects.map { it.root }.toSet())
+        context.scene.world.entities.removeAll(context.placedObjects.map { it.root }.toSet())
         context.placedObjects.clear()
         context.eventAreas.clear()
         context.hierarchyFolders.clear()
@@ -917,7 +918,7 @@ internal class EditorDocument(private val context: EditorContext) {
 
         val resourcePrefix = if (path.startsWith("assets/")) path else "assets/$path"
         try {
-            context.scene.skybox = SkyboxLoader.loadSkyboxResource(resourcePrefix)
+            context.scene.environment.skybox = SkyboxLoader.loadSkyboxResource(resourcePrefix)
             Logger.info("Editor skybox loaded: {}", resourcePrefix)
         } catch (error: Throwable) {
             Logger.warn(error, "Editor skybox could not be loaded: {}", resourcePrefix)
@@ -925,7 +926,7 @@ internal class EditorDocument(private val context: EditorContext) {
     }
 
     private fun applyTimeOfDay() {
-        context.scene.skyColor = context.timeOfDay.skyColor
+        context.scene.environment.skyColor = context.timeOfDay.skyColor
     }
 
     private fun loadTerrainHeightmap(path: String): Boolean {
@@ -1060,7 +1061,7 @@ internal class EditorDocument(private val context: EditorContext) {
         }
     }
 
-    private fun loadModels(modelPath: String): Map<String, qorrnsmj.smf.graphic.`object`.Model> {
+    private fun loadModels(modelPath: String): Map<String, Model> {
         val directPath = Paths.get(modelPath)
         if (Files.isRegularFile(directPath)) return EntityLoader.loadModelFromFile(directPath)
 
@@ -1592,7 +1593,7 @@ internal class EditorDocument(private val context: EditorContext) {
     }
 
     private fun groundHeight(worldX: Float, worldZ: Float): Float {
-        return context.scene.terrainHeightProvider?.getHeight(worldX, worldZ)
+        return context.scene.world.terrainHeightProvider?.getHeight(worldX, worldZ)
             ?: context.terrainPreview?.terrain?.getHeight(worldX, worldZ)
             ?: 0f
     }

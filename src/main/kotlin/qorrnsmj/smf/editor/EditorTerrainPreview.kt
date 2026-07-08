@@ -21,7 +21,7 @@ import qorrnsmj.smf.graphic.terrain.component.SingleTexture
 import qorrnsmj.smf.graphic.terrain.component.TerrainMaterial
 import qorrnsmj.smf.graphic.terrain.component.TerrainMesh
 import qorrnsmj.smf.graphic.terrain.component.TerrainModel
-import qorrnsmj.smf.graphic.render.EditorDebugLine
+import qorrnsmj.smf.graphic.debug.EditorDebugLine
 import qorrnsmj.smf.graphic.texture.Textures
 import qorrnsmj.smf.math.Vector2f
 import qorrnsmj.smf.math.Vector3f

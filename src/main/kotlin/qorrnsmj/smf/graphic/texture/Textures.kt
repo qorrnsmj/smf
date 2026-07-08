@@ -1,6 +1,6 @@
 package qorrnsmj.smf.graphic.texture
 
-import qorrnsmj.smf.graphic.`object`.TextureBufferObject
+import qorrnsmj.smf.graphic.resource.buffer.TextureBufferObject
 
 // TODO???: val ZOMBIE = Texture("entity/zombie.png")
 // EntityTexture, TerrainTexture, SkyboxTexture

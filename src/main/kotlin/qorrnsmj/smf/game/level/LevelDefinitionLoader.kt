@@ -6,7 +6,9 @@ import qorrnsmj.smf.game.entity.EntityLoader
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.custom.ObjectEntity
 import qorrnsmj.smf.game.entity.custom.Transform
-import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.graphic.resource.buffer.TextureBufferObject
+import qorrnsmj.smf.graphic.resource.model.Model
+import qorrnsmj.smf.graphic.scene.Scene
 import qorrnsmj.smf.graphic.skybox.SkyboxLoader
 import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.graphic.terrain.TerrainLoader
@@ -91,8 +93,8 @@ object LevelDefinitionLoader {
             textureMode = textureMode,
         )
 
-        scene.terrain = loadedTerrain
-        scene.terrainHeightProvider = loadedTerrain
+        scene.world.terrain = loadedTerrain
+        scene.world.terrainHeightProvider = loadedTerrain
         Logger.info("Level terrain loaded: heightmap={}, size={}, resolution={}", heightmap, mapSize, heightGrid.size)
     }
 
@@ -100,15 +102,15 @@ object LevelDefinitionLoader {
         val skyboxPath = environment["skybox"] as? String
         if (!skyboxPath.isNullOrBlank()) {
             try {
-                scene.skybox = SkyboxLoader.loadSkyboxResource(toAssetPath(skyboxPath))
+                scene.environment.skybox = SkyboxLoader.loadSkyboxResource(toAssetPath(skyboxPath))
                 Logger.info("Level skybox loaded: {}", skyboxPath)
             } catch (error: Throwable) {
                 Logger.warn(error, "Level skybox could not be loaded: {}", skyboxPath)
-                scene.skybox = Skyboxes.SKY1
+                scene.environment.skybox = Skyboxes.SKY1
             }
         }
 
-        scene.skyColor = when ((environment["time_of_day"] as? String)?.lowercase()) {
+        scene.environment.skyColor = when ((environment["time_of_day"] as? String)?.lowercase()) {
             "morning" -> Vector3f(0.72f, 0.62f, 0.48f)
             "evening" -> Vector3f(0.56f, 0.32f, 0.24f)
             "night" -> Vector3f(0.05f, 0.08f, 0.14f)
@@ -132,14 +134,14 @@ object LevelDefinitionLoader {
                 entity.addChild(ObjectEntity(transform = Transform(), model = meshModel))
             }
 
-            scene.entities.add(entity)
+            scene.world.entities.add(entity)
             addCollisionEntities(scene, transform, item["collisions"])
         }
 
         Logger.info("Level static objects loaded: {} objects from {}", objects.size, sourcePath)
     }
 
-    private fun loadSplatmapTexture(terrain: Map<String, Any?>): qorrnsmj.smf.graphic.`object`.TextureBufferObject {
+    private fun loadSplatmapTexture(terrain: Map<String, Any?>): TextureBufferObject {
         val splatmap = (terrain["splatmaps"] as? List<*>)?.firstOrNull() as? String
         if (!splatmap.isNullOrBlank()) {
             try {
@@ -151,7 +153,7 @@ object LevelDefinitionLoader {
         return Textures.TERRAIN_BLEND_MAP
     }
 
-    private fun loadModels(modelPath: String): Map<String, qorrnsmj.smf.graphic.`object`.Model> {
+    private fun loadModels(modelPath: String): Map<String, Model> {
         val path = Paths.get(modelPath)
         return if (Files.isRegularFile(path)) {
             EntityLoader.loadModelFromFile(path)
@@ -185,7 +187,7 @@ object LevelDefinitionLoader {
                 }
             }
 
-            scene.entities.add(
+            scene.world.entities.add(
                 ObjectEntity(
                     transform = Transform(position = position),
                     model = EntityModels.EMPTY,

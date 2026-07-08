@@ -1,6 +1,6 @@
 package qorrnsmj.smf.graphic.terrain.component
 
-import qorrnsmj.smf.graphic.`object`.TextureBufferObject
+import qorrnsmj.smf.graphic.resource.buffer.TextureBufferObject
 
 sealed interface TerrainTextureMode
 

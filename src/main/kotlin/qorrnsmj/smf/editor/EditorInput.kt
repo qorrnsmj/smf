@@ -58,7 +58,7 @@ internal class EditorInput(
     fun addSelectedAssetAtCursor() {
         val ray = EditorPicking.currentMouseRay(context)
         val position = EditorPicking.intersectGround(ray)
-            ?: context.scene.camera.position.add(context.scene.camera.getFront().scale(12f))
+            ?: context.scene.world.camera.position.add(context.scene.world.camera.getFront().scale(12f))
         document.addSelectedAsset(position)
     }
 

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.entity.player.Player
 import qorrnsmj.smf.game.task.Task
-import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.graphic.scene.Scene
 import qorrnsmj.smf.math.Vector3f
 import java.nio.file.Files
 import java.nio.file.Paths

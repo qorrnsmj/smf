@@ -8,9 +8,9 @@ import de.javagl.jgltf.model.v2.MaterialModelV2
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.graphic.`object`.Mesh
-import qorrnsmj.smf.graphic.`object`.Material
-import qorrnsmj.smf.graphic.`object`.Model
+import qorrnsmj.smf.graphic.resource.model.Mesh
+import qorrnsmj.smf.graphic.resource.model.Material
+import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.graphic.texture.Textures
 import qorrnsmj.smf.graphic.texture.TextureLoader.loadTexture
 import qorrnsmj.smf.graphic.texture.TexturePresets

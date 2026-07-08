@@ -4,7 +4,7 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback
 import org.lwjgl.glfw.GLFWKeyCallback
 import qorrnsmj.smf.audio.AudioManager
-import qorrnsmj.smf.graphic.render.MasterRenderer
+import qorrnsmj.smf.graphic.MasterRenderer
 import qorrnsmj.smf.state.StateMachine
 import qorrnsmj.smf.window.Window
 

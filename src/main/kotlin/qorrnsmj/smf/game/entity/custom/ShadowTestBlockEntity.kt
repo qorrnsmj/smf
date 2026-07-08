@@ -12,9 +12,9 @@ import org.lwjgl.opengl.GL33C.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL33C.glGenBuffers
 import org.lwjgl.opengl.GL33C.glGenVertexArrays
 import org.lwjgl.opengl.GL33C.glVertexAttribPointer
-import qorrnsmj.smf.graphic.`object`.Material
-import qorrnsmj.smf.graphic.`object`.Mesh
-import qorrnsmj.smf.graphic.`object`.Model
+import qorrnsmj.smf.graphic.resource.model.Material
+import qorrnsmj.smf.graphic.resource.model.Mesh
+import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.graphic.texture.Textures
 import qorrnsmj.smf.math.Vector4f
 import qorrnsmj.smf.physics.collision.shape.BoxCollider

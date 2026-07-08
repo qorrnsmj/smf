@@ -16,7 +16,7 @@ import org.lwjgl.opengl.GL33C.GL_TEXTURE_CUBE_MAP
 import org.lwjgl.opengl.GL33C.GL_TEXTURE_CUBE_MAP_POSITIVE_X
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
-import qorrnsmj.smf.graphic.`object`.TextureBufferObject
+import qorrnsmj.smf.graphic.resource.buffer.TextureBufferObject
 import qorrnsmj.smf.util.ResourceUtils
 import java.nio.ByteBuffer
 import kotlin.use

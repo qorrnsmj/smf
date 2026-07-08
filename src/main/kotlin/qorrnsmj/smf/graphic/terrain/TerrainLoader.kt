@@ -3,8 +3,8 @@ package qorrnsmj.smf.graphic.terrain
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.graphic.`object`.TextureBufferObject
-import qorrnsmj.smf.graphic.`object`.VertexArrayObject
+import qorrnsmj.smf.graphic.resource.buffer.TextureBufferObject
+import qorrnsmj.smf.graphic.resource.buffer.VertexArrayObject
 import qorrnsmj.smf.math.Vector2f
 import qorrnsmj.smf.math.Vector3f
 import org.lwjgl.stb.STBImage

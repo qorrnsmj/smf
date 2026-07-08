@@ -7,7 +7,7 @@ import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
-import qorrnsmj.smf.graphic.ViewportShadingMode
+import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
 
 class EditorApp {
     private val imGuiGlfw = ImGuiImplGlfw()
@@ -29,10 +29,10 @@ class EditorApp {
         Logger.info("EditorApp initializing...")
 
         EditorConfig.load(context)
-        context.terrainGrayViewEnabled = context.viewportShadingMode == ViewportShadingMode.SOLID ||
-            context.viewportShadingMode == ViewportShadingMode.WIRE
-        context.terrainMeshViewEnabled = context.viewportShadingMode == ViewportShadingMode.WIRE
-        context.skyVisible = context.viewportShadingMode == ViewportShadingMode.RENDERED
+        context.terrainGrayViewEnabled = context.viewportShadingMode == ViewportShadingSettings.SOLID ||
+            context.viewportShadingMode == ViewportShadingSettings.WIRE
+        context.terrainMeshViewEnabled = context.viewportShadingMode == ViewportShadingSettings.WIRE
+        context.skyVisible = context.viewportShadingMode == ViewportShadingSettings.RENDERED
         ui.addAssetAtCursor = input::addSelectedAssetAtCursor
         ui.viewport = viewport
         ui.secondaryViewport = secondaryViewport
@@ -42,15 +42,15 @@ class EditorApp {
         context.secondaryCamera.position = qorrnsmj.smf.math.Vector3f(18f, 10f, 18f)
         context.secondaryCamera.setFront(qorrnsmj.smf.math.Vector3f(-1f, -0.35f, -1f))
         context.secondaryCameraController.syncFromCamera()
-        context.scene.terrainGrayView = context.terrainGrayViewEnabled
-        context.scene.terrainWireframeView = context.terrainMeshViewEnabled
-        context.scene.viewportShadingMode = context.viewportShadingMode
-        context.scene.cullingEnabled = context.cullingEnabled
-        context.scene.skyVisible = context.skyVisible
-        context.scene.skyColor = context.timeOfDay.skyColor
+        context.scene.renderSettings.terrainGrayView = context.terrainGrayViewEnabled
+        context.scene.renderSettings.terrainWireframeView = context.terrainMeshViewEnabled
+        context.scene.renderSettings.viewportShadingMode = context.viewportShadingMode
+        context.scene.renderSettings.cullingEnabled = context.cullingEnabled
+        context.scene.environment.skyVisible = context.skyVisible
+        context.scene.environment.skyColor = context.timeOfDay.skyColor
         context.terrainPreview = EditorTerrainPreview(context.terrain, context.terrainMapSize)
-        context.scene.terrain = context.terrainPreview?.terrain
-        context.scene.terrainHeightProvider = context.terrainPreview?.terrain
+        context.scene.world.terrain = context.terrainPreview?.terrain
+        context.scene.world.terrainHeightProvider = context.terrainPreview?.terrain
         if (context.skyboxPath.get().isNotBlank()) document.setSkyboxPath(context.skyboxPath.get())
         document.setTimeOfDay(context.timeOfDay)
         document.refreshAssets()

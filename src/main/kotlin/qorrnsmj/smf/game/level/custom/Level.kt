@@ -4,7 +4,7 @@ import qorrnsmj.smf.SMF
 import qorrnsmj.smf.core.FixedTimestepGame
 import qorrnsmj.smf.game.entity.player.Player
 import qorrnsmj.smf.game.task.cutscene.CutsceneManager
-import qorrnsmj.smf.graphic.Scene
+import qorrnsmj.smf.graphic.scene.Scene
 
 abstract class Level {
     val scene: Scene = Scene()

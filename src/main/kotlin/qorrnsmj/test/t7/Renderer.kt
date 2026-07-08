@@ -2,7 +2,7 @@ package qorrnsmj.test.t7
 
 import org.lwjgl.opengl.GL33.*
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.graphic.`object`.ShaderProgram
+import qorrnsmj.smf.graphic.resource.shader.ShaderProgram
 import qorrnsmj.smf.math.Matrix4f
 import java.nio.FloatBuffer
 

@@ -17,7 +17,7 @@ import imgui.type.ImString
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.entity.custom.Transform
-import qorrnsmj.smf.graphic.ViewportShadingMode
+import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
 import qorrnsmj.smf.math.Vector3f
 import kotlin.math.max
 import kotlin.math.min
@@ -110,7 +110,7 @@ internal class EditorUi(
             if (ImGui.beginMenu("View")) {
                 if (ImGui.menuItem(if (context.cullingEnabled) "Culling ON" else "Culling OFF")) {
                     context.cullingEnabled = !context.cullingEnabled
-                    context.scene.cullingEnabled = context.cullingEnabled
+                    context.scene.renderSettings.cullingEnabled = context.cullingEnabled
                 }
                 if (ImGui.menuItem(if (context.showSecondaryViewport) "Viewport: 2 Panes" else "Viewport: 1 Pane")) {
                     context.showSecondaryViewport = !context.showSecondaryViewport
@@ -814,7 +814,7 @@ internal class EditorUi(
         ImGui.setNextItemWidth(124f)
         val current = context.viewportShadingMode(viewportIndex)
         if (ImGui.beginCombo("##viewport_shading_mode_$viewportIndex", viewportShadingLabel(current))) {
-            for (mode in ViewportShadingMode.entries) {
+            for (mode in ViewportShadingSettings.entries) {
                 if (ImGui.selectable(viewportShadingLabel(mode), current == mode)) {
                     setViewportShadingMode(viewportIndex, mode)
                 }
@@ -836,23 +836,23 @@ internal class EditorUi(
         }
     }
 
-    private fun viewportShadingLabel(mode: ViewportShadingMode): String = when (mode) {
-        ViewportShadingMode.WIRE -> "Wire"
-        ViewportShadingMode.SOLID -> "Solid"
-        ViewportShadingMode.MATERIAL -> "Material"
-        ViewportShadingMode.RENDERED -> "Rendered"
+    private fun viewportShadingLabel(mode: ViewportShadingSettings): String = when (mode) {
+        ViewportShadingSettings.WIRE -> "Wire"
+        ViewportShadingSettings.SOLID -> "Solid"
+        ViewportShadingSettings.MATERIAL -> "Material"
+        ViewportShadingSettings.RENDERED -> "Rendered"
     }
 
-    private fun setViewportShadingMode(viewportIndex: Int, mode: ViewportShadingMode) {
+    private fun setViewportShadingMode(viewportIndex: Int, mode: ViewportShadingSettings) {
         context.setViewportShadingMode(viewportIndex, mode)
         if (viewportIndex == 0) {
-            context.terrainGrayViewEnabled = mode == ViewportShadingMode.SOLID || mode == ViewportShadingMode.WIRE
-            context.terrainMeshViewEnabled = mode == ViewportShadingMode.WIRE
-            context.skyVisible = mode == ViewportShadingMode.RENDERED
-            context.scene.viewportShadingMode = mode
-            context.scene.terrainGrayView = context.terrainGrayViewEnabled
-            context.scene.terrainWireframeView = context.terrainMeshViewEnabled
-            context.scene.skyVisible = context.skyVisible
+            context.terrainGrayViewEnabled = mode == ViewportShadingSettings.SOLID || mode == ViewportShadingSettings.WIRE
+            context.terrainMeshViewEnabled = mode == ViewportShadingSettings.WIRE
+            context.skyVisible = mode == ViewportShadingSettings.RENDERED
+            context.scene.renderSettings.viewportShadingMode = mode
+            context.scene.renderSettings.terrainGrayView = context.terrainGrayViewEnabled
+            context.scene.renderSettings.terrainWireframeView = context.terrainMeshViewEnabled
+            context.scene.environment.skyVisible = context.skyVisible
         }
     }
 

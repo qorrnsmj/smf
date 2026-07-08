@@ -45,10 +45,10 @@ internal object EditorConfig {
             config.boolean("terrainGrayViewEnabled")?.let { context.terrainGrayViewEnabled = it }
             config.boolean("terrainMeshViewEnabled")?.let { context.terrainMeshViewEnabled = it }
             config.string("viewportShadingMode")?.let { value ->
-                runCatching { qorrnsmj.smf.graphic.ViewportShadingMode.valueOf(value) }.getOrNull()?.let { context.viewportShadingMode = it }
+                runCatching { qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings.valueOf(value) }.getOrNull()?.let { context.viewportShadingMode = it }
             }
             config.string("secondaryViewportShadingMode")?.let { value ->
-                runCatching { qorrnsmj.smf.graphic.ViewportShadingMode.valueOf(value) }.getOrNull()?.let { context.secondaryViewportShadingMode = it }
+                runCatching { qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings.valueOf(value) }.getOrNull()?.let { context.secondaryViewportShadingMode = it }
             }
             config.boolean("cullingEnabled")?.let { context.cullingEnabled = it }
             config.boolean("skyVisible")?.let { context.skyVisible = it }
