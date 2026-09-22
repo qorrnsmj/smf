@@ -1,48 +1,74 @@
-.gradle
-.kotlin/
-.github/
-build/
+# Local AI configuration
+AGENTS.md
+/.agents/
+/.codex/
+/.codex-worktrees/
+/.worktrees/
+
+# Local documentation
+CHANGELOG.md
+
+# Gradle and Kotlin
+/.gradle/
+/.kotlin/
+/build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-CHANGELOG.md
-AGENTS.md
 
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-.idea/dictionaries/
-.idea/copilot.data.migration*.xml
+# IntelliJ IDEA
+/.idea/
 *.iws
 *.iml
 *.ipr
-out/
+/out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
-### Eclipse ###
-.apt_generated
+# Visual Studio Code
+/.vscode/
+
+# Eclipse
+.apt_generated/
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
-.sts4-cache
-bin/
+.sts4-cache/
+/bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
 
-### VS Code ###
-.vscode/
+# JVM diagnostics
+hs_err_pid*.log
+replay_pid*.log
+*.hprof
 
-### Mac OS ###
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*~
+
+# Local environment
+.env
+.env.*
+!.env.example
+local.properties
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
 .DS_Store
