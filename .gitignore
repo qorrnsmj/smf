@@ -6,7 +6,7 @@ AGENTS.md
 /.worktrees/
 
 # Local documentation
-CHANGELOG.md
+CHANGES.md
 
 # Gradle and Kotlin
 /.gradle/
