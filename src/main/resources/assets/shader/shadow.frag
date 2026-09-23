@@ -11,5 +11,7 @@ void main() {
     if (pointShadowPass) {
         float lightDistance = length(worldPosition - pointLightPosition);
         gl_FragDepth = clamp(lightDistance / pointShadowFarPlane, 0.0, 1.0);
+    } else {
+        gl_FragDepth = gl_FragCoord.z;
     }
 }

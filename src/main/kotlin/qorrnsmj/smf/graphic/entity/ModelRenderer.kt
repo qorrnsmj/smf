@@ -25,7 +25,7 @@ import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils.setUniform
 
-class EntityRenderer(
+class ModelRenderer(
     private val shadowRenderer: ShadowRenderer,
 ) : SceneRenderer, Resizable {
     private companion object {
@@ -54,6 +54,8 @@ class EntityRenderer(
     val locationFogBottomY = glGetUniformLocation(program.id, "fog.bottomY")
     val locationFogTopY = glGetUniformLocation(program.id, "fog.topY")
     val locationFogHeightFalloff = glGetUniformLocation(program.id, "fog.heightFalloff")
+    val locationFogHeightDistanceStart = glGetUniformLocation(program.id, "fog.heightDistanceStart")
+    val locationFogHeightDistanceEnd = glGetUniformLocation(program.id, "fog.heightDistanceEnd")
     val locationLightSpaceMatrix = glGetUniformLocation(program.id, "lightSpaceMatrix")
     val locationShadowMap = glGetUniformLocation(program.id, "shadowMap")
     val locationShadowEnabled = glGetUniformLocation(program.id, "shadowEnabled")
@@ -119,13 +121,14 @@ class EntityRenderer(
     private fun render(scene: Scene, shadowState: ShadowRenderState) {
         start(scene)
         loadCamera(scene.world.camera)
-        loadSunLight(scene.environment.sunLight)
+        loadSunLight(scene.environment.celestialLight)
         loadLights(scene.world.lights)
         loadSkyColor(scene.environment.skyColor)
         loadFog(scene.environment.fog)
         loadShadow(shadowState)
         loadViewportShading(scene.renderSettings.viewportShadingMode)
         renderEntities(scene.world.camera, scene.world.entities)
+        unbindShadowTextures()
         stop()
     }
 
@@ -245,10 +248,15 @@ class EntityRenderer(
         glBindVertexArray(0)
         glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
-        for (i in 0 until POINT_SHADOW_TEXTURE_UNIT_START) {
+        for (i in 0 until SHADOW_TEXTURE_UNIT) {
             glActiveTexture(GL_TEXTURE0 + i)
             glBindTexture(GL_TEXTURE_2D, 0)
         }
+    }
+
+    private fun unbindShadowTextures() {
+        glActiveTexture(GL_TEXTURE0 + SHADOW_TEXTURE_UNIT)
+        glBindTexture(GL_TEXTURE_2D, 0)
         glActiveTexture(GL_TEXTURE0 + LOCAL_SHADOW_TEXTURE_UNIT)
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0)
         for (i in 0 until MAX_POINT_LIGHT_SHADOWS) {
@@ -316,6 +324,8 @@ class EntityRenderer(
         setUniform(locationFogBottomY, fog.bottomY)
         setUniform(locationFogTopY, fog.topY)
         setUniform(locationFogHeightFalloff, fog.heightFalloff)
+        setUniform(locationFogHeightDistanceStart, fog.heightDistanceStart)
+        setUniform(locationFogHeightDistanceEnd, fog.heightDistanceEnd)
     }
 
     private fun loadShadow(shadowState: ShadowRenderState) {

@@ -4,9 +4,11 @@ import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.debug.DebugRenderer
 import qorrnsmj.smf.graphic.effect.PostProcessor
-import qorrnsmj.smf.graphic.entity.EntityRenderer
+import qorrnsmj.smf.graphic.billboard.BillboardRenderer
+import qorrnsmj.smf.graphic.entity.ModelRenderer
 import qorrnsmj.smf.graphic.scene.Scene
 import qorrnsmj.smf.graphic.shadow.ShadowRenderer
+import qorrnsmj.smf.graphic.skydome.SkydomeRenderer
 import qorrnsmj.smf.graphic.skybox.SkyboxRenderer
 import qorrnsmj.smf.graphic.terrain.TerrainRenderer
 import qorrnsmj.smf.graphic.text.TextRenderer
@@ -15,8 +17,10 @@ import qorrnsmj.smf.util.Resizable
 class MasterRenderer : SceneRenderer, Resizable {
     val shadowRenderer = ShadowRenderer()
     val skyboxRenderer = SkyboxRenderer()
+    val skydomeRenderer = SkydomeRenderer()
     val terrainRenderer = TerrainRenderer(shadowRenderer)
-    val entityRenderer = EntityRenderer(shadowRenderer)
+    val modelRenderer = ModelRenderer(shadowRenderer)
+    val billboardRenderer = BillboardRenderer()
     val postProcessor = PostProcessor()
     val debugRenderer = DebugRenderer()
     val textRenderer = TextRenderer()
@@ -45,9 +49,14 @@ class MasterRenderer : SceneRenderer, Resizable {
             postProcessor.bindFrameBuffer()
         }
 
-        skyboxRenderer.render(scene)
+        if (scene.environment.skydome?.enabled == true) {
+            skydomeRenderer.render(scene)
+        } else {
+            skyboxRenderer.render(scene)
+        }
         terrainRenderer.render(scene)
-        entityRenderer.render(scene)
+        modelRenderer.render(scene)
+        billboardRenderer.render(scene)
 
         if (scene.effects.isNotEmpty()) {
             postProcessor.bindDefaultFrameBuffer()
@@ -63,9 +72,11 @@ class MasterRenderer : SceneRenderer, Resizable {
         val safeHeight = height.coerceAtLeast(1)
         glViewport(0, 0, safeWidth, safeHeight)
 
-        entityRenderer.resize(safeWidth, safeHeight)
+        modelRenderer.resize(safeWidth, safeHeight)
+        billboardRenderer.resize(safeWidth, safeHeight)
         terrainRenderer.resize(safeWidth, safeHeight)
         skyboxRenderer.resize(safeWidth, safeHeight)
+        skydomeRenderer.resize(safeWidth, safeHeight)
         debugRenderer.resize(safeWidth, safeHeight)
         textRenderer.resize(safeWidth, safeHeight)
         postProcessor.resize(safeWidth, safeHeight)

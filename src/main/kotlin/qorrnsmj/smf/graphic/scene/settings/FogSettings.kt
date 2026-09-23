@@ -11,4 +11,6 @@ data class FogSettings(
     var bottomY: Float = 0f,
     var topY: Float = 280f,
     var heightFalloff: Float = 2.4f,
+    var heightDistanceStart: Float = 12f,
+    var heightDistanceEnd: Float = 180f,
 )

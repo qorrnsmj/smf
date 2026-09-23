@@ -61,6 +61,8 @@ struct Fog {
     float bottomY;
     float topY;
     float heightFalloff;
+    float heightDistanceStart;
+    float heightDistanceEnd;
 };
 
 uniform Fog fog;
@@ -75,18 +77,42 @@ out vec4 fragColor;
 float calculateShadowVisibility(vec4 lightSpacePos, float bias) {
     vec3 projected = lightSpacePos.xyz / lightSpacePos.w;
     projected = projected * 0.5 + 0.5;
-    if (projected.z > 1.0 || projected.x < 0.0 || projected.x > 1.0 || projected.y < 0.0 || projected.y > 1.0) {
+
+    // Compare each PCF tap with the receiver plane at that texel, not its centre depth.
+    vec3 dx = dFdx(projected);
+    vec3 dy = dFdy(projected);
+    float determinant = dx.x * dy.y - dx.y * dy.x;
+    vec2 depthGradient = vec2(0.0);
+    float derivativeScale = dot(dx.xy, dx.xy) * dot(dy.xy, dy.xy);
+    if (derivativeScale > 1e-30) {
+        // Regularize nearly parallel derivatives continuously at grazing angles.
+        float inverseDeterminant = determinant / (determinant * determinant + derivativeScale * 1e-6);
+        depthGradient = vec2(dy.y * dx.z - dx.y * dy.z, dx.x * dy.z - dy.x * dx.z) * inverseDeterminant;
+    }
+    if (projected.z < 0.0 || projected.z > 1.0 || projected.x < 0.0 || projected.x > 1.0 || projected.y < 0.0 || projected.y > 1.0) {
         return 1.0;
     }
     float shadow = 0.0;
     vec2 texelSize = 1.0 / vec2(textureSize(shadowMap, 0));
-    for (int x = -1; x <= 1; x++) {
-        for (int y = -1; y <= 1; y++) {
-            float closestDepth = texture(shadowMap, projected.xy + vec2(x, y) * texelSize).r;
-            shadow += projected.z - bias > closestDepth ? 1.0 : 0.0;
+    vec2 texelPosition = projected.xy / texelSize - 0.5;
+    vec2 baseTexel = floor(texelPosition);
+    vec2 fraction = fract(texelPosition);
+    float totalWeight = 0.0;
+    for (int x = -1; x <= 2; x++) {
+        for (int y = -1; y <= 2; y++) {
+            vec2 offset = vec2(x, y);
+            vec2 axisWeight = max(vec2(0.0), vec2(2.0) - abs(offset - fraction));
+            float weight = axisWeight.x * axisWeight.y;
+            vec2 sampleUV = (baseTexel + offset + 0.5) * texelSize;
+            float closestDepth = texture(shadowMap, sampleUV).r;
+            float receiverDepth = projected.z + dot(depthGradient, sampleUV - projected.xy);
+            shadow += weight * (receiverDepth - bias > closestDepth ? 1.0 : 0.0);
+            totalWeight += weight;
         }
     }
-    shadow /= 9.0;
+    shadow /= totalWeight;
+    float edgeDistance = min(min(projected.x, 1.0 - projected.x), min(projected.y, 1.0 - projected.y));
+    shadow *= smoothstep(0.0, 0.06, edgeDistance);
     return mix(1.0, 1.0 - shadowStrength, shadow);
 }
 
@@ -145,7 +171,14 @@ float calculateFogAmount(Fog settings, vec3 position) {
 
     float heightRange = max(settings.topY - settings.bottomY, 1.0);
     float heightRatio = clamp((settings.topY - position.y) / heightRange, 0.0, 1.0);
-    float heightFog = settings.heightDensity * pow(heightRatio, settings.heightFalloff);
+    float heightDistance = smoothstep(
+        settings.heightDistanceStart,
+        max(settings.heightDistanceEnd, settings.heightDistanceStart + 1.0),
+        distance
+    );
+    float heightFog = settings.heightDensity
+        * pow(heightRatio, settings.heightFalloff)
+        * heightDistance;
 
     return clamp(1.0 - (1.0 - distanceFog) * (1.0 - heightFog), 0.0, 1.0);
 }
@@ -171,7 +204,7 @@ void main() {
 
     vec3 N = normalize(worldNormal);
     vec3 sunL = normalize(-sunLight.direction);
-    float sunBias = max(0.00004, 0.00018 * (1.0 - max(dot(N, sunL), 0.0)));
+    float sunBias = 0.00002;
     float sunVisibility = shadowEnabled ? calculateShadowVisibility(lightSpacePosition, sunBias) : 1.0;
     float sunNdotL = max(dot(N, sunL), 0.0);
     float ambientShadow = mix(0.48, 1.0, sunVisibility);

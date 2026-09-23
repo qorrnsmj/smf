@@ -31,14 +31,15 @@ class ShadowRenderer : SceneRenderer {
         const val SUN_SHADOW_MAP_SIZE = 2048
         const val LOCAL_SHADOW_MAP_SIZE = 1024
         const val POINT_SHADOW_MAP_SIZE = 512
-        const val SHADOW_HALF_SIZE = 2500f
+        const val SHADOW_HALF_SIZE = 96f
         const val SHADOW_NEAR = 1f
-        const val SHADOW_FAR = 8000f
-        const val SHADOW_LIGHT_DISTANCE = 3500f
+        const val SHADOW_FAR = 800f
+        const val SHADOW_LIGHT_DISTANCE = 350f
+        const val SHADOW_TARGET_HEIGHT = 30f
         const val LOCAL_SHADOW_NEAR = 5f
         const val LOCAL_SHADOW_FAR = 4000f
         const val POINT_SHADOW_FOV = 90f
-        const val ENTITY_TARGET_PADDING = 300f
+        const val MIN_DIRECTIONAL_SHADOW_INTENSITY = 0.01f
         val DISABLED_STATE = ShadowRenderState(false, Matrix4f(), 0)
     }
 
@@ -71,14 +72,17 @@ class ShadowRenderer : SceneRenderer {
     }
 
     private fun renderSunShadow(scene: Scene, target: Vector3f): ShadowRenderState {
-        val sun = scene.environment.sunLight ?: return ShadowRenderState(false, Matrix4f(), 0)
+        val sun = scene.environment.celestialLight ?: return ShadowRenderState(false, Matrix4f(), 0)
+        if (sun.intensity <= MIN_DIRECTIONAL_SHADOW_INTENSITY || sun.shadowStrength <= 0f) {
+            return ShadowRenderState(false, Matrix4f(), 0)
+        }
         val sunMatrix = createSunLightSpaceMatrix(sun, target)
         renderDepthPass(
             size = SUN_SHADOW_MAP_SIZE,
             lightSpaceMatrix = sunMatrix,
             scene = scene,
             bindTarget = { sunFrameBuffer.bind() },
-            cullMode = ShadowCullMode.FRONT,
+            cullMode = ShadowCullMode.BACK,
         )
         return ShadowRenderState(
             enabled = true,
@@ -192,6 +196,32 @@ class ShadowRenderer : SceneRenderer {
 
         val cullWasEnabled = glIsEnabled(GL_CULL_FACE)
         val previousCullFace = glGetInteger(GL_CULL_FACE_MODE)
+        applyCullMode(cullMode)
+
+        program.use()
+        UniformUtils.setUniform(locationLightSpaceMatrix, lightSpaceMatrix)
+        UniformUtils.setUniform(locationPointShadowPass, if (pointLightPosition != null) 1 else 0)
+        UniformUtils.setUniform(locationPointShadowFarPlane, pointShadowFarPlane)
+        UniformUtils.setUniform(locationPointLightPosition, pointLightPosition ?: Vector3f())
+
+        scene.world.terrain?.let {
+            applyCullMode(ShadowCullMode.BACK)
+            renderTerrain(it)
+            applyCullMode(cullMode)
+        }
+        renderEntities(scene.world.entities, cullMode)
+
+        if (cullWasEnabled) {
+            glEnable(GL_CULL_FACE)
+            glCullFace(previousCullFace)
+        } else {
+            glDisable(GL_CULL_FACE)
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glViewport(previousViewport[0], previousViewport[1], previousViewport[2], previousViewport[3])
+    }
+
+    private fun applyCullMode(cullMode: ShadowCullMode) {
         when (cullMode) {
             ShadowCullMode.NONE -> glDisable(GL_CULL_FACE)
             ShadowCullMode.FRONT -> {
@@ -203,24 +233,6 @@ class ShadowRenderer : SceneRenderer {
                 glCullFace(GL_BACK)
             }
         }
-
-        program.use()
-        UniformUtils.setUniform(locationLightSpaceMatrix, lightSpaceMatrix)
-        UniformUtils.setUniform(locationPointShadowPass, if (pointLightPosition != null) 1 else 0)
-        UniformUtils.setUniform(locationPointShadowFarPlane, pointShadowFarPlane)
-        UniformUtils.setUniform(locationPointLightPosition, pointLightPosition ?: Vector3f())
-
-        scene.world.terrain?.let { renderTerrain(it) }
-        renderEntities(scene.world.entities)
-
-        if (cullWasEnabled) {
-            glEnable(GL_CULL_FACE)
-            glCullFace(previousCullFace)
-        } else {
-            glDisable(GL_CULL_FACE)
-        }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        glViewport(previousViewport[0], previousViewport[1], previousViewport[2], previousViewport[3])
     }
 
     private fun createSunLightSpaceMatrix(sunLight: DirectionalLight, target: Vector3f): Matrix4f {
@@ -234,7 +246,7 @@ class ShadowRenderer : SceneRenderer {
         )
         val lightDirection = sunLight.direction
         val lightPosition = target.subtract(lightDirection.scale(SHADOW_LIGHT_DISTANCE))
-        val view = MVP.getViewMatrix(lightPosition, target, stableUp(lightDirection))
+        val view = MVP.getViewMatrix(lightPosition, target, directionalShadowUp(lightDirection))
         return projection.multiply(view)
     }
 
@@ -295,42 +307,20 @@ class ShadowRenderer : SceneRenderer {
         return if (kotlin.math.abs(normalized.dot(worldUp)) > 0.95f) Vector3f(0f, 0f, 1f) else worldUp
     }
 
+    private fun directionalShadowUp(direction: Vector3f): Vector3f =
+        if (kotlin.math.abs(direction.normalize().z) > 0.95f) {
+            Vector3f(0f, 1f, 0f)
+        } else {
+            Vector3f(0f, 0f, 1f)
+        }
+
     private fun createShadowTarget(scene: Scene): Vector3f {
-        var minX = Float.POSITIVE_INFINITY
-        var minY = Float.POSITIVE_INFINITY
-        var minZ = Float.POSITIVE_INFINITY
-        var maxX = Float.NEGATIVE_INFINITY
-        var maxY = Float.NEGATIVE_INFINITY
-        var maxZ = Float.NEGATIVE_INFINITY
-        var hasBounds = false
-
-        fun include(min: Vector3f, max: Vector3f) {
-            minX = minOf(minX, min.x)
-            minY = minOf(minY, min.y)
-            minZ = minOf(minZ, min.z)
-            maxX = maxOf(maxX, max.x)
-            maxY = maxOf(maxY, max.y)
-            maxZ = maxOf(maxZ, max.z)
-            hasBounds = true
-        }
-
-        fun includeEntity(entity: Entity) {
-            val position = entity.worldTransform.position
-            include(
-                Vector3f(position.x - ENTITY_TARGET_PADDING, position.y - ENTITY_TARGET_PADDING, position.z - ENTITY_TARGET_PADDING),
-                Vector3f(position.x + ENTITY_TARGET_PADDING, position.y + ENTITY_TARGET_PADDING, position.z + ENTITY_TARGET_PADDING),
-            )
-            entity.children.forEach { includeEntity(it) }
-        }
-
-        scene.world.terrain?.let { terrain ->
-            val size = terrain.model.mesh.size
-            include(terrain.position, Vector3f(terrain.position.x + size.x, terrain.position.y, terrain.position.z + size.y))
-        }
-        scene.world.entities.forEach { includeEntity(it) }
-
-        if (!hasBounds) return Vector3f()
-        return Vector3f((minX + maxX) * 0.5f, (minY + maxY) * 0.5f, (minZ + maxZ) * 0.5f)
+        val camera = scene.world.camera.position
+        val texelSize = SHADOW_HALF_SIZE * 2f / SUN_SHADOW_MAP_SIZE
+        val snappedX = kotlin.math.round(camera.x / texelSize) * texelSize
+        val snappedZ = kotlin.math.round(camera.z / texelSize) * texelSize
+        val groundY = scene.world.terrain?.getHeight(camera.x, camera.z) ?: camera.y
+        return Vector3f(snappedX, groundY + SHADOW_TARGET_HEIGHT, snappedZ)
     }
 
     private fun renderTerrain(terrain: Terrain) {
@@ -340,12 +330,13 @@ class ShadowRenderer : SceneRenderer {
         glBindVertexArray(0)
     }
 
-    private fun renderEntities(entities: List<Entity>) {
+    private fun renderEntities(entities: List<Entity>, cullMode: ShadowCullMode) {
         val batchMap = mutableMapOf<Model, MutableList<Entity>>()
         for (entity in entities) processEntity(entity, batchMap)
 
         for ((model, targets) in batchMap) {
             if (model.material.alphaMode == AlphaMode.BLEND) continue
+            applyCullMode(if (model.material.doubleSided) ShadowCullMode.NONE else cullMode)
             glBindVertexArray(model.mesh.vao)
             for (target in targets) {
                 val world = target.worldTransform

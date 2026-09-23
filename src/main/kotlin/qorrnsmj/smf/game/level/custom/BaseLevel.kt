@@ -10,7 +10,7 @@ import qorrnsmj.smf.game.level.LevelDefinition
 import qorrnsmj.smf.game.level.LevelDefinitionLoader
 import qorrnsmj.smf.game.task.Task
 import qorrnsmj.smf.graphic.light.PointLight
-import qorrnsmj.smf.graphic.light.SunLight
+import qorrnsmj.smf.graphic.light.DirectionalLight
 import qorrnsmj.smf.graphic.scene.settings.RenderProfileSettingsManager
 import qorrnsmj.smf.graphic.scene.settings.RenderProfileSettingsPresets
 import qorrnsmj.smf.graphic.skybox.Skyboxes
@@ -42,7 +42,7 @@ open class BaseLevel(
         )
         scene.world.camera = player.camera
 
-        scene.environment.sunLight = SunLight(
+        scene.environment.celestialLight = DirectionalLight(
             direction = Vector3f(-0.35f, -1f, -0.25f),
             color = Vector3f(1f, 0.92f, 0.78f),
             intensity = 2.4f,

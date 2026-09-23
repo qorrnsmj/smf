@@ -58,6 +58,8 @@ class TerrainRenderer(
     val locationFogBottomY = glGetUniformLocation(program.id, "fog.bottomY")
     val locationFogTopY = glGetUniformLocation(program.id, "fog.topY")
     val locationFogHeightFalloff = glGetUniformLocation(program.id, "fog.heightFalloff")
+    val locationFogHeightDistanceStart = glGetUniformLocation(program.id, "fog.heightDistanceStart")
+    val locationFogHeightDistanceEnd = glGetUniformLocation(program.id, "fog.heightDistanceEnd")
     val locationLightSpaceMatrix = glGetUniformLocation(program.id, "lightSpaceMatrix")
     val locationShadowMap = glGetUniformLocation(program.id, "shadowMap")
     val locationShadowEnabled = glGetUniformLocation(program.id, "shadowEnabled")
@@ -110,7 +112,7 @@ class TerrainRenderer(
 
         start(scene)
         loadCamera(scene.world.camera)
-        loadSunLight(scene.environment.sunLight)
+        loadSunLight(scene.environment.celestialLight)
         loadLights(scene.world.lights)
         loadSkyColor(scene.environment.skyColor)
         loadFog(scene.environment.fog)
@@ -219,6 +221,8 @@ class TerrainRenderer(
         UniformUtils.setUniform(locationFogBottomY, fog.bottomY)
         UniformUtils.setUniform(locationFogTopY, fog.topY)
         UniformUtils.setUniform(locationFogHeightFalloff, fog.heightFalloff)
+        UniformUtils.setUniform(locationFogHeightDistanceStart, fog.heightDistanceStart)
+        UniformUtils.setUniform(locationFogHeightDistanceEnd, fog.heightDistanceEnd)
     }
 
     private fun loadSunLight(sunLight: DirectionalLight?) {
