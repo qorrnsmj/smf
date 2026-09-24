@@ -14,6 +14,10 @@ class SMFKeyCallback : GLFWKeyCallback() {
     private var polygonMode = 0
 
     override fun invoke(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
+        if (key == GLFW_KEY_F12 && action == GLFW_PRESS) {
+            SMF.requestScreenshot()
+            return
+        }
         if (key == GLFW_KEY_F11 && action == GLFW_PRESS) {
             SMF.window.toggleFullscreen()
             return

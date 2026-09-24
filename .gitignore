@@ -53,6 +53,8 @@ replay_pid*.log
 *.hprof
 
 # Logs and temporary files
+/.smf-debug/
+/screenshots/
 *.log
 *.tmp
 *.temp

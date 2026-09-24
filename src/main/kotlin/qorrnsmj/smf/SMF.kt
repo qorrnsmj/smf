@@ -21,9 +21,15 @@ import qorrnsmj.smf.state.StateMachine
 import qorrnsmj.smf.state.States
 import qorrnsmj.smf.window.SMFKeyCallback
 import qorrnsmj.smf.window.Window
+import qorrnsmj.smf.debug.DebugJson
+import qorrnsmj.smf.debug.GameDebugControl
+import qorrnsmj.smf.graphic.capture.ScreenshotCapture
 
 object SMF : FixedTimestepGame() {
     private var editorApp: EditorApp? = null
+    private val screenshots = ScreenshotCapture()
+    private var debugControl: GameDebugControl? = null
+    private var debugControlEnabled = false
     val isEditorMode: Boolean
         get() = editorApp != null
 
@@ -69,6 +75,7 @@ object SMF : FixedTimestepGame() {
 
         window.show()
         stateMachine.changeState(States.IN_GAME)
+        if (debugControlEnabled) debugControl = GameDebugControl({ stateMachine.activeLevel() }, screenshots)
 
         Logger.info("SMF started!")
         gameloop()
@@ -93,7 +100,8 @@ object SMF : FixedTimestepGame() {
     }
 
     override fun input() {
-        if (editorApp == null) {
+        debugControl?.pump()
+        if (editorApp == null && debugControl?.paused != true) {
             super.input()
         }
     }
@@ -103,7 +111,10 @@ object SMF : FixedTimestepGame() {
         if (editor != null) {
             editor.update(delta / TARGET_UPS)
         } else {
-            super.update(delta)
+            if (debugControl?.shouldUpdate() != false) {
+                super.update(delta)
+                debugControl?.didUpdate()
+            }
         }
     }
 
@@ -118,14 +129,32 @@ object SMF : FixedTimestepGame() {
 
     override fun postRender(alpha: Float) {
         editorApp?.renderUi()
+        debugControl?.afterFrame()
+        if (screenshots.hasPending) {
+            screenshots.capturePending(window.id, DebugJson.encode(debugControl?.snapshot()
+                ?: mapOf("mode" to if (isEditorMode) "editor" else "game")))
+        }
+    }
+
+    fun requestScreenshot() {
+        screenshots.request().whenComplete { result, failure ->
+            if (failure != null) Logger.error(failure, "Screenshot failed")
+            else Logger.info("Screenshot saved: {}", result.path)
+        }
     }
 
     @JvmStatic
     fun main(args: Array<String>) {
-        if ("--editor" in args) {
-            startEditor()
-        } else {
-            start()
+        debugControlEnabled = "--debug-control" in args
+        try {
+            if ("--editor" in args) {
+                startEditor()
+            } else {
+                start()
+            }
+        } finally {
+            debugControl?.close()
+            screenshots.close()
         }
     }
 }

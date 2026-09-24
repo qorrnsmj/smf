@@ -5,6 +5,8 @@ import org.tinylog.kotlin.Logger
 class StateMachine {
     private var currentState: State = States.EMPTY
 
+    fun activeLevel() = currentState.activeLevel()
+
     fun changeState(newState: State) {
         Logger.info("Changing state: \"$currentState\" to \"$newState\"")
 

@@ -8,6 +8,8 @@ abstract class State {
     protected val levelManager: LevelManager = LevelManager()
     protected var delta: Float = 1f
 
+    fun activeLevel() = levelManager.getCurrentLevel()
+
     open fun start() {
         SMF.window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
     }
