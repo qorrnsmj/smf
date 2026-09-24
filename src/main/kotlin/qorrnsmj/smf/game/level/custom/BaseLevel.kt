@@ -11,8 +11,7 @@ import qorrnsmj.smf.game.level.LevelDefinitionLoader
 import qorrnsmj.smf.game.task.Task
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.light.DirectionalLight
-import qorrnsmj.smf.graphic.scene.settings.RenderProfileSettingsManager
-import qorrnsmj.smf.graphic.scene.settings.RenderProfileSettingsPresets
+import qorrnsmj.smf.graphic.scene.RenderProfiles
 import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.PhysicsWorld
@@ -26,7 +25,7 @@ open class BaseLevel(
     override fun load() {
         definition = LevelDefinitionLoader.load(levelId)
         EntityModels.loadStageModels(definition.entityModels)
-        RenderProfileSettingsManager.applyTo(scene, RenderProfileSettingsPresets.fromName(definition.renderProfile))
+        scene.renderSettings.renderProfile = RenderProfiles.fromName(definition.renderProfile)
 
         player = Player()
         scene.world.entities.add(player)

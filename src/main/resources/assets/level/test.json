@@ -1,6 +1,4 @@
 {
-    "name": "test",
-    "renderProfile": "shadowed",
     "editor_version": "1.0",
     "environment": {
         "skybox": "",
@@ -46,8 +44,8 @@
             "id": "stall",
             "model": "model/stall.glb",
             "folder": "",
-            "pos": [3.752285, 0.254857, 7.592021],
-            "rot": [90.000008, -0, -0.000002],
+            "pos": [11.049161, 2.528293, 1.482647],
+            "rot": [90.000008, 0.000002, 0],
             "scale": [1, 1, 1],
             "collisions": []
         }
