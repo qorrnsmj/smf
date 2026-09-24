@@ -45,7 +45,7 @@ class MasterRenderer : SceneRenderer, Resizable {
         shadowRenderer.render(scene)
 
         // If there are no effects, render directly to the default frame-buffer
-        if (scene.effects.isNotEmpty()) {
+        if (scene.sceneEffects.isNotEmpty()) {
             postProcessor.bindFrameBuffer()
         }
 
@@ -58,9 +58,9 @@ class MasterRenderer : SceneRenderer, Resizable {
         modelRenderer.render(scene)
         billboardRenderer.render(scene)
 
-        if (scene.effects.isNotEmpty()) {
+        if (scene.sceneEffects.isNotEmpty()) {
             postProcessor.bindDefaultFrameBuffer()
-            postProcessor.applyPostProcess(scene.effects)
+            postProcessor.applyPostProcess(scene.sceneEffects)
         }
 
         debugRenderer.render(scene)

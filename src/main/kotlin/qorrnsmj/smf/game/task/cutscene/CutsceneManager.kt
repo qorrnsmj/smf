@@ -99,7 +99,7 @@ class CutsceneManager(
         synchronizeEyePosition = null
         isPaused = false
         playbackSpeed = 1f
-        scene.effects.cinematicOverlay.clear()
+        scene.sceneEffects.cinematicOverlay.clear()
     }
 
     fun setSubtitleFont(font: Font) {
@@ -122,7 +122,7 @@ class CutsceneManager(
         synchronizeEyePosition = null
         isPaused = false
         playbackSpeed = 1f
-        scene.effects.cinematicOverlay.clear()
+        scene.sceneEffects.cinematicOverlay.clear()
     }
 
     private fun restoreGameplayCamera() {
@@ -131,10 +131,10 @@ class CutsceneManager(
 
     private fun applyVisuals(cutscene: Cutscene) {
         val state = cutscene.visualState()
-        scene.effects.cinematicOverlay.fadeAlpha = state.fadeAlpha
-        scene.effects.cinematicOverlay.fadeColor = state.fadeColor
-        scene.effects.cinematicOverlay.letterboxRatio = state.letterboxRatio
-        scene.effects.cinematicOverlay.subtitle = state.subtitle?.let { cue ->
+        scene.sceneEffects.cinematicOverlay.fadeAlpha = state.fadeAlpha
+        scene.sceneEffects.cinematicOverlay.fadeColor = state.fadeColor
+        scene.sceneEffects.cinematicOverlay.letterboxRatio = state.letterboxRatio
+        scene.sceneEffects.cinematicOverlay.subtitle = state.subtitle?.let { cue ->
             subtitleFont?.let { font ->
                 TextElement(
                     text = cue.text,
@@ -146,7 +146,7 @@ class CutsceneManager(
                 )
             }
         }
-        scene.effects.cinematicOverlay.debugStatus = if (showDebugControls) {
+        scene.sceneEffects.cinematicOverlay.debugStatus = if (showDebugControls) {
             subtitleFont?.let { font ->
                 val pauseLabel = if (isPaused) "PAUSED | " else ""
                 TextElement(

@@ -80,8 +80,8 @@ class TextRenderer : SceneRenderer, Resizable {
 
     override fun render(scene: Scene) {
         val textElements = scene.world.textElements + listOfNotNull(
-            scene.effects.cinematicOverlay.subtitle,
-            scene.effects.cinematicOverlay.debugStatus,
+            scene.sceneEffects.cinematicOverlay.subtitle,
+            scene.sceneEffects.cinematicOverlay.debugStatus,
         )
         if (textElements.isEmpty() && scene.world.textBoxes.isEmpty()) return
 

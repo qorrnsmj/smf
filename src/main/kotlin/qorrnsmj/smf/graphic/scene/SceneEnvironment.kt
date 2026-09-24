@@ -7,7 +7,7 @@ import qorrnsmj.smf.graphic.skybox.Skybox
 import qorrnsmj.smf.graphic.skybox.Skyboxes
 import qorrnsmj.smf.math.Vector3f
 
-data class SkyEnvironment(
+data class SceneEnvironment(
     var skybox: Skybox = Skyboxes.DEFAULT,
     var skyboxEnabled: Boolean = true,
     var skydome: Skydome? = null,

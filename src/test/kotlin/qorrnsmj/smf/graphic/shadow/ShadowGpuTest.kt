@@ -77,7 +77,7 @@ class ShadowGpuTest {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, intArrayOf(0, 1, 2, 0, 2, 3), GL_STATIC_DRAW)
         glBindVertexArray(0)
-        val scene = Scene(environment = qorrnsmj.smf.graphic.scene.SkyEnvironment(
+        val scene = Scene(environment = qorrnsmj.smf.graphic.scene.SceneEnvironment(
             skybox = qorrnsmj.smf.graphic.skybox.Skybox(EntityModels.EMPTY)))
         scene.world.camera.position = Vector3f(0f, 0f, 2f)
         scene.environment.fog.enabled = false

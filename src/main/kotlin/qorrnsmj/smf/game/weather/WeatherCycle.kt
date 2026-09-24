@@ -1,14 +1,14 @@
 package qorrnsmj.smf.game.weather
 
 import qorrnsmj.smf.graphic.light.DirectionalLight
-import qorrnsmj.smf.graphic.scene.SkyEnvironment
+import qorrnsmj.smf.graphic.scene.SceneEnvironment
 import qorrnsmj.smf.math.Vector3f
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
 class WeatherCycle(
-    private val environment: SkyEnvironment,
+    private val environment: SceneEnvironment,
     private val presets: List<WeatherPreset>,
     private val phaseDurationSeconds: Float,
 ) {
