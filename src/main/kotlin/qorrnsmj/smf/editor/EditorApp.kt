@@ -94,6 +94,7 @@ class EditorApp {
         imGuiGl3.newFrame()
         imGuiGlfw.newFrame()
         ImGui.newFrame()
+        suppressUiMouseDuringViewportLook()
         ImGuizmo.beginFrame()
         context.lastGizmoWantsMouse = false
         context.lastTextInputActive = false
@@ -106,6 +107,14 @@ class EditorApp {
         ImGui.render()
         imGuiGl3.renderDrawData(ImGui.getDrawData())
         context.updateCursorMode()
+    }
+
+    private fun suppressUiMouseDuringViewportLook() {
+        if (!context.viewportMouseLookActive) return
+
+        val io = ImGui.getIO()
+        io.clearInputMouse()
+        io.setMousePos(-Float.MAX_VALUE, -Float.MAX_VALUE)
     }
 
     fun acceptCloseRequest(): Boolean {

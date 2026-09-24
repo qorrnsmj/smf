@@ -88,6 +88,7 @@ object SMF : FixedTimestepGame() {
         loadGameResources()
         editorApp = EditorApp()
 
+        window.setDecorated(false)
         window.show()
         window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_NORMAL)
         editorApp!!.initialize()

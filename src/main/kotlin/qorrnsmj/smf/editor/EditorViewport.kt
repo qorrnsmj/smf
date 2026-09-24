@@ -156,10 +156,8 @@ internal class EditorViewport(private val context: EditorContext) {
 
     private fun terrainBrushCircleLines(): List<DebugLine> {
         if (context.editMode != EditorEditMode.TERRAIN) return emptyList()
-        if (context.viewportMouseLookActive) return emptyList()
-        if (!isMouseOverActiveViewport()) return emptyList()
 
-        val center = EditorPicking.intersectGround(EditorPicking.currentMouseRay(context)) ?: return emptyList()
+        val center = EditorPicking.intersectGround(terrainBrushRay()) ?: return emptyList()
         val radius = terrainBrushWorldRadius()
         if (radius <= 0f) return emptyList()
 
@@ -188,9 +186,11 @@ internal class EditorViewport(private val context: EditorContext) {
         return lines
     }
 
-    private fun isMouseOverActiveViewport(): Boolean {
-        val mouse = ImGui.getMousePos()
-        return context.viewportIndexAt(mouse.x, mouse.y) == context.activeViewportIndex
+    private fun terrainBrushRay(): Ray {
+        return when (context.terrainPointerMode) {
+            EditorTerrainPointerMode.MOUSE -> EditorPicking.currentMouseRay(context)
+            EditorTerrainPointerMode.RETICLE -> EditorPicking.viewportCenterRay(context)
+        }
     }
 
     private fun terrainBrushWorldRadius(): Float {

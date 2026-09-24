@@ -44,13 +44,17 @@ internal class EditorUi(
             ImGuiWindowFlags.NoMove or
             ImGuiWindowFlags.NoCollapse or
             ImGuiWindowFlags.NoSavedSettings or
+            ImGuiWindowFlags.NoScrollbar or
+            ImGuiWindowFlags.NoScrollWithMouse or
             ImGuiWindowFlags.MenuBar
 
         if (ImGui.begin("LevelEditor", flags)) {
+            context.assetDragInProgress = false
             renderMainMenuBar()
             handleUiDeleteShortcut()
             val freezeViewportResize = context.panelResizeInProgress
             context.panelResizeInProgress = false
+            context.panelResizeHandleHovered = false
 
             val contentWidth = ImGui.getContentRegionAvailX()
             val contentHeight = ImGui.getContentRegionAvailY()
@@ -143,31 +147,83 @@ internal class EditorUi(
                 ImGui.endMenu()
             }
 
-            renderLevelTitle()
+            renderEditorTitleBar()
 
             ImGui.endMenuBar()
         }
     }
 
-    private fun renderLevelTitle() {
-        val levelTitle = "Level: ${context.projectName.get().ifBlank { "Untitled" }}"
+    private fun renderEditorTitleBar() {
+        val title = context.projectName.get().ifBlank { "Untitled" }
         val dirty = document.hasUnsavedMapChanges()
         val dotRadius = ImGui.getFontSize() * 0.32f
         val dotAreaWidth = if (dirty) dotRadius * 2f + ImGui.getStyle().itemSpacingX else 0f
-        val textWidth = ImGui.calcTextSizeX(levelTitle)
+        val textWidth = ImGui.calcTextSizeX(title)
         val windowWidth = ImGui.getWindowWidth()
-        val centerX = max(ImGui.getCursorPosX(), (windowWidth - textWidth - dotAreaWidth) * 0.5f)
+        val dragStartX = ImGui.getCursorPosX()
+        val controlsWidth = WINDOW_CONTROL_WIDTH * 3f
+        val dragWidth = max(1f, windowWidth - dragStartX - controlsWidth - ImGui.getStyle().windowPaddingX)
+        val titleY = ImGui.getCursorScreenPosY() + (ImGui.getFrameHeight() - ImGui.getFontSize()) * 0.5f
 
-        ImGui.sameLine(centerX)
-        if (dirty) {
-            val drawList = ImGui.getWindowDrawList()
-            val screenX = ImGui.getCursorScreenPosX() + dotRadius
-            val screenY = ImGui.getCursorScreenPosY() + ImGui.getFrameHeight() * 0.5f
-            drawList.addCircleFilled(screenX, screenY, dotRadius, ImColor.rgba(72, 211, 255, 255))
-            ImGui.dummy(dotRadius * 2f, ImGui.getFrameHeight())
-            ImGui.sameLine()
+        ImGui.sameLine(dragStartX)
+        ImGui.invisibleButton("##editor_window_drag", dragWidth, ImGui.getFrameHeight())
+        if (ImGui.isItemHovered()) {
+            if (ImGui.isMouseDoubleClicked(ImGuiMouseButton.Left)) {
+                SMF.window.toggleMaximized()
+            } else if (ImGui.isMouseClicked(ImGuiMouseButton.Left)) {
+                SMF.window.beginMove()
+            }
         }
-        ImGui.text(levelTitle)
+        if (ImGui.isItemActive() && ImGui.isMouseDragging(ImGuiMouseButton.Left)) {
+            SMF.window.updateMove()
+        }
+
+        val centerX = ImGui.getWindowPosX() + (windowWidth - textWidth - dotAreaWidth) * 0.5f
+        val drawList = ImGui.getWindowDrawList()
+        var textX = centerX
+        if (dirty) {
+            drawList.addCircleFilled(
+                centerX + dotRadius,
+                titleY + ImGui.getFontSize() * 0.5f,
+                dotRadius,
+                ImColor.rgba(72, 211, 255, 255),
+            )
+            textX += dotAreaWidth
+        }
+        drawList.addText(textX, titleY, ImColor.rgba(235, 238, 245, 255), title)
+
+        ImGui.sameLine(0f, 0f)
+        renderWindowControls()
+    }
+
+    private fun renderWindowControls() {
+        ImGui.pushStyleVar(ImGuiStyleVar.FrameRounding, 0f)
+        ImGui.pushStyleColor(ImGuiCol.Button, ImColor.rgba(0, 0, 0, 0))
+        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, ImColor.rgba(62, 66, 72, 255))
+        ImGui.pushStyleColor(ImGuiCol.ButtonActive, ImColor.rgba(48, 52, 58, 255))
+        if (ImGui.button("-##window_minimize", WINDOW_CONTROL_WIDTH, ImGui.getFrameHeight())) {
+            SMF.window.minimize()
+        }
+        if (ImGui.isItemHovered()) ImGui.setTooltip("Minimize")
+
+        ImGui.sameLine(0f, 0f)
+        if (ImGui.button("[]##window_maximize", WINDOW_CONTROL_WIDTH, ImGui.getFrameHeight())) {
+            SMF.window.toggleMaximized()
+        }
+        if (ImGui.isItemHovered()) {
+            ImGui.setTooltip(if (SMF.window.isMaximized()) "Restore" else "Maximize")
+        }
+
+        ImGui.sameLine(0f, 0f)
+        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, ImColor.rgba(196, 43, 58, 255))
+        ImGui.pushStyleColor(ImGuiCol.ButtonActive, ImColor.rgba(152, 30, 43, 255))
+        if (ImGui.button("X##window_close", WINDOW_CONTROL_WIDTH, ImGui.getFrameHeight())) {
+            SMF.window.requestClose()
+        }
+        ImGui.popStyleColor(2)
+        if (ImGui.isItemHovered()) ImGui.setTooltip("Close")
+        ImGui.popStyleColor(3)
+        ImGui.popStyleVar()
     }
 
     private fun renderTabVisibilityMenuItem(label: String, onClick: () -> Unit) {
@@ -461,6 +517,9 @@ internal class EditorUi(
         }
         addOneLineSpace()
 
+        renderTerrainPointerModeControls()
+        addOneLineSpace()
+
         val radius = floatArrayOf(context.terrainBrushRadius)
         if (renderTerrainFloatSlider("Radius", "terrain_radius", radius, 1f, 128f, "%.0f")) {
             context.terrainBrushRadius = radius[0]
@@ -497,9 +556,47 @@ internal class EditorUi(
             EditorTerrainBrushMode.RAISE -> "Raise"
             EditorTerrainBrushMode.LOWER -> "Lower"
             EditorTerrainBrushMode.SMOOTH -> "Smooth"
-            EditorTerrainBrushMode.FLATTEN -> "Flat"
+            EditorTerrainBrushMode.FLATTEN -> "Flatten"
             EditorTerrainBrushMode.NOISE -> "Noise"
-            EditorTerrainBrushMode.PAINT -> "Paint"
+            EditorTerrainBrushMode.PAINT -> "Splat"
+        }
+    }
+
+    private fun renderTerrainPointerModeControls() {
+        renderControlLabel("Pointer")
+        if (terrainPointerModeButton("Mouse", EditorTerrainPointerMode.MOUSE)) {
+            context.terrainPointerMode = EditorTerrainPointerMode.MOUSE
+        }
+        ImGui.sameLine()
+        if (terrainPointerModeButton("Reticle", EditorTerrainPointerMode.RETICLE)) {
+            context.terrainPointerMode = EditorTerrainPointerMode.RETICLE
+        }
+        ImGui.textDisabled(terrainPointerHint())
+    }
+
+    private fun terrainPointerModeButton(label: String, mode: EditorTerrainPointerMode): Boolean {
+        val selected = context.editMode == EditorEditMode.TERRAIN && context.terrainPointerMode == mode
+        if (selected) {
+            ImGui.pushStyleColor(ImGuiCol.Button, ImColor.rgba(214, 168, 45, 255))
+            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, ImColor.rgba(232, 188, 62, 255))
+            ImGui.pushStyleColor(ImGuiCol.ButtonActive, ImColor.rgba(196, 145, 34, 255))
+        }
+        val clicked = ImGui.button("$label##terrain_pointer_$label", 86f, 0f)
+        if (selected) ImGui.popStyleColor(3)
+        if (clicked) context.editMode = EditorEditMode.TERRAIN
+        return clicked
+    }
+
+    private fun terrainPointerHint(): String {
+        return when (context.terrainPointerMode) {
+            EditorTerrainPointerMode.MOUSE -> "LMB raise, RMB lower"
+            EditorTerrainPointerMode.RETICLE -> {
+                val action = when (context.terrainReticleAction) {
+                    EditorTerrainReticleAction.RAISE -> "Raise"
+                    EditorTerrainReticleAction.LOWER -> "Lower"
+                }
+                "LMB apply, E: $action, WASD move, RMB look"
+            }
         }
     }
 
@@ -739,6 +836,7 @@ internal class EditorUi(
         )
         if (hovered) ImGui.setTooltip(asset)
         if (ImGui.beginDragDropSource()) {
+            context.assetDragInProgress = true
             ImGui.setDragDropPayload("SMF_GLB_ASSET", asset)
             ImGui.text(asset)
             ImGui.endDragDropSource()
@@ -867,7 +965,21 @@ internal class EditorUi(
             if (context.editMode == EditorEditMode.OBJECT) renderGizmo()
         }
         if (active) renderViewportDebugOverlay(pos.x, pos.y, width, index)
+        if (active) renderViewportCenterPointer(pos.x, pos.y, width, height)
         renderViewportTerrainViewButtons(pos.x, pos.y, index)
+    }
+
+    private fun renderViewportCenterPointer(viewportX: Float, viewportY: Float, width: Float, height: Float) {
+        if (context.editMode != EditorEditMode.TERRAIN) return
+        if (context.terrainPointerMode != EditorTerrainPointerMode.RETICLE) return
+
+        val centerX = viewportX + width * 0.5f
+        val centerY = viewportY + height * 0.5f
+        val drawList = ImGui.getWindowDrawList()
+        val outer = ImColor.rgba(10, 12, 14, 210)
+        val inner = ImColor.rgba(208, 242, 104, 255)
+        drawList.addCircleFilled(centerX, centerY, 4.5f, outer, 18)
+        drawList.addCircleFilled(centerX, centerY, 2.5f, inner, 18)
     }
 
     private fun clearTextInputFocusOnViewportRightClick(x: Float, y: Float, width: Float, height: Float) {
@@ -1012,7 +1124,13 @@ internal class EditorUi(
     }
 
     private fun renderRightPanel(width: Float, height: Float) {
-        ImGui.beginChild("RightPanel", width, height, false)
+        ImGui.beginChild(
+            "RightPanel",
+            width,
+            height,
+            false,
+            ImGuiWindowFlags.NoScrollbar or ImGuiWindowFlags.NoScrollWithMouse,
+        )
         renderSidePanelPadding { renderProperties() }
         ImGui.endChild()
     }
@@ -1020,6 +1138,7 @@ internal class EditorUi(
     private fun renderVerticalSplitter(id: String, height: Float, onDrag: (Float) -> Unit) {
         ImGui.invisibleButton(id, SPLITTER_WIDTH, height)
         if (ImGui.isItemHovered() || ImGui.isItemActive()) {
+            context.panelResizeHandleHovered = true
             ImGui.setMouseCursor(ImGuiMouseCursor.ResizeEW)
         }
         if (ImGui.isItemActive()) {
@@ -1031,6 +1150,7 @@ internal class EditorUi(
     private fun renderHorizontalSplitter(id: String, width: Float = ImGui.getContentRegionAvailX(), onDrag: (Float) -> Unit) {
         ImGui.invisibleButton(id, width, TAB_SPLITTER_HEIGHT)
         if (ImGui.isItemHovered() || ImGui.isItemActive()) {
+            context.panelResizeHandleHovered = true
             ImGui.setMouseCursor(ImGuiMouseCursor.ResizeNS)
         }
         if (ImGui.isItemActive()) {
@@ -1047,6 +1167,7 @@ internal class EditorUi(
     ) {
         ImGui.invisibleButton(id, ImGui.getContentRegionAvailX(), TAB_SPLITTER_HEIGHT)
         if (ImGui.isItemHovered() || ImGui.isItemActive()) {
+            context.panelResizeHandleHovered = true
             ImGui.setMouseCursor(ImGuiMouseCursor.ResizeNS)
         }
         if (ImGui.isItemActive()) {
@@ -1468,7 +1589,7 @@ internal class EditorUi(
         val selected = context.selectedObject()
         val selectedEventArea = context.eventAreas.getOrNull(context.selectedEventAreaIndex)
         val selectedSpawnPoint = selectedEventArea?.spawnPoints?.getOrNull(context.selectedSpawnPointIndex)
-        expandCollisionTabToAvailableHeight()
+        fitCollisionTabToAvailableHeight()
         renderNestedTabChild(
             "Terrain",
             "Terrain",
@@ -1638,19 +1759,18 @@ internal class EditorUi(
         }
     }
 
-    private fun expandCollisionTabToAvailableHeight() {
+    private fun fitCollisionTabToAvailableHeight() {
         if (!context.collisionsTabExpanded) return
 
         val availableHeight = max(1f, ImGui.getContentRegionAvailY())
+        val itemSpacingHeight = ImGui.getStyle().itemSpacingY * PROPERTY_STACK_SPACING_COUNT
         val usedBeforeCollisions =
             tabHeight(context.terrainTabHeight, context.terrainTabExpanded) +
                 TAB_SPLITTER_HEIGHT +
                 tabHeight(context.objectTabHeight, context.objectTabExpanded) +
-                TAB_SPLITTER_HEIGHT
-        val remainingHeight = availableHeight - usedBeforeCollisions
-        if (remainingHeight > context.collisionsTabHeight) {
-            context.collisionsTabHeight = remainingHeight
-        }
+                TAB_SPLITTER_HEIGHT +
+                itemSpacingHeight
+        context.collisionsTabHeight = max(MIN_FREE_TAB_HEIGHT, availableHeight - usedBeforeCollisions)
     }
 
     private fun renderEmptyPropertyTab(
@@ -2115,5 +2235,7 @@ internal class EditorUi(
         const val BUTTON_WIDTH_SAFETY = 6f
         const val ASSET_TILE_WIDTH = 142f
         const val ASSET_TILE_HEIGHT = 112f
+        const val WINDOW_CONTROL_WIDTH = 30f
+        const val PROPERTY_STACK_SPACING_COUNT = 4f
     }
 }

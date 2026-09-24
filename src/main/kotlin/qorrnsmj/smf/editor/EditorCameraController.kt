@@ -28,7 +28,7 @@ internal class EditorCameraController(private val camera: Camera) {
     private var lastMouseY = 0.0
     private var mouseInitialized = false
 
-    fun update(delta: Float, uiWantsMouse: Boolean) {
+    fun update(delta: Float, uiWantsMouse: Boolean, forceMovement: Boolean = false) {
         val window = SMF.window.id
         val rightDown = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS
 
@@ -38,7 +38,7 @@ internal class EditorCameraController(private val camera: Camera) {
             mouseInitialized = false
         }
 
-        if (rightDown && !uiWantsMouse) {
+        if ((rightDown && !uiWantsMouse) || forceMovement) {
             updateMovement(delta)
         }
     }

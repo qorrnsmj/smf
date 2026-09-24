@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GL33C.glGetString
 import org.lwjgl.system.MemoryUtil
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.util.Resizable
+import kotlin.math.roundToInt
 
 class Window(width: Int, height: Int, title: String, vsync: Boolean = true) : Resizable {
     val id: Long
@@ -17,6 +18,8 @@ class Window(width: Int, height: Int, title: String, vsync: Boolean = true) : Re
     // TODO: widthBufferいらなくない？
     private val widthBuffer = MemoryUtil.memAllocInt(1)
     private val heightBuffer = MemoryUtil.memAllocInt(1)
+    private var moveOffsetX = 0.0
+    private var moveOffsetY = 0.0
 
     init {
         Logger.info("Window initializing...")
@@ -105,6 +108,48 @@ class Window(width: Int, height: Int, title: String, vsync: Boolean = true) : Re
 
     fun setInputMode(mode: Int, value: Int) {
         glfwSetInputMode(id, mode, value)
+    }
+
+    fun setDecorated(decorated: Boolean) {
+        glfwSetWindowAttrib(id, GLFW_DECORATED, if (decorated) GLFW_TRUE else GLFW_FALSE)
+    }
+
+    fun minimize() {
+        glfwIconifyWindow(id)
+    }
+
+    fun toggleMaximized() {
+        if (isMaximized()) glfwRestoreWindow(id) else glfwMaximizeWindow(id)
+    }
+
+    fun isMaximized(): Boolean {
+        return glfwGetWindowAttrib(id, GLFW_MAXIMIZED) == GLFW_TRUE
+    }
+
+    fun requestClose() {
+        glfwSetWindowShouldClose(id, true)
+    }
+
+    fun beginMove() {
+        if (isMaximized()) return
+        val cursorX = DoubleArray(1)
+        val cursorY = DoubleArray(1)
+        glfwGetCursorPos(id, cursorX, cursorY)
+        moveOffsetX = cursorX[0]
+        moveOffsetY = cursorY[0]
+    }
+
+    fun updateMove() {
+        if (isMaximized()) return
+        val windowX = IntArray(1)
+        val windowY = IntArray(1)
+        val cursorX = DoubleArray(1)
+        val cursorY = DoubleArray(1)
+        glfwGetWindowPos(id, windowX, windowY)
+        glfwGetCursorPos(id, cursorX, cursorY)
+        val screenX = windowX[0] + cursorX[0]
+        val screenY = windowY[0] + cursorY[0]
+        glfwSetWindowPos(id, (screenX - moveOffsetX).roundToInt(), (screenY - moveOffsetY).roundToInt())
     }
 
     override fun resize(width: Int, height: Int) {

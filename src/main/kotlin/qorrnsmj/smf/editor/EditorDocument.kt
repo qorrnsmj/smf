@@ -575,7 +575,7 @@ internal class EditorDocument(private val context: EditorContext) {
         context.terrainPreview?.update()
     }
 
-    fun applyTerrainBrush(gridX: Int, gridY: Int, delta: Float, newStroke: Boolean) {
+    fun applyTerrainBrush(gridX: Int, gridY: Int, delta: Float, newStroke: Boolean, direction: Float = 1f) {
         if (gridX !in 0 until context.terrain.width || gridY !in 0 until context.terrain.height) return
         val radius = max(1f, context.terrainBrushRadius)
         val radiusInt = radius.toInt().coerceAtLeast(1)
@@ -610,8 +610,8 @@ internal class EditorDocument(private val context: EditorContext) {
                 val blendAmount = (blendStrength * weight * 3.5f).coerceIn(0f, 1f)
                 val current = terrain.get(x, y)
                 val next = when (context.terrainBrushMode) {
-                    EditorTerrainBrushMode.RAISE -> current + amount
-                    EditorTerrainBrushMode.LOWER -> current - amount
+                    EditorTerrainBrushMode.RAISE -> current + amount * direction
+                    EditorTerrainBrushMode.LOWER -> current - amount * direction
                     EditorTerrainBrushMode.SMOOTH -> current + (smoothHeight(original!!, x, y, radius) - current) * blendAmount
                     EditorTerrainBrushMode.FLATTEN -> current + (context.terrainFlattenHeight - current) * blendAmount
                     EditorTerrainBrushMode.NOISE -> current + terrainNoise(x, y) * amount

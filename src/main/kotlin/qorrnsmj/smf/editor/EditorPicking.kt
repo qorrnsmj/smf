@@ -11,13 +11,21 @@ import kotlin.math.min
 
 internal object EditorPicking {
     fun currentMouseRay(context: EditorContext): Ray {
-        val camera = context.activeCamera()
         val x = DoubleArray(1)
         val y = DoubleArray(1)
         glfwGetCursorPos(SMF.window.id, x, y)
 
         val localX = x[0].toFloat() - context.viewportX
         val localY = y[0].toFloat() - context.viewportY
+        return viewportRay(context, localX, localY)
+    }
+
+    fun viewportCenterRay(context: EditorContext): Ray {
+        return viewportRay(context, context.viewportWidth * 0.5f, context.viewportHeight * 0.5f)
+    }
+
+    private fun viewportRay(context: EditorContext, localX: Float, localY: Float): Ray {
+        val camera = context.activeCamera()
         val ndcX = (2f * localX) / context.viewportWidth - 1f
         val ndcY = 1f - (2f * localY) / context.viewportHeight
         val clip = Vector4f(ndcX, ndcY, -1f, 1f)

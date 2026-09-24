@@ -82,7 +82,11 @@ internal class EditorContext {
     var terrainBrushStrength = 0.35f
     var terrainBrushFalloff = 1.5f
     var terrainPaintTextureIndex = 0
+    var terrainPointerMode = EditorTerrainPointerMode.RETICLE
+    var terrainReticleAction = EditorTerrainReticleAction.RAISE
+    var terrainReticleActionToggleWasDown = false
     var terrainBrushWasDown = false
+    var assetDragInProgress = false
     var terrainFlattenHeight = 0f
     var leftMouseWasDown = false
     var lastWantCaptureMouse = false
@@ -109,6 +113,7 @@ internal class EditorContext {
     var rightPanelWidth = 430f
     var viewportSplitRatio = 0.5f
     var panelResizeInProgress = false
+    var panelResizeHandleHovered = false
     var windowFontScale = 1f
     var editorFontScale = 1.12f
     var viewportMouseLookActive = false
@@ -490,6 +495,16 @@ internal enum class EditorTerrainBrushMode {
     FLATTEN,
     NOISE,
     PAINT,
+}
+
+internal enum class EditorTerrainPointerMode {
+    MOUSE,
+    RETICLE,
+}
+
+internal enum class EditorTerrainReticleAction {
+    RAISE,
+    LOWER,
 }
 
 internal enum class EditorEditMode {
