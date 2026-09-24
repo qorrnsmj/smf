@@ -8,6 +8,7 @@ import org.lwjgl.opengl.GL33C.GL_LINE
 import org.lwjgl.opengl.GL33C.glPolygonMode
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
+import qorrnsmj.smf.graphic.debug.DebugVisual
 import qorrnsmj.smf.state.States
 
 class SMFKeyCallback : GLFWKeyCallback() {
@@ -44,8 +45,8 @@ class SMFKeyCallback : GLFWKeyCallback() {
             SMF.stateMachine.changeState(States.IN_GAME)
 
         if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
-            SMF.renderer.debugRenderer.toggleCollisionDebug()
-            Logger.info("Collision debug: {}", SMF.renderer.debugRenderer.isCollisionDebugEnabled())
+            val enabled = SMF.renderer.debugRenderer.toggle(DebugVisual.COLLIDERS)
+            Logger.info("Collider debug: {}", enabled)
         }
     }
 }

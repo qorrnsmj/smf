@@ -23,25 +23,21 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-/**
- * Unified debug renderer for all types of debug visualizations.
- * Handles collision bounds, physics vectors, lighting debug, and other debug overlays.
- * Follows the TextRenderer pattern for consistent architecture.
- */
+/** Renders optional scene diagnostics and caller-provided wireframe primitives. */
 class DebugRenderer : SceneRenderer, Resizable {
     private lateinit var shaderProgram: LineShaderProgram
     private var vao: Int = 0
     private var vbo: Int = 0
     private var projectionMatrix: Matrix4f = MVP.getPerspectiveMatrix(16f / 9f)
 
-    private var collisionDebugEnabled: Boolean = false
+    private val enabledVisuals = mutableSetOf<DebugVisual>()
+    private var overlayPrimitives: List<DebugPrimitive> = emptyList()
 
     private val boxColliderColor = Vector4f(0.2f, 0.6f, 1.0f, 1.0f)
     private val sphereColliderColor = Vector4f(0.2f, 1.0f, 0.6f, 1.0f)
     private val capsuleColliderColor = Vector4f(1.0f, 0.75f, 0.25f, 1.0f)
     private val convexHullColor = Vector4f(0.25f, 1.0f, 1.0f, 1.0f)
     private val ghostPlaneColor = Vector4f(1.0f, 0.2f, 0.8f, 1.0f)
-    private val playerBoundsColor = Vector4f(1.0f, 0.35f, 0.35f, 1.0f)
 
     private val circleSegments = 16
     private val hullPlaneEpsilon = 0.05f
@@ -50,11 +46,6 @@ class DebugRenderer : SceneRenderer, Resizable {
     private val verticesPerLine = 2
     private val floatsPerVertex = 7 // position (3) + color (4)
     private val maxVertices = maxLines * verticesPerLine * floatsPerVertex
-    private var playerBounds: AABB? = null
-    private val editorBoxes = mutableListOf<EditorDebugBox>()
-    private val editorSpheres = mutableListOf<EditorDebugSphere>()
-    private val editorCapsules = mutableListOf<EditorDebugCapsule>()
-    private val editorLines = mutableListOf<EditorDebugLine>()
 
     init {
         initializeRenderer()
@@ -84,65 +75,27 @@ class DebugRenderer : SceneRenderer, Resizable {
         GL30C.glBindVertexArray(0)
     }
 
-    // === Collision Debug Functions ===
-
-    fun toggleCollisionDebug() {
-        collisionDebugEnabled = !collisionDebugEnabled
+    fun toggle(visual: DebugVisual): Boolean {
+        val enabled = visual !in enabledVisuals
+        setEnabled(visual, enabled)
+        return enabled
     }
 
-    fun setCollisionDebugEnabled(enable: Boolean) {
-        collisionDebugEnabled = enable
+    fun setEnabled(visual: DebugVisual, enabled: Boolean) {
+        if (enabled) enabledVisuals.add(visual) else enabledVisuals.remove(visual)
     }
 
-    fun isCollisionDebugEnabled(): Boolean = collisionDebugEnabled
+    fun isEnabled(visual: DebugVisual): Boolean = visual in enabledVisuals
 
-    @Suppress("unused")
-    fun setPlayerBounds(bounds: AABB?) {
-        playerBounds = bounds
+    fun setOverlayPrimitives(primitives: List<DebugPrimitive>) {
+        overlayPrimitives = primitives.toList()
     }
 
-    // === Future Debug Functions (placeholders) ===
+    fun clearOverlayPrimitives() {
+        overlayPrimitives = emptyList()
+    }
 
-    // Example: Velocity Vector Debug
-    // fun toggleVelocityVectors() {
-    //     velocityVectorsEnabled = !velocityVectorsEnabled
-    // }
-    //
-    // fun isVelocityVectorsEnabled(): Boolean = velocityVectorsEnabled
-
-    // Example: Lighting Debug
-    // fun toggleLightingDebug() {
-    //     lightingDebugEnabled = !lightingDebugEnabled
-    // }
-    //
-    // fun isLightingDebugEnabled(): Boolean = lightingDebugEnabled
-
-    // Example: Physics Info Debug
-    // fun togglePhysicsInfo() {
-    //     physicsInfoEnabled = !physicsInfoEnabled
-    // }
-    //
-    // fun isPhysicsInfoEnabled(): Boolean = physicsInfoEnabled
-
-    // Example: Entity Hierarchy Debug
-    // fun toggleHierarchyDebug() {
-    //     hierarchyDebugEnabled = !hierarchyDebugEnabled
-    // }
-
-    // TODO: Add more debug features here. Key bindings can be:
-    // F1: Collision Debug (implemented)
-    // F2: Velocity Vectors
-    // F3: Lighting Debug
-    // F4: Physics Info
-    // F5: Entity Hierarchy
-
-    fun isAnyDebugEnabled(): Boolean = collisionDebugEnabled ||
-        editorBoxes.isNotEmpty() ||
-        editorSpheres.isNotEmpty() ||
-        editorCapsules.isNotEmpty() ||
-        editorLines.isNotEmpty()
-    // When adding more features, update this method:
-    // fun isAnyDebugEnabled(): Boolean = collisionDebugEnabled || velocityVectorsEnabled || lightingDebugEnabled
+    private fun isAnyDebugEnabled(): Boolean = enabledVisuals.isNotEmpty() || overlayPrimitives.isNotEmpty()
 
     /**
      * Main render function for all debug visualizations
@@ -169,7 +122,7 @@ class DebugRenderer : SceneRenderer, Resizable {
         stop()
     }
 
-    fun start() {
+    private fun start() {
         shaderProgram.use()
 
         GL11C.glDisable(GL11C.GL_DEPTH_TEST)
@@ -178,65 +131,52 @@ class DebugRenderer : SceneRenderer, Resizable {
         GL11C.glLineWidth(2.0f)
     }
 
-    fun stop() {
+    private fun stop() {
         GL11C.glLineWidth(1.0f)
         GL11C.glDisable(GL11C.GL_BLEND)
         GL11C.glEnable(GL11C.GL_DEPTH_TEST)
         GL20C.glUseProgram(0)
     }
 
-    /**
-     * Generate vertices for all enabled debug features
-     */
     private fun generateDebugVertices(entities: List<Entity>): FloatArray {
         val vertices = mutableListOf<Float>()
 
-        if (collisionDebugEnabled) {
+        if (isEnabled(DebugVisual.COLLIDERS)) {
             generateCollisionVertices(entities, vertices)
         }
 
-        generateEditorCollisionVertices(vertices)
-        generateEditorLineVertices(vertices)
+        overlayPrimitives.forEach { primitive ->
+            generatePrimitiveVertices(primitive, vertices)
+        }
 
         return vertices.toFloatArray()
     }
 
-    fun setEditorCollisionDebug(
-        boxes: List<EditorDebugBox>,
-        spheres: List<EditorDebugSphere>,
-        capsules: List<EditorDebugCapsule> = emptyList(),
-    ) {
-        editorBoxes.clear()
-        editorBoxes.addAll(boxes)
-        editorSpheres.clear()
-        editorSpheres.addAll(spheres)
-        editorCapsules.clear()
-        editorCapsules.addAll(capsules)
-    }
-
-    fun setEditorTerrainDebug(lines: List<EditorDebugLine>) {
-        editorLines.clear()
-        editorLines.addAll(lines)
-    }
-
-    private fun generateEditorCollisionVertices(vertices: MutableList<Float>) {
-        for (box in editorBoxes) {
-            generateOrientedBoxWireframe(box.center, box.size, box.rotation, box.color, vertices)
-        }
-
-        for (sphere in editorSpheres) {
-            generateSphereWireframe(sphere.center, SphereCollider(sphere.radius), sphere.color, vertices)
-        }
-
-        for (capsule in editorCapsules) {
-            generateCapsuleWireframe(capsule.feetPosition, CapsuleCollider(capsule.radius, capsule.height), capsule.color, vertices)
-        }
-    }
-
-    private fun generateEditorLineVertices(vertices: MutableList<Float>) {
-        for (line in editorLines) {
-            appendVertex(vertices, line.from, line.color)
-            appendVertex(vertices, line.to, line.color)
+    private fun generatePrimitiveVertices(primitive: DebugPrimitive, vertices: MutableList<Float>) {
+        when (primitive) {
+            is DebugBox -> generateOrientedBoxWireframe(
+                primitive.center,
+                primitive.size,
+                primitive.rotation,
+                primitive.color,
+                vertices,
+            )
+            is DebugSphere -> generateSphereWireframe(
+                primitive.center,
+                SphereCollider(primitive.radius),
+                primitive.color,
+                vertices,
+            )
+            is DebugCapsule -> generateCapsuleWireframe(
+                primitive.feetPosition,
+                CapsuleCollider(primitive.radius, primitive.height),
+                primitive.color,
+                vertices,
+            )
+            is DebugLine -> {
+                appendVertex(vertices, primitive.from, primitive.color)
+                appendVertex(vertices, primitive.to, primitive.color)
+            }
         }
     }
 
@@ -260,10 +200,6 @@ class DebugRenderer : SceneRenderer, Resizable {
                     generateConvexHullWireframe(worldPos, collider, vertices)
                 }
             }
-        }
-
-        playerBounds?.let { bounds ->
-            generateAabbWireframe(bounds, playerBoundsColor, vertices)
         }
     }
 
@@ -522,29 +458,3 @@ class DebugRenderer : SceneRenderer, Resizable {
         projectionMatrix = MVP.getPerspectiveMatrix(width / height.toFloat())
     }
 }
-
-data class EditorDebugBox(
-    val center: Vector3f,
-    val size: Vector3f,
-    val rotation: Vector3f,
-    val color: Vector4f,
-)
-
-data class EditorDebugSphere(
-    val center: Vector3f,
-    val radius: Float,
-    val color: Vector4f,
-)
-
-data class EditorDebugCapsule(
-    val feetPosition: Vector3f,
-    val radius: Float,
-    val height: Float,
-    val color: Vector4f,
-)
-
-data class EditorDebugLine(
-    val from: Vector3f,
-    val to: Vector3f,
-    val color: Vector4f,
-)

@@ -7,10 +7,11 @@ import org.lwjgl.opengl.GL33C.glViewport
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
-import qorrnsmj.smf.graphic.debug.EditorDebugBox
-import qorrnsmj.smf.graphic.debug.EditorDebugCapsule
-import qorrnsmj.smf.graphic.debug.EditorDebugLine
-import qorrnsmj.smf.graphic.debug.EditorDebugSphere
+import qorrnsmj.smf.graphic.debug.DebugBox
+import qorrnsmj.smf.graphic.debug.DebugCapsule
+import qorrnsmj.smf.graphic.debug.DebugLine
+import qorrnsmj.smf.graphic.debug.DebugPrimitive
+import qorrnsmj.smf.graphic.debug.DebugSphere
 import qorrnsmj.smf.graphic.resource.buffer.FrameBufferObject
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
@@ -38,7 +39,7 @@ internal class EditorViewport(private val context: EditorContext) {
 
         try {
             target.bind()
-            updateCollisionDebug()
+            updateDebugPrimitives()
             context.scene.world.camera = camera
             context.scene.renderSettings.viewportShadingMode = shadingMode
             context.scene.renderSettings.terrainGrayView = shadingMode == ViewportShadingSettings.SOLID || shadingMode == ViewportShadingSettings.WIRE
@@ -104,13 +105,11 @@ internal class EditorViewport(private val context: EditorContext) {
     fun dispose() {
         fbo?.delete()
         fbo = null
-        SMF.renderer.debugRenderer.setEditorCollisionDebug(emptyList(), emptyList())
+        SMF.renderer.debugRenderer.clearOverlayPrimitives()
     }
 
-    private fun updateCollisionDebug() {
-        val boxes = mutableListOf<EditorDebugBox>()
-        val spheres = mutableListOf<EditorDebugSphere>()
-        val capsules = mutableListOf<EditorDebugCapsule>()
+    private fun updateDebugPrimitives() {
+        val primitives = mutableListOf<DebugPrimitive>()
 
         context.placedObjects.forEachIndexed { index, placed ->
             val transform = placed.root.localTransform
@@ -124,8 +123,8 @@ internal class EditorViewport(private val context: EditorContext) {
                 val center = base.add(transform.rotation.rotate(collision.position.multiply(parentScale)))
                 val rotation = transform.rotation.toEulerDegrees().add(collision.rotation)
                 when (collision.shape) {
-                    EditorCollisionShape.BOX -> boxes.add(EditorDebugBox(center, collision.size.multiply(parentScale), rotation, boxColor))
-                    EditorCollisionShape.SPHERE -> spheres.add(EditorDebugSphere(center, collision.radius * parentScale.average(), sphereColor))
+                    EditorCollisionShape.BOX -> primitives.add(DebugBox(center, collision.size.multiply(parentScale), rotation, boxColor))
+                    EditorCollisionShape.SPHERE -> primitives.add(DebugSphere(center, collision.radius * parentScale.average(), sphereColor))
                 }
             }
         }
@@ -133,21 +132,21 @@ internal class EditorViewport(private val context: EditorContext) {
         context.eventAreas.forEachIndexed { index, area ->
             val selected = context.selectedEventAreaIndex == index
             val color = if (selected) Vector4f(1f, 0.35f, 0.9f, 1f) else Vector4f(1f, 0.35f, 0.9f, 0.7f)
-            boxes.add(EditorDebugBox(area.position, area.size, area.rotation, color))
+            primitives.add(DebugBox(area.position, area.size, area.rotation, color))
 
             area.spawnPoints.forEachIndexed { spawnIndex, spawn ->
                 val spawnSelected = context.selectedEventAreaIndex == index && context.selectedSpawnPointIndex == spawnIndex
                 val spawnColor = if (spawnSelected) Vector4f(0.25f, 1f, 0.35f, 1f) else Vector4f(0.25f, 1f, 0.35f, 0.7f)
-                capsules.add(EditorDebugCapsule(spawn.position, PLAYER_CAPSULE_RADIUS, PLAYER_CAPSULE_HEIGHT, spawnColor))
+                primitives.add(DebugCapsule(spawn.position, PLAYER_CAPSULE_RADIUS, PLAYER_CAPSULE_HEIGHT, spawnColor))
             }
         }
 
-        SMF.renderer.debugRenderer.setEditorCollisionDebug(boxes, spheres, capsules)
-        SMF.renderer.debugRenderer.setEditorTerrainDebug(terrainDebugLines())
+        primitives.addAll(terrainDebugLines())
+        SMF.renderer.debugRenderer.setOverlayPrimitives(primitives)
     }
 
-    private fun terrainDebugLines(): List<EditorDebugLine> {
-        val lines = mutableListOf<EditorDebugLine>()
+    private fun terrainDebugLines(): List<DebugLine> {
+        val lines = mutableListOf<DebugLine>()
         if (context.terrainMeshViewEnabled) {
             lines.addAll(context.terrainPreview?.wireframeLines() ?: emptyList())
         }
@@ -155,7 +154,7 @@ internal class EditorViewport(private val context: EditorContext) {
         return lines
     }
 
-    private fun terrainBrushCircleLines(): List<EditorDebugLine> {
+    private fun terrainBrushCircleLines(): List<DebugLine> {
         if (context.editMode != EditorEditMode.TERRAIN) return emptyList()
         if (context.viewportMouseLookActive) return emptyList()
         if (!isMouseOverActiveViewport()) return emptyList()
@@ -164,7 +163,7 @@ internal class EditorViewport(private val context: EditorContext) {
         val radius = terrainBrushWorldRadius()
         if (radius <= 0f) return emptyList()
 
-        val lines = ArrayList<EditorDebugLine>(BRUSH_CIRCLE_SEGMENTS + 4)
+        val lines = ArrayList<DebugLine>(BRUSH_CIRCLE_SEGMENTS + 4)
         val color = brushColor()
         val centerPoint = terrainBrushPoint(center.x, center.z) ?: return emptyList()
         val angleStep = (Math.PI.toFloat() * 2f) / BRUSH_CIRCLE_SEGMENTS
@@ -177,15 +176,15 @@ internal class EditorViewport(private val context: EditorContext) {
                 center.z + radius * sin(angle),
             )
             if (previous != null && next != null) {
-                lines.add(EditorDebugLine(previous, next, color))
+                lines.add(DebugLine(previous, next, color))
             }
             previous = next
         }
 
-        terrainBrushPoint(center.x - radius, center.z)?.let { lines.add(EditorDebugLine(centerPoint, it, color)) }
-        terrainBrushPoint(center.x + radius, center.z)?.let { lines.add(EditorDebugLine(centerPoint, it, color)) }
-        terrainBrushPoint(center.x, center.z - radius)?.let { lines.add(EditorDebugLine(centerPoint, it, color)) }
-        terrainBrushPoint(center.x, center.z + radius)?.let { lines.add(EditorDebugLine(centerPoint, it, color)) }
+        terrainBrushPoint(center.x - radius, center.z)?.let { lines.add(DebugLine(centerPoint, it, color)) }
+        terrainBrushPoint(center.x + radius, center.z)?.let { lines.add(DebugLine(centerPoint, it, color)) }
+        terrainBrushPoint(center.x, center.z - radius)?.let { lines.add(DebugLine(centerPoint, it, color)) }
+        terrainBrushPoint(center.x, center.z + radius)?.let { lines.add(DebugLine(centerPoint, it, color)) }
         return lines
     }
 

@@ -21,7 +21,7 @@ import qorrnsmj.smf.graphic.terrain.component.SingleTexture
 import qorrnsmj.smf.graphic.terrain.component.TerrainMaterial
 import qorrnsmj.smf.graphic.terrain.component.TerrainMesh
 import qorrnsmj.smf.graphic.terrain.component.TerrainModel
-import qorrnsmj.smf.graphic.debug.EditorDebugLine
+import qorrnsmj.smf.graphic.debug.DebugLine
 import qorrnsmj.smf.graphic.texture.Textures
 import qorrnsmj.smf.math.Vector2f
 import qorrnsmj.smf.math.Vector3f
@@ -44,7 +44,7 @@ internal class EditorTerrainPreview(
     private val texCoordVbo = glGenBuffers()
     private val normalVbo = glGenBuffers()
     private val ebo = glGenBuffers()
-    private var wireframeCache = emptyList<EditorDebugLine>()
+    private var wireframeCache = emptyList<DebugLine>()
     private var wireframeDirty = true
 
     val terrain: Terrain
@@ -95,10 +95,10 @@ internal class EditorTerrainPreview(
         glDeleteVertexArrays(vao)
     }
 
-    fun wireframeLines(): List<EditorDebugLine> {
+    fun wireframeLines(): List<DebugLine> {
         if (!wireframeDirty) return wireframeCache
         val sampledResolution = ((resolution - 1) / wireStep) + 1
-        val lines = ArrayList<EditorDebugLine>(sampledResolution * sampledResolution * 2)
+        val lines = ArrayList<DebugLine>(sampledResolution * sampledResolution * 2)
         val color = Vector4f(0.05f, 0.95f, 1f, 0.78f)
         val samples = (0 until resolution step wireStep).toMutableList()
         if (samples.last() != resolution - 1) samples.add(resolution - 1)
@@ -106,8 +106,8 @@ internal class EditorTerrainPreview(
             for (x in samples) {
                 val nextX = samples.firstOrNull { it > x }
                 val nextZ = samples.firstOrNull { it > z }
-                if (nextX != null) lines.add(EditorDebugLine(vertexAt(x, z), vertexAt(nextX, z), color))
-                if (nextZ != null) lines.add(EditorDebugLine(vertexAt(x, z), vertexAt(x, nextZ), color))
+                if (nextX != null) lines.add(DebugLine(vertexAt(x, z), vertexAt(nextX, z), color))
+                if (nextZ != null) lines.add(DebugLine(vertexAt(x, z), vertexAt(x, nextZ), color))
             }
         }
         wireframeCache = lines

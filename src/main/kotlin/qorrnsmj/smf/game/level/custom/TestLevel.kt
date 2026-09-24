@@ -7,16 +7,15 @@ import qorrnsmj.smf.game.entity.billboard.CloudBillboard
 import qorrnsmj.smf.game.entity.custom.ObjectEntity
 import qorrnsmj.smf.game.entity.custom.ShadowTestBlockEntity
 import qorrnsmj.smf.game.entity.custom.Transform
-import qorrnsmj.smf.game.entity.mob.SlimeEntity
 import qorrnsmj.smf.game.weather.WeatherCycle
 import qorrnsmj.smf.game.weather.WeatherPresets
+import qorrnsmj.smf.graphic.debug.DebugBox
+import qorrnsmj.smf.graphic.debug.DebugCapsule
+import qorrnsmj.smf.graphic.debug.DebugLine
+import qorrnsmj.smf.graphic.debug.DebugSphere
+import qorrnsmj.smf.graphic.debug.DebugVisual
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.skydome.Skydome
-import qorrnsmj.smf.graphic.text.Font
-import qorrnsmj.smf.graphic.text.FontLoader
-import qorrnsmj.smf.graphic.text.TextBoxElement
-import qorrnsmj.smf.graphic.text.TextRun
-import qorrnsmj.smf.graphic.text.TextStyle
 import qorrnsmj.smf.graphic.texture.TextureLoader
 import qorrnsmj.smf.graphic.texture.TexturePresets
 import qorrnsmj.smf.math.Vector2f
@@ -26,9 +25,6 @@ import java.io.File
 
 class TestLevel : BaseLevel("test") {
     private lateinit var weatherCycle: WeatherCycle
-    private lateinit var textBoxFont: Font
-    private lateinit var textBoxSmallFont: Font
-    private lateinit var textBoxSpeaker: SlimeEntity
     private val cloudBillboards = mutableListOf<CloudBillboard>()
 
     override fun load() {
@@ -36,9 +32,7 @@ class TestLevel : BaseLevel("test") {
         super.load()
         scene.world.lights.removeAll { it is PointLight }
         addShadowVerificationFixture()
-        addTextBoxVerificationFixture()
-        textBoxFont = FontLoader.loadAssetFont("Inconsolata.ttf", 22f)
-        textBoxSmallFont = FontLoader.loadAssetFont("Inconsolata.ttf", 18f)
+        addDebugVisualVerificationFixture()
 
         val cloudBaseTexture = TextureLoader.loadTexture(
             "assets/texture/sky/cloud_base.png",
@@ -132,38 +126,12 @@ class TestLevel : BaseLevel("test") {
             )
         }
 
-        scene.world.textBoxes.clear()
-        scene.world.textBoxes.add(createTextBoxTestFixture())
     }
 
-    private fun addTextBoxVerificationFixture() {
-        textBoxSpeaker = SlimeEntity(Vector3f(120f, 5f, 160f)).apply {
-            displayName = "Slime Clerk"
-        }
-        scene.world.entities.add(textBoxSpeaker)
-    }
-
-    private fun createTextBoxTestFixture(): TextBoxElement {
-        val normalStyle = TextStyle(textBoxFont, Vector3f(0.92f, 0.94f, 0.98f))
-        val boldStyle = TextStyle(textBoxFont, Vector3f(1f, 0.95f, 0.68f), bold = true)
-        val hintStyle = TextStyle(textBoxSmallFont, Vector3f(0.55f, 0.75f, 1f))
-        return TextBoxElement(
-            runs = listOf(
-                TextRun("Entity displayName is linked here. ", normalStyle),
-                TextRun("Bold", boldStyle),
-                TextRun(" and ", normalStyle),
-                TextRun("colored", TextStyle(textBoxFont, Vector3f(0.55f, 1f, 0.65f))),
-                TextRun(" runs can share one text box.\n", normalStyle),
-                TextRun("Font can switch per run for hints or system text.", hintStyle),
-            ),
-            x = 220f,
-            y = 520f,
-            width = 720f,
-            speaker = textBoxSpeaker,
-            speakerStyle = TextStyle(textBoxFont, Vector3f(1f, 0.93f, 0.72f), bold = true),
-            backgroundColor = Vector4f(0.04f, 0.05f, 0.07f, 0.88f),
-            borderColor = Vector4f(0.95f, 0.92f, 0.75f, 0.45f),
-        )
+    override fun unload() {
+        SMF.renderer.debugRenderer.clearOverlayPrimitives()
+        SMF.renderer.debugRenderer.setEnabled(DebugVisual.COLLIDERS, false)
+        super.unload()
     }
 
     private fun addShadowVerificationFixture() {
@@ -183,6 +151,36 @@ class TestLevel : BaseLevel("test") {
         scene.world.entities += ShadowTestBlockEntity(
             Transform(position = Vector3f(x + 1.5f, ground + 0.9f, z), scale = Vector3f(1f, 1f, 1f)),
             Vector4f(0.65f, 0.75f, 0.90f, 1f))
+    }
+
+    private fun addDebugVisualVerificationFixture() {
+        val camera = scene.world.camera.position
+        val z = camera.z - 6f
+        val ground = scene.world.terrain?.getHeight(camera.x, z) ?: 0f
+        val origin = Vector3f(camera.x, ground + 0.05f, z)
+
+        SMF.renderer.debugRenderer.setOverlayPrimitives(
+            listOf(
+                DebugBox(
+                    origin.add(Vector3f(-2f, 1f, 0f)),
+                    Vector3f(1.5f, 2f, 1.5f),
+                    Vector3f(0f, 30f, 0f),
+                    Vector4f(0.2f, 0.65f, 1f, 1f),
+                ),
+                DebugSphere(
+                    origin.add(Vector3f(0f, 1f, 0f)),
+                    1f,
+                    Vector4f(0.2f, 1f, 0.55f, 1f),
+                ),
+                DebugCapsule(
+                    origin.add(Vector3f(2f, 0f, 0f)),
+                    0.55f,
+                    2f,
+                    Vector4f(1f, 0.75f, 0.2f, 1f),
+                ),
+                DebugLine(origin, origin.add(Vector3f(0f, 3f, 0f)), Vector4f(1f, 0.25f, 0.25f, 1f)),
+            )
+        )
     }
 
     private fun currentBranchName(): String? = runCatching {
