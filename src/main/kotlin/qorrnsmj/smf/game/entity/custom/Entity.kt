@@ -8,7 +8,8 @@ import qorrnsmj.smf.physics.component.StaticPhysics
 abstract class Entity(
     transform: Transform = Transform(),
     val model: Model = EntityModels.EMPTY,
-    var physicsComponent: IPhysicsComponent = StaticPhysics()
+    var physicsComponent: IPhysicsComponent = StaticPhysics(),
+    var displayName: String = "",
 ) {
     var localTransform: Transform = transform
     val worldTransform: Transform

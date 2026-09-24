@@ -7,10 +7,16 @@ import qorrnsmj.smf.game.entity.billboard.CloudBillboard
 import qorrnsmj.smf.game.entity.custom.ObjectEntity
 import qorrnsmj.smf.game.entity.custom.ShadowTestBlockEntity
 import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.game.entity.mob.SlimeEntity
 import qorrnsmj.smf.game.weather.WeatherCycle
 import qorrnsmj.smf.game.weather.WeatherPresets
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.skydome.Skydome
+import qorrnsmj.smf.graphic.text.Font
+import qorrnsmj.smf.graphic.text.FontLoader
+import qorrnsmj.smf.graphic.text.TextBoxElement
+import qorrnsmj.smf.graphic.text.TextRun
+import qorrnsmj.smf.graphic.text.TextStyle
 import qorrnsmj.smf.graphic.texture.TextureLoader
 import qorrnsmj.smf.graphic.texture.TexturePresets
 import qorrnsmj.smf.math.Vector2f
@@ -20,6 +26,9 @@ import java.io.File
 
 class TestLevel : BaseLevel("test") {
     private lateinit var weatherCycle: WeatherCycle
+    private lateinit var textBoxFont: Font
+    private lateinit var textBoxSmallFont: Font
+    private lateinit var textBoxSpeaker: SlimeEntity
     private val cloudBillboards = mutableListOf<CloudBillboard>()
 
     override fun load() {
@@ -27,6 +36,9 @@ class TestLevel : BaseLevel("test") {
         super.load()
         scene.world.lights.removeAll { it is PointLight }
         addShadowVerificationFixture()
+        addTextBoxVerificationFixture()
+        textBoxFont = FontLoader.loadAssetFont("Inconsolata.ttf", 22f)
+        textBoxSmallFont = FontLoader.loadAssetFont("Inconsolata.ttf", 18f)
 
         val cloudBaseTexture = TextureLoader.loadTexture(
             "assets/texture/sky/cloud_base.png",
@@ -119,6 +131,39 @@ class TestLevel : BaseLevel("test") {
                 alpha,
             )
         }
+
+        scene.world.textBoxes.clear()
+        scene.world.textBoxes.add(createTextBoxTestFixture())
+    }
+
+    private fun addTextBoxVerificationFixture() {
+        textBoxSpeaker = SlimeEntity(Vector3f(120f, 5f, 160f)).apply {
+            displayName = "Slime Clerk"
+        }
+        scene.world.entities.add(textBoxSpeaker)
+    }
+
+    private fun createTextBoxTestFixture(): TextBoxElement {
+        val normalStyle = TextStyle(textBoxFont, Vector3f(0.92f, 0.94f, 0.98f))
+        val boldStyle = TextStyle(textBoxFont, Vector3f(1f, 0.95f, 0.68f), bold = true)
+        val hintStyle = TextStyle(textBoxSmallFont, Vector3f(0.55f, 0.75f, 1f))
+        return TextBoxElement(
+            runs = listOf(
+                TextRun("Entity displayName is linked here. ", normalStyle),
+                TextRun("Bold", boldStyle),
+                TextRun(" and ", normalStyle),
+                TextRun("colored", TextStyle(textBoxFont, Vector3f(0.55f, 1f, 0.65f))),
+                TextRun(" runs can share one text box.\n", normalStyle),
+                TextRun("Font can switch per run for hints or system text.", hintStyle),
+            ),
+            x = 220f,
+            y = 520f,
+            width = 720f,
+            speaker = textBoxSpeaker,
+            speakerStyle = TextStyle(textBoxFont, Vector3f(1f, 0.93f, 0.72f), bold = true),
+            backgroundColor = Vector4f(0.04f, 0.05f, 0.07f, 0.88f),
+            borderColor = Vector4f(0.95f, 0.92f, 0.75f, 0.45f),
+        )
     }
 
     private fun addShadowVerificationFixture() {

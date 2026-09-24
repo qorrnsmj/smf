@@ -70,56 +70,52 @@ object FontLoader {
                 val char = (FIRST_CHAR + i).toChar()
                 val codepoint = char.code
 
-                // Get glyph bitmap
+                val advanceWidth = IntArray(1)
+                val leftSideBearing = IntArray(1)
+                stbtt_GetCodepointHMetrics(fontInfo, codepoint, advanceWidth, leftSideBearing)
+                val advance = (advanceWidth[0] * scale).toInt()
+
+                // Get glyph bitmap. Whitespace can have advance without visible pixels.
                 val bitmap = stbtt_GetCodepointBitmap(
                     fontInfo, scale, scale, codepoint,
                     width, height, xOffset, yOffset
                 )
 
-                if (bitmap != null) {
-                    val glyphWidth = width[0]
-                    val glyphHeight = height[0]
-                    val bearingX = xOffset[0]
-                    val bearingY = yOffset[0]
+                val glyphWidth = bitmap?.let { width[0] } ?: 0
+                val glyphHeight = bitmap?.let { height[0] } ?: 0
+                val bearingX = bitmap?.let { xOffset[0] } ?: 0
+                val bearingY = bitmap?.let { yOffset[0] } ?: 0
 
-                    // Get advance width for character spacing
-                    val advanceWidth = IntArray(1)
-                    val leftSideBearing = IntArray(1)
-                    stbtt_GetCodepointHMetrics(fontInfo, codepoint, advanceWidth, leftSideBearing)
-                    val advance = (advanceWidth[0] * scale).toInt()
+                var atlasX = 0
+                var atlasY = 0
 
-                    var atlasX = 0
-                    var atlasY = 0
+                if (bitmap != null && glyphWidth > 0 && glyphHeight > 0) {
+                    // Convert bitmap to byte array
+                    val bitmapBytes = ByteArray(glyphWidth * glyphHeight)
+                    bitmap.get(bitmapBytes)
 
-                    if (glyphWidth > 0 && glyphHeight > 0) {
-                        // Convert bitmap to byte array
-                        val bitmapBytes = ByteArray(glyphWidth * glyphHeight)
-                        bitmap.get(bitmapBytes)
+                    // Add glyph to atlas
+                    val atlasPosition = atlas.addGlyph(bitmapBytes, glyphWidth, glyphHeight)
+                    atlasX = atlasPosition.first
+                    atlasY = atlasPosition.second
+                }
 
-                        // Add glyph to atlas
-                        val atlasPosition = atlas.addGlyph(bitmapBytes, glyphWidth, glyphHeight)
-                        atlasX = atlasPosition.first
-                        atlasY = atlasPosition.second
-                    }
+                val charInfo = Font.CharInfo(
+                    textureX = atlasX,
+                    textureY = atlasY,
+                    width = glyphWidth,
+                    height = glyphHeight,
+                    bearingX = bearingX,
+                    bearingY = bearingY,
+                    advance = advance
+                )
 
-                    // Create character info
-                    val charInfo = Font.CharInfo(
-                        textureX = atlasX,
-                        textureY = atlasY,
-                        width = glyphWidth,
-                        height = glyphHeight,
-                        bearingX = bearingX,
-                        bearingY = bearingY,
-                        advance = advance
-                    )
+                font.addCharInfo(char, charInfo)
 
-                    font.addCharInfo(char, charInfo)
-
-                    // stbtt_FreeBitmap checks remaining() on the ByteBuffer, so rewind after reads.
-                    if (bitmap.capacity() > 0) {
-                        bitmap.rewind()
-                        stbtt_FreeBitmap(bitmap)
-                    }
+                // stbtt_FreeBitmap checks remaining() on the ByteBuffer, so rewind after reads.
+                if (bitmap != null && bitmap.capacity() > 0) {
+                    bitmap.rewind()
+                    stbtt_FreeBitmap(bitmap)
                 }
             }
         }
