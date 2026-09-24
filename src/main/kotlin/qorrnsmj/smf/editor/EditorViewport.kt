@@ -3,11 +3,13 @@ package qorrnsmj.smf.editor
 import imgui.ImGui
 import org.lwjgl.opengl.GL33C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL33C.glBindFramebuffer
+import org.lwjgl.opengl.GL33C.glViewport
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
 import qorrnsmj.smf.graphic.debug.EditorDebugBox
 import qorrnsmj.smf.graphic.debug.EditorDebugCapsule
+import qorrnsmj.smf.graphic.debug.EditorDebugLine
 import qorrnsmj.smf.graphic.debug.EditorDebugSphere
 import qorrnsmj.smf.graphic.resource.buffer.FrameBufferObject
 import qorrnsmj.smf.math.Vector3f
@@ -15,6 +17,7 @@ import qorrnsmj.smf.math.Vector4f
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 internal class EditorViewport(private val context: EditorContext) {
     private var fbo: FrameBufferObject? = null
@@ -25,31 +28,50 @@ internal class EditorViewport(private val context: EditorContext) {
         resize(width, height)
 
         val target = fbo ?: return 0
-        target.bind()
-        SMF.renderer.resize(this.width, this.height)
-        updateCollisionDebug()
+        resizeRendererForEditorViewport(this.width, this.height)
         val previousCamera = context.scene.world.camera
         val previousMode = context.scene.renderSettings.viewportShadingMode
         val previousGray = context.scene.renderSettings.terrainGrayView
         val previousWire = context.scene.renderSettings.terrainWireframeView
         val previousSky = context.scene.environment.skyVisible
         val previousSkyColor = context.scene.environment.skyColor
-        context.scene.world.camera = camera
-        context.scene.renderSettings.viewportShadingMode = shadingMode
-        context.scene.renderSettings.terrainGrayView = shadingMode == ViewportShadingSettings.SOLID || shadingMode == ViewportShadingSettings.WIRE
-        context.scene.renderSettings.terrainWireframeView = shadingMode == ViewportShadingSettings.WIRE
-        context.scene.environment.skyVisible = shadingMode == ViewportShadingSettings.RENDERED
-        context.scene.environment.skyColor = timeOfDay.skyColor
-        SMF.renderer.render(context.scene)
-        context.scene.world.camera = previousCamera
-        context.scene.renderSettings.viewportShadingMode = previousMode
-        context.scene.renderSettings.terrainGrayView = previousGray
-        context.scene.renderSettings.terrainWireframeView = previousWire
-        context.scene.environment.skyVisible = previousSky
-        context.scene.environment.skyColor = previousSkyColor
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+        try {
+            target.bind()
+            updateCollisionDebug()
+            context.scene.world.camera = camera
+            context.scene.renderSettings.viewportShadingMode = shadingMode
+            context.scene.renderSettings.terrainGrayView = shadingMode == ViewportShadingSettings.SOLID || shadingMode == ViewportShadingSettings.WIRE
+            context.scene.renderSettings.terrainWireframeView = shadingMode == ViewportShadingSettings.WIRE
+            context.scene.environment.skyVisible = shadingMode == ViewportShadingSettings.RENDERED
+            context.scene.environment.skyColor = timeOfDay.skyColor
+            SMF.renderer.render(context.scene)
+        } finally {
+            context.scene.world.camera = previousCamera
+            context.scene.renderSettings.viewportShadingMode = previousMode
+            context.scene.renderSettings.terrainGrayView = previousGray
+            context.scene.renderSettings.terrainWireframeView = previousWire
+            context.scene.environment.skyVisible = previousSky
+            context.scene.environment.skyColor = previousSkyColor
+            glBindFramebuffer(GL_FRAMEBUFFER, 0)
+            resizeRendererForEditorViewport(SMF.window.width, SMF.window.height)
+        }
 
         return target.colorTexture.id
+    }
+
+    private fun resizeRendererForEditorViewport(width: Int, height: Int) {
+        val safeWidth = width.coerceAtLeast(1)
+        val safeHeight = height.coerceAtLeast(1)
+        glViewport(0, 0, safeWidth, safeHeight)
+
+        SMF.renderer.modelRenderer.resize(safeWidth, safeHeight)
+        SMF.renderer.billboardRenderer.resize(safeWidth, safeHeight)
+        SMF.renderer.terrainRenderer.resize(safeWidth, safeHeight)
+        SMF.renderer.skyboxRenderer.resize(safeWidth, safeHeight)
+        SMF.renderer.skydomeRenderer.resize(safeWidth, safeHeight)
+        SMF.renderer.debugRenderer.resize(safeWidth, safeHeight)
+        SMF.renderer.textRenderer.resize(safeWidth, safeHeight)
     }
 
     private fun resize(width: Int, height: Int): Boolean {
@@ -121,6 +143,76 @@ internal class EditorViewport(private val context: EditorContext) {
         }
 
         SMF.renderer.debugRenderer.setEditorCollisionDebug(boxes, spheres, capsules)
+        SMF.renderer.debugRenderer.setEditorTerrainDebug(terrainDebugLines())
+    }
+
+    private fun terrainDebugLines(): List<EditorDebugLine> {
+        val lines = mutableListOf<EditorDebugLine>()
+        if (context.terrainMeshViewEnabled) {
+            lines.addAll(context.terrainPreview?.wireframeLines() ?: emptyList())
+        }
+        lines.addAll(terrainBrushCircleLines())
+        return lines
+    }
+
+    private fun terrainBrushCircleLines(): List<EditorDebugLine> {
+        if (context.editMode != EditorEditMode.TERRAIN) return emptyList()
+        if (context.viewportMouseLookActive) return emptyList()
+        if (!isMouseOverActiveViewport()) return emptyList()
+
+        val center = EditorPicking.intersectGround(EditorPicking.currentMouseRay(context)) ?: return emptyList()
+        val radius = terrainBrushWorldRadius()
+        if (radius <= 0f) return emptyList()
+
+        val lines = ArrayList<EditorDebugLine>(BRUSH_CIRCLE_SEGMENTS + 4)
+        val color = brushColor()
+        val centerPoint = terrainBrushPoint(center.x, center.z) ?: return emptyList()
+        val angleStep = (Math.PI.toFloat() * 2f) / BRUSH_CIRCLE_SEGMENTS
+
+        var previous = terrainBrushPoint(center.x + radius, center.z)
+        for (index in 1..BRUSH_CIRCLE_SEGMENTS) {
+            val angle = index * angleStep
+            val next = terrainBrushPoint(
+                center.x + radius * cos(angle),
+                center.z + radius * sin(angle),
+            )
+            if (previous != null && next != null) {
+                lines.add(EditorDebugLine(previous, next, color))
+            }
+            previous = next
+        }
+
+        terrainBrushPoint(center.x - radius, center.z)?.let { lines.add(EditorDebugLine(centerPoint, it, color)) }
+        terrainBrushPoint(center.x + radius, center.z)?.let { lines.add(EditorDebugLine(centerPoint, it, color)) }
+        terrainBrushPoint(center.x, center.z - radius)?.let { lines.add(EditorDebugLine(centerPoint, it, color)) }
+        terrainBrushPoint(center.x, center.z + radius)?.let { lines.add(EditorDebugLine(centerPoint, it, color)) }
+        return lines
+    }
+
+    private fun isMouseOverActiveViewport(): Boolean {
+        val mouse = ImGui.getMousePos()
+        return context.viewportIndexAt(mouse.x, mouse.y) == context.activeViewportIndex
+    }
+
+    private fun terrainBrushWorldRadius(): Float {
+        val resolution = max(context.terrain.width, context.terrain.height).coerceAtLeast(1)
+        return context.terrainBrushRadius * context.terrainMapSize.coerceAtLeast(1f) / resolution
+    }
+
+    private fun terrainBrushPoint(worldX: Float, worldZ: Float): Vector3f? {
+        val halfSize = context.terrainMapSize * 0.5f
+        if (worldX !in -halfSize..halfSize || worldZ !in -halfSize..halfSize) return null
+
+        val normalizedX = ((worldX + halfSize) / context.terrainMapSize).coerceIn(0f, 1f)
+        val normalizedZ = ((worldZ + halfSize) / context.terrainMapSize).coerceIn(0f, 1f)
+        val gridX = (normalizedX * (context.terrain.width - 1)).toInt().coerceIn(0, context.terrain.width - 1)
+        val gridZ = (normalizedZ * (context.terrain.height - 1)).toInt().coerceIn(0, context.terrain.height - 1)
+        val height = context.terrain.get(gridX, gridZ) * CM_TO_METERS + BRUSH_PREVIEW_HEIGHT_OFFSET
+        return Vector3f(worldX, height, worldZ)
+    }
+
+    private fun brushColor(): Vector4f {
+        return Vector4f(0.7f, 1f, 0.15f, 1f)
     }
 
     private fun Vector3f.absComponents(): Vector3f {
@@ -155,5 +247,8 @@ internal class EditorViewport(private val context: EditorContext) {
     private companion object {
         const val PLAYER_CAPSULE_RADIUS = 0.22f
         const val PLAYER_CAPSULE_HEIGHT = 1.7f
+        const val BRUSH_CIRCLE_SEGMENTS = 48
+        const val BRUSH_PREVIEW_HEIGHT_OFFSET = 0.04f
+        const val CM_TO_METERS = 0.01f
     }
 }

@@ -7,6 +7,7 @@ import org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT
 import org.lwjgl.glfw.GLFW.GLFW_KEY_R
 import org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_CONTROL
 import org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT
+import org.lwjgl.glfw.GLFW.GLFW_KEY_S
 import org.lwjgl.glfw.GLFW.GLFW_KEY_W
 import org.lwjgl.glfw.GLFW.GLFW_KEY_Z
 import org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT
@@ -23,6 +24,17 @@ internal class EditorInput(
     private val document: EditorDocument,
 ) {
     fun update(delta: Float) {
+        if (context.closeConfirmationActive || context.suppressEditorInputUntilMouseRelease) {
+            val leftDown = glfwGetMouseButton(SMF.window.id, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS
+            val rightDown = glfwGetMouseButton(SMF.window.id, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS
+            context.terrainBrushWasDown = false
+            context.leftMouseWasDown = leftDown
+            context.viewportMouseLookActive = false
+            if (!context.closeConfirmationActive && !leftDown && !rightDown) {
+                context.suppressEditorInputUntilMouseRelease = false
+            }
+            return
+        }
         val rightMouseDown = glfwGetMouseButton(SMF.window.id, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS
         val mouseLookLockedToViewport = rightMouseDown && context.viewportMouseLookActive
         val mouseInViewport = if (mouseLookLockedToViewport) {
@@ -36,10 +48,12 @@ internal class EditorInput(
         } else {
             false
         }
+        val keyboardBlocked = context.editorKeyboardBlocked && !context.viewportMouseLookActive
 
         handleUndoRedoShortcuts()
+        handleSaveShortcut()
         handleDeleteShortcut()
-        if (!context.lastWantCaptureKeyboard) {
+        if (!keyboardBlocked) {
             if (!mouseInViewport || !rightMouseDown) {
                 updateGizmoShortcuts()
             }
@@ -47,7 +61,7 @@ internal class EditorInput(
 
         context.activeCameraController().update(
             delta,
-            !context.viewportMouseLookActive,
+            !context.viewportMouseLookActive || keyboardBlocked,
         )
         val terrainBrushConsumed = handleTerrainBrush(mouseInViewport, rightMouseDown, delta)
         if (!terrainBrushConsumed) {
@@ -79,10 +93,10 @@ internal class EditorInput(
         val undoDown = ctrlDown && !shiftDown && zDown
         val redoDown = ctrlDown && shiftDown && zDown
 
-        if (undoDown && !context.undoShortcutWasDown) {
+        if (!context.editorKeyboardBlocked && undoDown && !context.undoShortcutWasDown) {
             document.undo()
         }
-        if (redoDown && !context.redoShortcutWasDown) {
+        if (!context.editorKeyboardBlocked && redoDown && !context.redoShortcutWasDown) {
             document.redo()
         }
 
@@ -92,10 +106,28 @@ internal class EditorInput(
 
     private fun handleDeleteShortcut() {
         val deleteDown = glfwGetKey(SMF.window.id, GLFW_KEY_DELETE) == GLFW_PRESS
-        if (!context.lastWantCaptureKeyboard && deleteDown && !context.deleteShortcutWasDown) {
+        if (!context.editorKeyboardBlocked && deleteDown && !context.deleteShortcutWasDown) {
             document.deleteSelected()
         }
         context.deleteShortcutWasDown = deleteDown
+    }
+
+    private fun handleSaveShortcut() {
+        val window = SMF.window.id
+        val ctrlDown = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
+            glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS
+        val saveDown = ctrlDown && glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS
+
+        if (saveDown && !context.saveShortcutWasDown) {
+            try {
+                document.saveMap()
+            } catch (error: Throwable) {
+                context.errorPopupTitle = "Save failed"
+                context.errorPopupMessage = error.message ?: error::class.simpleName ?: "Unknown error"
+                context.errorPopupOpen = true
+            }
+        }
+        context.saveShortcutWasDown = saveDown
     }
 
     private fun handleMousePicking() {

@@ -27,6 +27,7 @@ import kotlin.collections.iterator
 
 internal class EditorDocument(private val context: EditorContext) {
     private val objectMapper = ObjectMapper()
+    private val unsavedState = EditorUnsavedState()
 
     fun openWorkspace(path: String, loadLevel: Boolean = true) {
         if (path.isBlank()) {
@@ -341,35 +342,26 @@ internal class EditorDocument(private val context: EditorContext) {
         Files.createDirectories(path.parent ?: Path.of("."))
         ensureUniqueStaticObjectNames()
 
-        val objects = context.placedObjects.map { placed ->
-            val transform = placed.root.localTransform
-            linkedMapOf(
-                "name" to placed.name,
-                "id" to placed.id,
-                "model" to placed.resourcePath,
-                "folder" to placed.folder,
-                "pos" to transform.position.toList(),
-                "rot" to transform.rotation.toEulerDegrees().toList(),
-                "scale" to transform.scale.toList(),
-                "collisions" to placed.collisions.map { collision ->
-                    val item = linkedMapOf<String, Any>(
-                        "name" to collision.name,
-                        "shape" to collision.shape.jsonName,
-                        "pos" to collision.position.toList(),
-                    )
-                    if (collision.shape == EditorCollisionShape.BOX) {
-                        item["rot"] = collision.rotation.toList()
-                        item["size"] = collision.size.toList()
-                    } else {
-                        item["radius"] = collision.radius
-                    }
-                    item
-                },
-            )
+        if (unsavedState.terrainDirty(context.terrain) || unsavedState.splatDirty(context.splatmaps)) {
+            check(context.workspaceRoot.get().isNotBlank() && levelFileStem().isNotBlank()) {
+                "Workspace and project name are required to save terrain changes"
+            }
+            if (unsavedState.terrainDirty(context.terrain)) exportTerrainHeightmap()
+            if (unsavedState.splatDirty(context.splatmaps)) exportTerrainSplatmaps()
         }
 
-        Files.writeString(path, formatMapJson(objects))
+        val json = currentMapJson()
+        Files.writeString(path, json)
+        markCurrentMapClean()
         Logger.info("Editor map saved: {}", path)
+    }
+
+    fun hasUnsavedMapChanges(): Boolean {
+        return unsavedState.hasChanges(currentMapJson(), context.terrain, context.splatmaps)
+    }
+
+    fun markCurrentMapClean() {
+        unsavedState.markClean(currentMapJson(), context.terrain, context.splatmaps)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -476,6 +468,7 @@ internal class EditorDocument(private val context: EditorContext) {
 
         context.selectedIndex = context.placedObjects.indices.firstOrNull() ?: -1
         selectOnly(context.selectedIndex)
+        markCurrentMapClean()
         Logger.info("Editor map loaded: {}", path)
     }
 
@@ -649,6 +642,7 @@ internal class EditorDocument(private val context: EditorContext) {
             }
         }
         ImageIO.write(image, "png", path.toFile())
+        unsavedState.markTerrainClean(terrain)
         Logger.info("Terrain heightmap exported: {}", path)
     }
 
@@ -699,6 +693,7 @@ internal class EditorDocument(private val context: EditorContext) {
             ImageIO.write(image, "png", path.toFile())
             Logger.info("Terrain splatmap exported: {}", path)
         }
+        unsavedState.markSplatClean(context.splatmaps)
     }
 
     fun refreshTerrainMapPaths() {
@@ -1276,6 +1271,39 @@ internal class EditorDocument(private val context: EditorContext) {
         builder.append("    ]\n")
         builder.append("}\n")
         return builder.toString()
+    }
+
+    private fun currentMapJson(): String {
+        return formatMapJson(mapSerializableObjects())
+    }
+
+    private fun mapSerializableObjects(): List<Map<String, Any>> {
+        return context.placedObjects.map { placed ->
+            val transform = placed.root.localTransform
+            linkedMapOf(
+                "name" to placed.name,
+                "id" to placed.id,
+                "model" to placed.resourcePath,
+                "folder" to placed.folder,
+                "pos" to transform.position.toList(),
+                "rot" to transform.rotation.toEulerDegrees().toList(),
+                "scale" to transform.scale.toList(),
+                "collisions" to placed.collisions.map { collision ->
+                    val item = linkedMapOf<String, Any>(
+                        "name" to collision.name,
+                        "shape" to collision.shape.jsonName,
+                        "pos" to collision.position.toList(),
+                    )
+                    if (collision.shape == EditorCollisionShape.BOX) {
+                        item["rot"] = collision.rotation.toList()
+                        item["size"] = collision.size.toList()
+                    } else {
+                        item["radius"] = collision.radius
+                    }
+                    item
+                },
+            )
+        }
     }
 
     private fun formatEnvironment(): String {

@@ -7,6 +7,7 @@ import imgui.flag.ImGuiCol
 import imgui.flag.ImGuiCond
 import imgui.flag.ImGuiInputTextFlags
 import imgui.flag.ImGuiKey
+import imgui.flag.ImGuiMouseButton
 import imgui.flag.ImGuiMouseCursor
 import imgui.flag.ImGuiStyleVar
 import imgui.flag.ImGuiTreeNodeFlags
@@ -19,6 +20,7 @@ import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.entity.custom.Transform
 import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
 import qorrnsmj.smf.math.Vector3f
+import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import kotlin.math.max
 import kotlin.math.min
 
@@ -96,6 +98,7 @@ internal class EditorUi(
                 renderBottomPanel(bottomWidth, bottomHeight)
             }
             renderErrorPopup()
+            renderCloseConfirmationPopup()
         }
 
         ImGui.end()
@@ -140,8 +143,31 @@ internal class EditorUi(
                 ImGui.endMenu()
             }
 
+            renderLevelTitle()
+
             ImGui.endMenuBar()
         }
+    }
+
+    private fun renderLevelTitle() {
+        val levelTitle = "Level: ${context.projectName.get().ifBlank { "Untitled" }}"
+        val dirty = document.hasUnsavedMapChanges()
+        val dotRadius = ImGui.getFontSize() * 0.32f
+        val dotAreaWidth = if (dirty) dotRadius * 2f + ImGui.getStyle().itemSpacingX else 0f
+        val textWidth = ImGui.calcTextSizeX(levelTitle)
+        val windowWidth = ImGui.getWindowWidth()
+        val centerX = max(ImGui.getCursorPosX(), (windowWidth - textWidth - dotAreaWidth) * 0.5f)
+
+        ImGui.sameLine(centerX)
+        if (dirty) {
+            val drawList = ImGui.getWindowDrawList()
+            val screenX = ImGui.getCursorScreenPosX() + dotRadius
+            val screenY = ImGui.getCursorScreenPosY() + ImGui.getFrameHeight() * 0.5f
+            drawList.addCircleFilled(screenX, screenY, dotRadius, ImColor.rgba(72, 211, 255, 255))
+            ImGui.dummy(dotRadius * 2f, ImGui.getFrameHeight())
+            ImGui.sameLine()
+        }
+        ImGui.text(levelTitle)
     }
 
     private fun renderTabVisibilityMenuItem(label: String, onClick: () -> Unit) {
@@ -167,7 +193,7 @@ internal class EditorUi(
     }
 
     private fun handleUiDeleteShortcut() {
-        if (ImGui.isKeyPressed(ImGuiKey.Delete) && !ImGui.isAnyItemActive()) {
+        if (!context.closeConfirmationActive && ImGui.isKeyPressed(ImGuiKey.Delete) && !ImGui.isAnyItemActive()) {
             document.deleteSelected()
         }
     }
@@ -251,7 +277,7 @@ internal class EditorUi(
             if (ImGui.button("Refresh##workspace_refresh")) runEditorAction("Workspace refresh failed") { document.openWorkspace(context.workspaceRoot.get(), loadLevel = false) }
         }
 
-        renderLevelPathRow("Level", "level_path", context.mapPath, "Browse", "Save", "Load", "Refresh", inputFlags = ImGuiInputTextFlags.ReadOnly) {
+        renderLevelPathRow("Level", "level_path", context.mapPath, "Browse", "Save", "Load", "Refresh") {
             if (ImGui.button("Browse##level_browse")) {
                 val path = EditorFileDialog.chooseJsonFile(levelBrowserInitialDirectory())
                 if (path != null) document.setLevelPath(path)
@@ -326,6 +352,37 @@ internal class EditorUi(
         }
     }
 
+    private fun renderCloseConfirmationPopup() {
+        if (context.closeConfirmationOpen) {
+            ImGui.openPopup("Unsaved Project")
+            context.closeConfirmationOpen = false
+        }
+        if (ImGui.beginPopupModal("Unsaved Project", ImGuiWindowFlags.AlwaysAutoResize)) {
+            ImGui.text("Project has unsaved changes. Save before closing?")
+            addOneLineSpace()
+            if (ImGui.button("Save", 120f, 0f)) {
+                runEditorAction("Save failed") { document.saveMap() }
+                if (!document.hasUnsavedMapChanges()) {
+                    ImGui.closeCurrentPopup()
+                    context.closeConfirmed = true
+                    glfwSetWindowShouldClose(SMF.window.id, true)
+                }
+            }
+            ImGui.sameLine()
+            if (ImGui.button("Don't Save", 120f, 0f)) {
+                ImGui.closeCurrentPopup()
+                context.closeConfirmed = true
+                glfwSetWindowShouldClose(SMF.window.id, true)
+            }
+            ImGui.sameLine()
+            if (ImGui.button("Cancel", 120f, 0f)) {
+                ImGui.closeCurrentPopup()
+                context.closeConfirmationActive = false
+            }
+            ImGui.endPopup()
+        }
+    }
+
     private fun renderProjectNameRow() {
         renderLevelPathRow(
             "Project ID",
@@ -392,6 +449,11 @@ internal class EditorUi(
             }
             if (ImGui.button(terrainModeLabel(mode))) {
                 context.editMode = EditorEditMode.TERRAIN
+                context.selectedIndex = -1
+                context.selectedIndices.clear()
+                context.selectedSpawnPointIndex = -1
+                context.selectedEventAreaIndex = -1
+                context.hierarchyRangeAnchorIndex = -1
                 context.selectedCollisionIndex = -1
                 context.terrainBrushMode = mode
             }
@@ -501,7 +563,9 @@ internal class EditorUi(
         ImGui.text(label)
         ImGui.sameLine(labelX + OBJECT_FIELD_LABEL_WIDTH)
         ImGui.setNextItemWidth(max(80f, ImGui.getContentRegionAvailX()))
-        return ImGui.inputText("##$id", value)
+        val changed = ImGui.inputText("##$id", value)
+        markTextInputActive()
+        return changed
     }
 
     private fun controlInputWidth(): Float {
@@ -531,10 +595,15 @@ internal class EditorUi(
         if (ImGui.inputText("##$id", value, inputFlags)) {
             onInputChanged?.invoke()
         }
+        markTextInputActive()
         if (buttonLabels.isNotEmpty()) {
             ImGui.sameLine()
             buttons()
         }
+    }
+
+    private fun markTextInputActive() {
+        if (ImGui.isItemActive()) context.lastTextInputActive = true
     }
 
     private fun mapPathInputWidth(buttonAreaWidth: Float): Float {
@@ -790,14 +859,24 @@ internal class EditorUi(
             context.viewportShadingMode(index),
             context.viewportTimeOfDay(index),
         )
+        clearTextInputFocusOnViewportRightClick(pos.x, pos.y, width, height)
         val active = context.activeViewportIndex == index
         if (ImGui.isItemHovered() && !context.viewportMouseLookActive) context.setActiveViewport(index)
-        if (active) {
+        if (active && !context.closeConfirmationActive) {
             acceptViewportDrops()
             if (context.editMode == EditorEditMode.OBJECT) renderGizmo()
-            renderViewportDebugOverlay(pos.x, pos.y, width, index)
         }
+        if (active) renderViewportDebugOverlay(pos.x, pos.y, width, index)
         renderViewportTerrainViewButtons(pos.x, pos.y, index)
+    }
+
+    private fun clearTextInputFocusOnViewportRightClick(x: Float, y: Float, width: Float, height: Float) {
+        val rightClickedViewport = ImGui.isMouseClicked(ImGuiMouseButton.Right) &&
+            ImGui.isMouseHoveringRect(x, y, x + width, y + height)
+        if (rightClickedViewport) {
+            context.lastTextInputActive = false
+            ImGui.setKeyboardFocusHere(-1)
+        }
     }
 
     private fun renderViewportTerrainViewButtons(viewportX: Float, viewportY: Float, viewportIndex: Int) {
@@ -1353,6 +1432,7 @@ internal class EditorUi(
             context.renamingFolderFocusPending = false
         }
         val committed = ImGui.inputText("Name##folder_${category.name.lowercase()}_$index", context.renamingFolderName, ImGuiInputTextFlags.EnterReturnsTrue)
+        markTextInputActive()
         if (committed || ImGui.isItemDeactivatedAfterEdit()) {
             when (category) {
                 EditorFolderCategory.OBJECT -> document.renameHierarchyFolder(index, context.renamingFolderName.get())
@@ -1778,6 +1858,7 @@ internal class EditorUi(
 
     private fun renderCollisionOperationButton(label: String, index: Int, operation: Int) {
         if (collisionOperationButton(label, index, operation)) {
+            context.editMode = EditorEditMode.OBJECT
             context.selectedCollisionIndex = index
             context.gizmoOperation = operation
         }
@@ -1800,6 +1881,7 @@ internal class EditorUi(
             context.renamingCollisionName,
             ImGuiInputTextFlags.EnterReturnsTrue,
         )
+        markTextInputActive()
         if (committed || ImGui.isItemDeactivatedAfterEdit()) {
             val newName = context.renamingCollisionName.get().trim()
             collision.name = newName.ifBlank { "Collision ${index + 1}" }
@@ -1867,7 +1949,9 @@ internal class EditorUi(
     }
 
     private fun collisionOperationButton(label: String, index: Int, operation: Int): Boolean {
-        val selected = context.selectedCollisionIndex == index && context.gizmoOperation == operation
+        val selected = context.editMode == EditorEditMode.OBJECT &&
+            context.selectedCollisionIndex == index &&
+            context.gizmoOperation == operation
         val text = "$label##collision_op_${label}_$index"
         return coloredSelectionButton(text, selected)
     }
@@ -1909,20 +1993,26 @@ internal class EditorUi(
     }
 
     private fun renderObjectTransformButton(label: String, operation: Int) {
-        val selected = context.selectedCollisionIndex == -1 && context.gizmoOperation == operation
+        val selected = context.editMode == EditorEditMode.OBJECT &&
+            context.selectedObject() != null &&
+            context.selectedCollisionIndex == -1 &&
+            context.gizmoOperation == operation
         val text = "$label##object_op_$label"
         if (coloredSelectionButton(text, selected)) {
+            context.editMode = EditorEditMode.OBJECT
             context.selectedCollisionIndex = -1
             context.gizmoOperation = operation
         }
     }
 
     private fun renderEventAreaTransformButton(label: String, operation: Int) {
-        val selected = context.selectedEventAreaIndex in context.eventAreas.indices &&
+        val selected = context.editMode == EditorEditMode.OBJECT &&
+            context.selectedEventAreaIndex in context.eventAreas.indices &&
             context.selectedSpawnPointIndex == -1 &&
             context.gizmoOperation == operation
         val text = "$label##event_area_op_$label"
         if (coloredSelectionButton(text, selected)) {
+            context.editMode = EditorEditMode.OBJECT
             context.selectedCollisionIndex = -1
             context.gizmoOperation = operation
         }

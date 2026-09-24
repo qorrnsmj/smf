@@ -5,6 +5,7 @@ import imgui.extension.imguizmo.ImGuizmo
 import imgui.flag.ImGuiConfigFlags
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
+import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
@@ -54,6 +55,7 @@ class EditorApp {
         if (context.skyboxPath.get().isNotBlank()) document.setSkyboxPath(context.skyboxPath.get())
         document.setTimeOfDay(context.timeOfDay)
         document.refreshAssets()
+        document.markCurrentMapClean()
         ImGui.createContext()
         ImGui.getIO().addConfigFlags(ImGuiConfigFlags.NavEnableKeyboard)
         ImGui.getIO().setIniFilename(null)
@@ -94,6 +96,7 @@ class EditorApp {
         ImGui.newFrame()
         ImGuizmo.beginFrame()
         context.lastGizmoWantsMouse = false
+        context.lastTextInputActive = false
 
         ui.render()
 
@@ -103,6 +106,15 @@ class EditorApp {
         ImGui.render()
         imGuiGl3.renderDrawData(ImGui.getDrawData())
         context.updateCursorMode()
+    }
+
+    fun acceptCloseRequest(): Boolean {
+        if (context.closeConfirmed || !document.hasUnsavedMapChanges()) return true
+        glfwSetWindowShouldClose(SMF.window.id, false)
+        context.closeConfirmationOpen = true
+        context.closeConfirmationActive = true
+        context.suppressEditorInputUntilMouseRelease = true
+        return false
     }
 
     fun dispose() {

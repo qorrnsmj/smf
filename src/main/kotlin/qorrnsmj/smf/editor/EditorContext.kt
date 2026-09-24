@@ -87,10 +87,16 @@ internal class EditorContext {
     var leftMouseWasDown = false
     var lastWantCaptureMouse = false
     var lastWantCaptureKeyboard = false
+    var lastTextInputActive = false
     var lastGizmoWantsMouse = false
     var undoShortcutWasDown = false
     var redoShortcutWasDown = false
+    var saveShortcutWasDown = false
     var deleteShortcutWasDown = false
+    var closeConfirmationOpen = false
+    var closeConfirmationActive = false
+    var closeConfirmed = false
+    var suppressEditorInputUntilMouseRelease = false
     var propertyEditInProgress = false
     var gizmoEditInProgress = false
     var viewportX = 0f
@@ -131,6 +137,9 @@ internal class EditorContext {
     var objectTabHeight = 240f
     var collisionsTabHeight = 260f
     private var cursorDisabled = false
+
+    val editorKeyboardBlocked: Boolean
+        get() = lastTextInputActive
 
     fun effectiveFontScale(): Float {
         return windowFontScale * editorFontScale
@@ -303,6 +312,8 @@ internal class EditorTerrainData(
         private set
     var heights = FloatArray(width * height)
         private set
+    var revision = 0L
+        private set
 
     fun get(x: Int, y: Int): Float {
         if (x !in 0 until width || y !in 0 until height) return 0f
@@ -311,7 +322,12 @@ internal class EditorTerrainData(
 
     fun set(x: Int, y: Int, value: Float) {
         if (x !in 0 until width || y !in 0 until height) return
-        heights[y * width + x] = value.coerceIn(SIGNED_MIN_CM, SIGNED_MAX_CM)
+        val index = y * width + x
+        val next = value.coerceIn(SIGNED_MIN_CM, SIGNED_MAX_CM)
+        if (heights[index] != next) {
+            heights[index] = next
+            revision++
+        }
     }
 
     fun resize(newResolution: Int) {
@@ -333,6 +349,7 @@ internal class EditorTerrainData(
         width = safeResolution
         height = safeResolution
         heights = newHeights
+        revision++
     }
 
     fun replace(newWidth: Int, newHeight: Int, newHeights: FloatArray) {
@@ -340,6 +357,7 @@ internal class EditorTerrainData(
         width = newWidth
         height = newHeight
         heights = newHeights.copyOf()
+        revision++
     }
 
     companion object {
@@ -358,6 +376,8 @@ internal class EditorSplatmapData(
     private val maps = mutableMapOf<Int, FloatArray>()
     var maxTextureIndex = 0
         private set
+    var revision = 0L
+        private set
 
     fun channel(textureIndex: Int): FloatArray {
         val safeIndex = textureIndex.coerceAtLeast(0)
@@ -373,6 +393,7 @@ internal class EditorSplatmapData(
     fun clear() {
         maps.clear()
         maxTextureIndex = 0
+        revision++
     }
 
     fun setMap(mapIndex: Int, data: FloatArray) {
@@ -380,6 +401,7 @@ internal class EditorSplatmapData(
         val safeMapIndex = mapIndex.coerceAtLeast(0)
         maps[safeMapIndex] = data
         maxTextureIndex = max(maxTextureIndex, safeMapIndex * 4 + 3)
+        revision++
     }
 
     fun snapshotMaps(): Map<Int, FloatArray> {
@@ -396,6 +418,7 @@ internal class EditorSplatmapData(
         maps.clear()
         maps.putAll(newMaps.mapValues { it.value.copyOf() })
         maxTextureIndex = newMaxTextureIndex.coerceAtLeast(0)
+        revision++
     }
 
     fun paint(x: Int, y: Int, textureIndex: Int, amount: Float) {
@@ -407,6 +430,7 @@ internal class EditorSplatmapData(
         val pixel = (y * width + x) * 4
         target[pixel + channelIndex] = (target[pixel + channelIndex] + amount).coerceIn(0f, 1f)
         normalizePixel(x, y)
+        revision++
     }
 
     fun resize(newResolution: Int) {
@@ -437,6 +461,7 @@ internal class EditorSplatmapData(
         height = safeResolution
         maps.clear()
         maps.putAll(resized)
+        revision++
     }
 
     private fun normalizePixel(x: Int, y: Int) {

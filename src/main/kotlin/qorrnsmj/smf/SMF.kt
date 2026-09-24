@@ -136,6 +136,11 @@ object SMF : FixedTimestepGame() {
         }
     }
 
+    override fun shouldClose(): Boolean {
+        if (!super.shouldClose()) return false
+        return editorApp?.acceptCloseRequest() ?: true
+    }
+
     fun requestScreenshot() {
         screenshots.request().whenComplete { result, failure ->
             if (failure != null) Logger.error(failure, "Screenshot failed")

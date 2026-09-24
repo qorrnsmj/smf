@@ -16,7 +16,7 @@ abstract class FixedTimestepGame : Game() {
         running = true
         while (running) {
             // Checks if game should close
-            if (glfwWindowShouldClose(window.id)) {
+            if (shouldClose()) {
                 running = false
             }
 
@@ -53,6 +53,8 @@ abstract class FixedTimestepGame : Game() {
     }
 
     protected open fun postRender(alpha: Float) {}
+
+    protected open fun shouldClose(): Boolean = glfwWindowShouldClose(window.id)
 
     protected open fun update(delta: Float = 1f / TARGET_UPS) {
         stateMachine.update(delta)

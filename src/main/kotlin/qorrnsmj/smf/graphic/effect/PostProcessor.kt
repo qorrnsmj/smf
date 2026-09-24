@@ -85,6 +85,10 @@ class PostProcessor : Resizable {
     }
 
     override fun resize(width: Int, height: Int) {
+        if (this.width == width && this.height == height) return
+        if (::inFbo.isInitialized) inFbo.delete()
+        if (::outFbo.isInitialized) outFbo.delete()
+
         this.width = width
         this.height = height
 
