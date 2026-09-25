@@ -19,6 +19,7 @@ import org.lwjgl.system.MemoryStack
 import qorrnsmj.smf.graphic.resource.buffer.TextureBufferObject
 import qorrnsmj.smf.util.ResourceUtils
 import java.nio.ByteBuffer
+import java.nio.file.Path
 import kotlin.use
 
 object TextureLoader  {
@@ -39,6 +40,11 @@ object TextureLoader  {
         return texture
     }
 
+    fun loadTextureFile(imagePath: Path, params: TextureParams): TextureBufferObject {
+        val imageBuffer = ResourceUtils.getFileAsDirectBuffer(imagePath)
+        return loadTexture(imageBuffer, params)
+    }
+
     fun loadTexture(imageData: ByteBuffer, params: TextureParams): TextureBufferObject {
         val target = GL_TEXTURE_2D
         val texture = createAndBindTexture()
@@ -50,7 +56,7 @@ object TextureLoader  {
         return texture
     }
 
-    fun loadCubemapTexture(imagePath: String, params: TextureParams): TextureBufferObject {
+    fun loadCubemapTexture(imagePath: String, params: TextureParams, fromFile: Boolean = false): TextureBufferObject {
         val target = GL_TEXTURE_CUBE_MAP
         val texture = createAndBindTexture()
         val faces = arrayOf(
@@ -63,7 +69,8 @@ object TextureLoader  {
         )
 
         for ((i, file) in faces.withIndex()) {
-            val buffer = ResourceUtils.getResourceAsDirectBuffer(file)
+            val buffer = if (fromFile) ResourceUtils.getFileAsDirectBuffer(Path.of(file))
+                else ResourceUtils.getResourceAsDirectBuffer(file)
             uploadImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, buffer)
         }
 

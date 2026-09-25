@@ -45,11 +45,14 @@ object SkyboxLoader  {
         return Skybox(model)
     }
 
-    private fun loadModel(resourcePrefix: String): Model {
+    fun loadSkyboxFile(prefix: java.nio.file.Path): Skybox = Skybox(loadModel(prefix.toString(), true))
+
+    private fun loadModel(resourcePrefix: String, fromFile: Boolean = false): Model {
         val mesh = loadMesh()
         val texture = TextureLoader.loadCubemapTexture(
             resourcePrefix,
-            TexturePresets.SKYBOX
+            TexturePresets.SKYBOX,
+            fromFile,
         )
         val material = Material(
             baseColorTexture = texture,

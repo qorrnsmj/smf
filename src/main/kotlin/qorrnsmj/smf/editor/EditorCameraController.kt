@@ -8,11 +8,9 @@ import org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_CONTROL
 import org.lwjgl.glfw.GLFW.GLFW_KEY_S
 import org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE
 import org.lwjgl.glfw.GLFW.GLFW_KEY_W
-import org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.glfwGetCursorPos
 import org.lwjgl.glfw.GLFW.glfwGetKey
-import org.lwjgl.glfw.GLFW.glfwGetMouseButton
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.math.Vector3f
@@ -28,18 +26,12 @@ internal class EditorCameraController(private val camera: Camera) {
     private var lastMouseY = 0.0
     private var mouseInitialized = false
 
-    fun update(delta: Float, uiWantsMouse: Boolean, forceMovement: Boolean = false) {
-        val window = SMF.window.id
-        val rightDown = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS
-
-        if (rightDown && !uiWantsMouse) {
-            updateMouseLook()
+    fun update(delta: Float, active: Boolean, sensitivity: Float) {
+        if (active) {
+            updateMouseLook(sensitivity)
+            updateMovement(delta)
         } else {
             mouseInitialized = false
-        }
-
-        if ((rightDown && !uiWantsMouse) || forceMovement) {
-            updateMovement(delta)
         }
     }
 
@@ -50,7 +42,7 @@ internal class EditorCameraController(private val camera: Camera) {
         mouseInitialized = false
     }
 
-    private fun updateMouseLook() {
+    private fun updateMouseLook(sensitivity: Float) {
         val x = DoubleArray(1)
         val y = DoubleArray(1)
         glfwGetCursorPos(SMF.window.id, x, y)
@@ -62,7 +54,6 @@ internal class EditorCameraController(private val camera: Camera) {
             return
         }
 
-        val sensitivity = 0.08f
         yaw += ((x[0] - lastMouseX) * sensitivity).toFloat()
         pitch += ((lastMouseY - y[0]) * sensitivity).toFloat()
         pitch = pitch.coerceIn(-89f, 89f)

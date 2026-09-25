@@ -35,6 +35,7 @@ dependencies {
     implementation("de.javagl:jgltf-model:2.0.4")
     implementation("org.tinylog:tinylog-impl:2.7.0")
     implementation("org.tinylog:tinylog-api-kotlin:2.7.0")
+    implementation("net.java.dev.jna:jna:5.14.0")
 
     implementation("org.lwjgl:lwjgl:$lwjglVersion")
     implementation("org.lwjgl:lwjgl-stb:$lwjglVersion")
@@ -86,7 +87,7 @@ tasks {
         description = "Runs SMF in editor mode."
         classpath = sourceSets["main"].runtimeClasspath
         mainClass.set(smfMainClass)
-        args("--editor")
+        args("--editor", "--debug-control")
         javaLauncher.set(javaLauncher22)
     }
 

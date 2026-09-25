@@ -9,6 +9,10 @@ object Levels {
 
     val TEST_LEVEL = defineLevel("test", ::TestLevel)
 
+    fun entry(levelId: String): LevelEntry {
+        return levels[levelId] ?: LevelEntry(levelId) { BaseLevel(levelId) }
+    }
+
     fun create(levelId: String): Level {
         return levels[levelId]?.create() ?: BaseLevel(levelId)
     }

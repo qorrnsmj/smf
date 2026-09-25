@@ -23,6 +23,7 @@ import qorrnsmj.smf.physics.collision.shape.SphereCollider
 import qorrnsmj.smf.physics.component.StaticPhysics
 import java.awt.image.BufferedImage
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import javax.imageio.ImageIO
 import kotlin.math.abs
@@ -35,23 +36,31 @@ object LevelDefinitionLoader {
 
     fun load(levelName: String): LevelDefinition {
         val resourcePath = toResourcePath(levelName)
-        val root = readJson(resourcePath) ?: error("Level definition json not found: $resourcePath")
+        val source = readJson(resourcePath)
+            ?: error("Level definition json not found: $resourcePath")
 
         return LevelDefinition(
-            name = root.string("name") ?: levelName.removeSuffix(".json").substringAfterLast('/'),
+            name = source.root.string("name") ?: levelName.removeSuffix(".json").substringAfterLast('/').substringAfterLast('\\'),
             resourcePath = resourcePath,
-            renderProfile = root.string("renderProfile"),
-            entityModels = root.stringList("entityModels"),
+            filePath = source.filePath,
+            workspaceRoot = source.workspaceRoot,
+            renderProfile = source.root.string("renderProfile"),
+            entityModels = source.root.stringList("entityModels"),
         )
     }
 
     @Suppress("UNCHECKED_CAST")
     fun loadInto(scene: Scene, definition: LevelDefinition) {
-        val root = readJson(definition.resourcePath) ?: return
+        val source = readJson(definition.resourcePath) ?: return
+        val root = source.root
+        val resolver = LevelAssetResolver(definition)
 
-        (root["terrain"] as? Map<String, Any?>)?.let { loadTerrain(scene, it) }
-        (root["environment"] as? Map<String, Any?>)?.let { loadEnvironment(scene, it) }
-        loadStaticObjects(scene, root["static_objects"] as? List<Map<String, Any?>> ?: emptyList(), definition.resourcePath)
+        (root["terrain"] as? Map<String, Any?>)?.let { loadTerrain(scene, it, resolver) }
+        (root["environment"] as? Map<String, Any?>)?.let { loadEnvironment(scene, it, resolver) }
+        val objects = (root["static_objects"] as? List<Map<String, Any?>>)
+            ?: (root["objects"] as? List<Map<String, Any?>>)
+            ?: emptyList()
+        loadStaticObjects(scene, objects, resolver, definition.resourcePath)
     }
 
     fun toResourcePath(levelName: String): String {
@@ -63,23 +72,23 @@ object LevelDefinitionLoader {
         }
     }
 
-    private fun loadTerrain(scene: Scene, terrain: Map<String, Any?>) {
+    private fun loadTerrain(scene: Scene, terrain: Map<String, Any?>, resolver: LevelAssetResolver) {
         val heightmap = terrain["heightmap"] as? String
         if (heightmap.isNullOrBlank()) {
             Logger.info("Level terrain skipped: heightmap is empty")
             return
         }
 
-        val image = readImage(heightmap)
+        val image = readImage(heightmap, resolver)
         if (image == null) {
-            Logger.warn("Level terrain heightmap not found: {}", heightmap)
+            Logger.warn("Level terrain heightmap not found: {} (searched from {})", heightmap, resolver.searchRootDescription())
             return
         }
 
         val mapSize = (terrain["map_size"] as? Number)?.toFloat() ?: 256f
         val heightGrid = readSignedHeightGrid(image)
         val textureMode = BlendedTexture(
-            blendMap = loadSplatmapTexture(terrain),
+            blendMap = loadSplatmapTexture(terrain, resolver),
             baseTexture = Textures.TERRAIN_GRASS,
             rTexture = Textures.TERRAIN_DIRT,
             gTexture = Textures.TERRAIN_FLOWER,
@@ -98,11 +107,13 @@ object LevelDefinitionLoader {
         Logger.info("Level terrain loaded: heightmap={}, size={}, resolution={}", heightmap, mapSize, heightGrid.size)
     }
 
-    private fun loadEnvironment(scene: Scene, environment: Map<String, Any?>) {
+    private fun loadEnvironment(scene: Scene, environment: Map<String, Any?>, resolver: LevelAssetResolver) {
         val skyboxPath = environment["skybox"] as? String
         if (!skyboxPath.isNullOrBlank()) {
             try {
-                scene.environment.skybox = SkyboxLoader.loadSkyboxResource(toAssetPath(skyboxPath))
+                val face = resolver.resolveFile("${skyboxPath}_front.png")
+                scene.environment.skybox = if (face != null) SkyboxLoader.loadSkyboxFile(Path.of(face.toString().removeSuffix("_front.png")))
+                    else SkyboxLoader.loadSkyboxResource(toAssetPath(skyboxPath))
                 Logger.info("Level skybox loaded: {}", skyboxPath)
             } catch (error: Throwable) {
                 Logger.warn(error, "Level skybox could not be loaded: {}", skyboxPath)
@@ -118,7 +129,8 @@ object LevelDefinitionLoader {
         }
     }
 
-    private fun loadStaticObjects(scene: Scene, objects: List<Map<String, Any?>>, sourcePath: String) {
+    private fun loadStaticObjects(scene: Scene, objects: List<Map<String, Any?>>, resolver: LevelAssetResolver, sourcePath: String) {
+        var loadedCount = 0
         for (item in objects) {
             val model = item["model"] as? String ?: continue
             val transform = Transform(
@@ -127,7 +139,12 @@ object LevelDefinitionLoader {
                 scale = vectorFromJson(item["scale"], Vector3f(1f, 1f, 1f)),
             )
             val entity = ObjectEntity(transform = transform, model = EntityModels.EMPTY)
-            val models = loadModels(model)
+            val models = try {
+                loadModels(model, resolver)
+            } catch (error: Throwable) {
+                Logger.warn(error, "Level static object skipped: model could not be loaded: {} (map={})", model, sourcePath)
+                continue
+            }
 
             for ((name, meshModel) in models) {
                 if (name.startsWith("collision_", ignoreCase = true)) continue
@@ -136,27 +153,32 @@ object LevelDefinitionLoader {
 
             scene.world.entities.add(entity)
             addCollisionEntities(scene, transform, item["collisions"])
+            loadedCount++
         }
 
-        Logger.info("Level static objects loaded: {} objects from {}", objects.size, sourcePath)
+        Logger.info("Level static objects loaded: {}/{} objects from {}", loadedCount, objects.size, sourcePath)
     }
 
-    private fun loadSplatmapTexture(terrain: Map<String, Any?>): TextureBufferObject {
+    private fun loadSplatmapTexture(terrain: Map<String, Any?>, resolver: LevelAssetResolver): TextureBufferObject {
         val splatmap = (terrain["splatmaps"] as? List<*>)?.firstOrNull() as? String
         if (!splatmap.isNullOrBlank()) {
             try {
+                val filePath = resolver.resolveFile(splatmap)
+                if (filePath != null) {
+                    return TextureLoader.loadTextureFile(filePath, TexturePresets.TERRAIN)
+                }
                 return TextureLoader.loadTexture(toAssetPath(splatmap), TexturePresets.TERRAIN)
             } catch (error: Throwable) {
-                Logger.warn(error, "Level splatmap could not be loaded: {}", splatmap)
+                Logger.warn(error, "Level splatmap could not be loaded: {} (searched from {})", splatmap, resolver.searchRootDescription())
             }
         }
         return Textures.TERRAIN_BLEND_MAP
     }
 
-    private fun loadModels(modelPath: String): Map<String, Model> {
-        val path = Paths.get(modelPath)
-        return if (Files.isRegularFile(path)) {
-            EntityLoader.loadModelFromFile(path)
+    private fun loadModels(modelPath: String, resolver: LevelAssetResolver): Map<String, Model> {
+        val filePath = resolver.resolveFile(modelPath)
+        return if (filePath != null) {
+            EntityLoader.loadModelFromFile(filePath)
         } else {
             val resourcePath = when {
                 modelPath.startsWith("assets/") -> modelPath
@@ -216,18 +238,26 @@ object LevelDefinitionLoader {
         }
     }
 
-    private fun readJson(path: String): Map<*, *>? {
+    private fun readJson(path: String): LevelJsonSource? {
         val filePath = Paths.get(path)
         return if (Files.isRegularFile(filePath)) {
-            objectMapper.readValue(filePath.toFile(), Map::class.java)
+            LevelJsonSource(
+                root = objectMapper.readValue(filePath.toFile(), Map::class.java),
+                filePath = filePath.toAbsolutePath().normalize(),
+            )
         } else {
-            ClassLoader.getSystemResourceAsStream(path)?.use { objectMapper.readValue(it, Map::class.java) }
+            ClassLoader.getSystemResourceAsStream(path)?.use {
+                LevelJsonSource(
+                    root = objectMapper.readValue(it, Map::class.java),
+                    filePath = null,
+                )
+            }
         }
     }
 
-    private fun readImage(path: String): BufferedImage? {
-        val filePath = Paths.get(path)
-        if (Files.isRegularFile(filePath)) {
+    private fun readImage(path: String, resolver: LevelAssetResolver): BufferedImage? {
+        val filePath = resolver.resolveFile(path)
+        if (filePath != null) {
             return ImageIO.read(filePath.toFile())
         }
 
@@ -254,6 +284,40 @@ object LevelDefinitionLoader {
     private fun toAssetPath(path: String): String {
         val normalized = path.replace('\\', '/')
         return if (normalized.startsWith("assets/")) normalized else "assets/$normalized"
+    }
+
+    private data class LevelJsonSource(
+        val root: Map<*, *>,
+        val filePath: Path?,
+    ) {
+        val workspaceRoot: Path? = filePath?.let { levelFile ->
+            val levelDir = levelFile.parent
+            if (levelDir?.fileName?.toString().equals("level", ignoreCase = true)) levelDir?.parent else levelDir
+        }
+    }
+
+    private class LevelAssetResolver(private val definition: LevelDefinition) {
+        fun resolveFile(path: String): Path? {
+            val normalized = path.replace('\\', '/')
+            val rawPath = Paths.get(path)
+            if (rawPath.isAbsolute) {
+                return rawPath.normalize().takeIf { Files.isRegularFile(it) }
+            }
+
+            val relativePath = normalized.removePrefix("assets/")
+            val candidates = listOfNotNull(
+                definition.workspaceRoot?.resolve(relativePath)?.normalize(),
+                definition.filePath?.parent?.resolve(relativePath)?.normalize(),
+                Paths.get(path).normalize(),
+            )
+            return candidates.firstOrNull { Files.isRegularFile(it) }
+        }
+
+        fun searchRootDescription(): String {
+            return definition.workspaceRoot?.toString()
+                ?: definition.filePath?.parent?.toString()
+                ?: "classpath assets"
+        }
     }
 
     private fun Map<*, *>.string(key: String): String? = this[key] as? String

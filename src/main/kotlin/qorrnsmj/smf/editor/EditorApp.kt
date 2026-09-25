@@ -23,6 +23,7 @@ class EditorApp {
     private val fileDrop = EditorFileDrop(context, document)
 
     private var initialized = false
+    private var editorDataElapsed = 0f
 
     fun initialize() {
         if (initialized) return
@@ -49,13 +50,15 @@ class EditorApp {
         context.scene.renderSettings.cullingEnabled = context.cullingEnabled
         context.scene.environment.skyVisible = context.skyVisible
         context.scene.environment.skyColor = context.timeOfDay.skyColor
-        context.terrainPreview = EditorTerrainPreview(context.terrain, context.terrainMapSize)
+        context.terrainPreview = EditorTerrainPreview(context.terrain, context.splatmaps, context.terrainMapSize)
         context.scene.world.terrain = context.terrainPreview?.terrain
         context.scene.world.terrainHeightProvider = context.terrainPreview?.terrain
-        if (context.skyboxPath.get().isNotBlank()) document.setSkyboxPath(context.skyboxPath.get())
         document.setTimeOfDay(context.timeOfDay)
         document.refreshAssets()
         document.markCurrentMapClean()
+        try { document.initializeProject() } catch (error: Exception) {
+            document.reportError("Project could not be opened", error)
+        }
         ImGui.createContext()
         ImGui.getIO().addConfigFlags(ImGuiConfigFlags.NavEnableKeyboard)
         ImGui.getIO().setIniFilename(null)
@@ -82,6 +85,11 @@ class EditorApp {
 
         input.update(delta)
         context.updateCursorMode()
+        editorDataElapsed += delta
+        if (editorDataElapsed >= 5f && !context.viewportMouseLookActive) {
+            editorDataElapsed = 0f
+            runCatching { document.saveEditorData() }.onFailure { document.reportError("Editor state could not be saved", it) }
+        }
     }
 
     fun renderScene(alpha: Float) {
@@ -132,6 +140,7 @@ class EditorApp {
         Logger.info("EditorApp disposing...")
 
         EditorConfig.save(context)
+        runCatching { document.saveEditorData() }.onFailure { Logger.warn(it, "Editor state could not be saved") }
         imGuiGl3.shutdown()
         imGuiGlfw.shutdown()
         fileDrop.dispose()

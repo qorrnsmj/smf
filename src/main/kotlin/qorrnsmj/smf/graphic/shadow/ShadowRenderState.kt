@@ -10,6 +10,9 @@ data class ShadowRenderState(
     val lightSpaceMatrix: Matrix4f,
     val depthTextureId: Int,
     val strength: Float = 0f,
+    val filterRadius: Float = 1f,
+    val receiverMinBias: Float = 0.00004f,
+    val receiverSlopeBias: Float = 0.00018f,
     val local: LocalShadowRenderState = LocalShadowRenderState(),
     val point: PointShadowRenderState = PointShadowRenderState(),
 )

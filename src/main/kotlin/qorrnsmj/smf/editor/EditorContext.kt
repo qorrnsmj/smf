@@ -21,6 +21,10 @@ import kotlin.math.atan2
 import kotlin.math.max
 
 internal class EditorContext {
+    var project: EditorProject? = null
+    var lastProjectId: String? = null
+    var projectsOpen = false
+    var projectDialogActive = false
     val modelCache = mutableMapOf<String, Map<String, Model>>()
     val placedObjects = mutableListOf<EditorPlacedObject>()
     val eventAreas = mutableListOf<EditorEventArea>()
@@ -46,10 +50,6 @@ internal class EditorContext {
     val assetModelRoot = ImString("", 1024)
     val assetBrowserPath = ImString("", 1024)
     val availableAssetDirectories = mutableListOf<String>()
-    var errorPopupOpen = false
-    var errorPopupTitle = "Error"
-    var errorPopupMessage = ""
-
     var selectedIndex = -1
     var selectedSpawnPointIndex = -1
     var selectedEventAreaIndex = -1
@@ -83,8 +83,8 @@ internal class EditorContext {
     var terrainBrushFalloff = 1.5f
     var terrainPaintTextureIndex = 0
     var terrainPointerMode = EditorTerrainPointerMode.RETICLE
-    var terrainReticleAction = EditorTerrainReticleAction.RAISE
-    var terrainReticleActionToggleWasDown = false
+    var terrainPreviousModeWasDown = false
+    var terrainNextModeWasDown = false
     var terrainBrushWasDown = false
     var assetDragInProgress = false
     var terrainFlattenHeight = 0f
@@ -116,7 +116,9 @@ internal class EditorContext {
     var panelResizeHandleHovered = false
     var windowFontScale = 1f
     var editorFontScale = 1.12f
+    var cameraSensitivity = 0.08f
     var viewportMouseLookActive = false
+    var rightMouseWasDown = false
     var showLeftPanel = true
     var showViewportPanel = true
     var showSecondaryViewport = true
@@ -413,6 +415,8 @@ internal class EditorSplatmapData(
         return maps.mapValues { it.value.copyOf() }
     }
 
+    fun map(mapIndex: Int): FloatArray? = maps[mapIndex]
+
     fun replace(newWidth: Int, newHeight: Int, newMaxTextureIndex: Int, newMaps: Map<Int, FloatArray>) {
         if (newWidth < 1 || newHeight < 1) return
         val expectedSize = newWidth * newHeight * 4
@@ -471,20 +475,14 @@ internal class EditorSplatmapData(
 
     private fun normalizePixel(x: Int, y: Int) {
         val pixel = (y * width + x) * 4
-        var total = 0f
-        val maxMap = maxTextureIndex / 4
-        for (mapIndex in 0..maxMap) {
-            val map = maps.getOrPut(mapIndex) { FloatArray(width * height * 4) }
-            total += map[pixel] + map[pixel + 1] + map[pixel + 2] + map[pixel + 3]
-        }
-        if (total <= 0.00001f) return
-        for (mapIndex in 0..maxMap) {
-            val map = maps.getValue(mapIndex)
+        val map = maps.getOrPut(0) { FloatArray(width * height * 4) }
+        val total = map[pixel] + map[pixel + 1] + map[pixel + 2]
+        if (total > 1f) {
             map[pixel] /= total
             map[pixel + 1] /= total
             map[pixel + 2] /= total
-            map[pixel + 3] /= total
         }
+        map[pixel + 3] = 0f
     }
 }
 
@@ -500,11 +498,6 @@ internal enum class EditorTerrainBrushMode {
 internal enum class EditorTerrainPointerMode {
     MOUSE,
     RETICLE,
-}
-
-internal enum class EditorTerrainReticleAction {
-    RAISE,
-    LOWER,
 }
 
 internal enum class EditorEditMode {

@@ -1,6 +1,7 @@
 package qorrnsmj.smf.editor
 
 import org.lwjgl.glfw.GLFW.GLFW_KEY_E
+import org.lwjgl.glfw.GLFW.GLFW_KEY_Q
 import org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE
 import org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL
 import org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT
@@ -24,11 +25,12 @@ internal class EditorInput(
     private val document: EditorDocument,
 ) {
     fun update(delta: Float) {
-        if (context.closeConfirmationActive || context.suppressEditorInputUntilMouseRelease) {
+        if (context.projectDialogActive || context.closeConfirmationActive || context.suppressEditorInputUntilMouseRelease) {
             val leftDown = glfwGetMouseButton(SMF.window.id, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS
             val rightDown = glfwGetMouseButton(SMF.window.id, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS
             context.terrainBrushWasDown = false
             context.leftMouseWasDown = leftDown
+            context.rightMouseWasDown = rightDown
             context.viewportMouseLookActive = false
             if (!context.closeConfirmationActive && !leftDown && !rightDown) {
                 context.suppressEditorInputUntilMouseRelease = false
@@ -37,54 +39,50 @@ internal class EditorInput(
         }
         val rightMouseDown = glfwGetMouseButton(SMF.window.id, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS
         val leftMouseDown = glfwGetMouseButton(SMF.window.id, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS
-        val mouseLookLockedToViewport = rightMouseDown && context.viewportMouseLookActive
-        val mouseInViewport = if (mouseLookLockedToViewport) {
+        val mouseInViewport = if (context.viewportMouseLookActive) {
             true
         } else {
             updateActiveViewportFromMouse()
         }
-        val terrainMouseBrushInput = context.editMode == EditorEditMode.TERRAIN &&
-            context.terrainPointerMode == EditorTerrainPointerMode.MOUSE
-        val canStartMouseLook = mouseInViewport && !context.lastGizmoWantsMouse && !terrainMouseBrushInput
-        context.viewportMouseLookActive = if (rightMouseDown) {
-            context.viewportMouseLookActive || canStartMouseLook
-        } else {
-            false
+        if (rightMouseDown && !context.rightMouseWasDown) {
+            context.viewportMouseLookActive = if (context.viewportMouseLookActive) {
+                false
+            } else {
+                mouseInViewport && !context.lastGizmoWantsMouse
+            }
         }
+        context.rightMouseWasDown = rightMouseDown
         val keyboardBlocked = context.editorKeyboardBlocked && !context.viewportMouseLookActive
-        val panelResizeBlocksTerrain = context.panelResizeHandleHovered || context.panelResizeInProgress
 
         handleUndoRedoShortcuts()
         handleSaveShortcut()
         handleDeleteShortcut()
         if (!keyboardBlocked) {
-            updateTerrainReticleActionShortcut()
-            if (context.editMode == EditorEditMode.OBJECT && (!mouseInViewport || !rightMouseDown)) {
+            updateTerrainModeShortcuts()
+            if (context.editMode == EditorEditMode.OBJECT && !context.viewportMouseLookActive) {
                 updateGizmoShortcuts()
             }
         } else {
-            context.terrainReticleActionToggleWasDown = false
+            context.terrainPreviousModeWasDown = false
+            context.terrainNextModeWasDown = false
         }
-
-        val terrainInputActive = context.editMode == EditorEditMode.TERRAIN &&
-            mouseInViewport &&
-            !context.assetDragInProgress &&
-            !panelResizeBlocksTerrain &&
-            !context.lastGizmoWantsMouse &&
-            terrainBrushMouseDown(leftMouseDown, rightMouseDown)
-        val terrainReticleNavigationActive = context.editMode == EditorEditMode.TERRAIN &&
-            context.terrainPointerMode == EditorTerrainPointerMode.RETICLE &&
-            mouseInViewport &&
-            !context.assetDragInProgress &&
-            !panelResizeBlocksTerrain
 
         context.activeCameraController().update(
             delta,
-            !context.viewportMouseLookActive || keyboardBlocked,
-            forceMovement = (terrainInputActive || terrainReticleNavigationActive) && !keyboardBlocked,
+            context.viewportMouseLookActive && !keyboardBlocked,
+            context.cameraSensitivity,
         )
-        val terrainBrushConsumed = handleTerrainBrush(mouseInViewport, leftMouseDown, rightMouseDown, delta)
-        if (!terrainBrushConsumed) {
+        val reticleBrushWhileNavigating = context.viewportMouseLookActive &&
+            context.editMode == EditorEditMode.TERRAIN &&
+            context.terrainPointerMode == EditorTerrainPointerMode.RETICLE
+        if (context.viewportMouseLookActive && !reticleBrushWhileNavigating) {
+            context.terrainBrushWasDown = false
+            context.leftMouseWasDown = leftMouseDown
+            return
+        }
+
+        val terrainBrushConsumed = handleTerrainBrush(mouseInViewport, leftMouseDown, delta)
+        if (!terrainBrushConsumed && !context.viewportMouseLookActive) {
             handleMousePicking()
         }
     }
@@ -103,17 +101,20 @@ internal class EditorInput(
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) context.gizmoOperation = Operation.SCALE
     }
 
-    private fun updateTerrainReticleActionShortcut() {
-        val toggleDown = context.editMode == EditorEditMode.TERRAIN &&
-            context.terrainPointerMode == EditorTerrainPointerMode.RETICLE &&
-            glfwGetKey(SMF.window.id, GLFW_KEY_E) == GLFW_PRESS
-        if (toggleDown && !context.terrainReticleActionToggleWasDown) {
-            context.terrainReticleAction = when (context.terrainReticleAction) {
-                EditorTerrainReticleAction.RAISE -> EditorTerrainReticleAction.LOWER
-                EditorTerrainReticleAction.LOWER -> EditorTerrainReticleAction.RAISE
-            }
-        }
-        context.terrainReticleActionToggleWasDown = toggleDown
+    private fun updateTerrainModeShortcuts() {
+        val terrainMode = context.editMode == EditorEditMode.TERRAIN
+        val previousDown = terrainMode && glfwGetKey(SMF.window.id, GLFW_KEY_Q) == GLFW_PRESS
+        val nextDown = terrainMode && glfwGetKey(SMF.window.id, GLFW_KEY_E) == GLFW_PRESS
+        if (previousDown && !context.terrainPreviousModeWasDown) cycleTerrainMode(-1)
+        if (nextDown && !context.terrainNextModeWasDown) cycleTerrainMode(1)
+        context.terrainPreviousModeWasDown = previousDown
+        context.terrainNextModeWasDown = nextDown
+    }
+
+    private fun cycleTerrainMode(offset: Int) {
+        val modes = EditorTerrainBrushMode.entries
+        val current = modes.indexOf(context.terrainBrushMode)
+        context.terrainBrushMode = modes[(current + offset + modes.size) % modes.size]
     }
 
     private fun handleUndoRedoShortcuts() {
@@ -155,9 +156,7 @@ internal class EditorInput(
             try {
                 document.saveMap()
             } catch (error: Throwable) {
-                context.errorPopupTitle = "Save failed"
-                context.errorPopupMessage = error.message ?: error::class.simpleName ?: "Unknown error"
-                context.errorPopupOpen = true
+                document.reportError("Save failed", error)
             }
         }
         context.saveShortcutWasDown = saveDown
@@ -186,10 +185,10 @@ internal class EditorInput(
         context.leftMouseWasDown = leftDown
     }
 
-    private fun handleTerrainBrush(mouseInViewport: Boolean, leftDown: Boolean, rightDown: Boolean, delta: Float): Boolean {
+    private fun handleTerrainBrush(mouseInViewport: Boolean, leftDown: Boolean, delta: Float): Boolean {
         val active = context.editMode == EditorEditMode.TERRAIN &&
             mouseInViewport &&
-            terrainBrushMouseDown(leftDown, rightDown) &&
+            terrainBrushMouseDown(leftDown) &&
             !context.assetDragInProgress &&
             !context.panelResizeHandleHovered &&
             !context.panelResizeInProgress &&
@@ -200,8 +199,7 @@ internal class EditorInput(
             val point = EditorPicking.intersectGround(terrainBrushRay())
             val grid = point?.let { document.terrainGridAt(it) }
             if (grid != null) {
-                val direction = terrainBrushDirection(leftDown, rightDown)
-                document.applyTerrainBrush(grid.first, grid.second, delta, !context.terrainBrushWasDown, direction)
+                document.applyTerrainBrush(grid.first, grid.second, delta, !context.terrainBrushWasDown)
                 applied = true
             }
         }
@@ -211,22 +209,8 @@ internal class EditorInput(
         return active
     }
 
-    private fun terrainBrushMouseDown(leftDown: Boolean, rightDown: Boolean): Boolean {
-        return when (context.terrainPointerMode) {
-            EditorTerrainPointerMode.MOUSE -> leftDown || rightDown
-            EditorTerrainPointerMode.RETICLE -> leftDown
-        }
-    }
-
-    private fun terrainBrushDirection(leftDown: Boolean, rightDown: Boolean): Float {
-        return when (context.terrainPointerMode) {
-            EditorTerrainPointerMode.MOUSE -> if (rightDown && !leftDown) -1f else 1f
-            EditorTerrainPointerMode.RETICLE -> when (context.terrainBrushMode) {
-                EditorTerrainBrushMode.RAISE -> if (context.terrainReticleAction == EditorTerrainReticleAction.RAISE) 1f else -1f
-                EditorTerrainBrushMode.LOWER -> if (context.terrainReticleAction == EditorTerrainReticleAction.LOWER) 1f else -1f
-                else -> 1f
-            }
-        }
+    private fun terrainBrushMouseDown(leftDown: Boolean): Boolean {
+        return leftDown
     }
 
     private fun terrainBrushRay(): Ray {

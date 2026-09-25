@@ -28,6 +28,74 @@ import kotlin.collections.iterator
 internal class EditorDocument(private val context: EditorContext) {
     private val objectMapper = ObjectMapper()
     private val unsavedState = EditorUnsavedState()
+    val projects = EditorProjectStore()
+
+    fun initializeProject() {
+        val previous = context.lastProjectId?.let { id -> projects.list().firstOrNull { it.id == id } }
+        val legacy = context.mapPath.get().takeIf { it.isNotBlank() }?.let { Paths.get(it) }
+        val project = previous ?: if (legacy != null && Files.isRegularFile(legacy)) projects.importLevel(legacy)
+            else projects.list().firstOrNull() ?: projects.create("Untitled")
+        openProject(project)
+    }
+
+    fun openProject(project: EditorProject) {
+        require(Files.isRegularFile(project.level)) { "Level not found: ${project.level}" }
+        objectMapper.readTree(project.level.toFile())
+        saveEditorData()
+        val previous = context.project
+        val snapshot = captureSnapshot()
+        val oldPaths = listOf(context.workspaceRoot.get(), context.mapPath.get(), context.projectName.get(),
+            context.terrainHeightmapPath.get(), context.terrainSplatmapPath.get(), context.skyboxPath.get())
+        val oldSkybox = context.scene.environment.skybox
+        val oldTime = context.timeOfDay
+        try {
+            context.project = project
+            context.modelCache.clear()
+            context.mapPath.set(project.level.toString())
+            context.projectName.set("map")
+            context.workspaceRoot.set(project.root.toString())
+            context.skyboxPath.set("")
+            context.scene.environment.skybox = qorrnsmj.smf.graphic.skybox.Skyboxes.SKY1
+            context.terrain.replace(513, 513, FloatArray(513 * 513))
+            context.splatmaps.replace(513, 513, 0, emptyMap())
+            context.terrainMapSize = 256f
+            setTimeOfDay(EditorTimeOfDay.NOON)
+            refreshTerrainMapPaths()
+            loadMap(recordUndo = false)
+            context.undoStack.clear()
+            context.redoStack.clear()
+        } catch (error: Exception) {
+            context.project = previous
+            context.workspaceRoot.set(oldPaths[0])
+            context.mapPath.set(oldPaths[1])
+            context.projectName.set(oldPaths[2])
+            context.terrainHeightmapPath.set(oldPaths[3])
+            context.terrainSplatmapPath.set(oldPaths[4])
+            context.skyboxPath.set(oldPaths[5])
+            context.scene.environment.skybox = oldSkybox
+            setTimeOfDay(oldTime)
+            context.assetModelRoot.set(Paths.get(oldPaths[0]).resolve("model").toString())
+            context.assetBrowserPath.set(context.assetModelRoot.get())
+            context.modelCache.clear()
+            restoreSnapshot(snapshot)
+            refreshAssets()
+            throw error
+        }
+        try { EditorData.load(context, project.root) } catch (error: Exception) {
+            reportError("Editor state could not be loaded", error)
+            context.cameraController.syncFromCamera()
+            context.secondaryCameraController.syncFromCamera()
+        }
+        EditorConfig.save(context)
+    }
+
+    fun saveEditorData() {
+        context.project?.let { EditorData.save(context, it.root) }
+    }
+
+    fun reportError(title: String, error: Throwable) {
+        Logger.warn(error, title)
+    }
 
     fun openWorkspace(path: String, loadLevel: Boolean = true) {
         if (path.isBlank()) {
@@ -72,7 +140,20 @@ internal class EditorDocument(private val context: EditorContext) {
     }
 
     fun setSkyboxPath(path: String) {
-        val normalized = normalizeSkyboxPath(path)
+        var normalized = normalizeSkyboxPath(path)
+        if (context.project != null && Paths.get(normalized).isAbsolute) {
+            val prefix = "texture/skybox/${java.util.UUID.randomUUID()}/sky"
+            for (suffix in SKYBOX_FACE_SUFFIXES) {
+                val source = Paths.get("$normalized$suffix.png")
+                require(Files.isRegularFile(source)) { "Skybox face not found: $source" }
+            }
+            for (suffix in SKYBOX_FACE_SUFFIXES) {
+                val output = workspaceRootPath().resolve("$prefix$suffix.png")
+                Files.createDirectories(output.parent)
+                Files.copy(Paths.get("$normalized$suffix.png"), output)
+            }
+            normalized = prefix
+        }
         context.skyboxPath.set(displaySkyboxPath(normalized))
         applySkyboxPath()
     }
@@ -330,6 +411,7 @@ internal class EditorDocument(private val context: EditorContext) {
     }
 
     fun saveMap() {
+        check(context.project != null) { "Open or create a project before saving" }
         context.projectName.set(sanitizeProjectName(context.projectName.get()))
         if (context.mapPath.get().isBlank() && context.projectName.get().isNotBlank() && context.workspaceRoot.get().isNotBlank()) {
             setProjectName(context.projectName.get())
@@ -342,16 +424,17 @@ internal class EditorDocument(private val context: EditorContext) {
         Files.createDirectories(path.parent ?: Path.of("."))
         ensureUniqueStaticObjectNames()
 
-        if (unsavedState.terrainDirty(context.terrain) || unsavedState.splatDirty(context.splatmaps)) {
+        if (context.project != null || unsavedState.terrainDirty(context.terrain) || unsavedState.splatDirty(context.splatmaps)) {
             check(context.workspaceRoot.get().isNotBlank() && levelFileStem().isNotBlank()) {
                 "Workspace and project name are required to save terrain changes"
             }
-            if (unsavedState.terrainDirty(context.terrain)) exportTerrainHeightmap()
-            if (unsavedState.splatDirty(context.splatmaps)) exportTerrainSplatmaps()
+            if (context.project != null || unsavedState.terrainDirty(context.terrain)) exportTerrainHeightmap()
+            if (context.project != null || unsavedState.splatDirty(context.splatmaps)) exportTerrainSplatmaps()
         }
 
         val json = currentMapJson()
-        Files.writeString(path, json)
+        EditorProjectStore.writeJson(path, objectMapper.readTree(json))
+        saveEditorData()
         markCurrentMapClean()
         Logger.info("Editor map saved: {}", path)
     }
@@ -371,10 +454,8 @@ internal class EditorDocument(private val context: EditorContext) {
             return
         }
         val path = Paths.get(context.mapPath.get())
-        if (!Files.isRegularFile(path)) {
-            Logger.warn("Editor map not found: {}", path)
-            return
-        }
+        require(Files.isRegularFile(path)) { "Level not found: $path" }
+        val root = objectMapper.readValue(path.toFile(), Map::class.java)
 
         syncProjectNameFromLevelPath(path)
         syncWorkspaceFromLevelPath(path)
@@ -393,7 +474,6 @@ internal class EditorDocument(private val context: EditorContext) {
         context.hierarchyRangeAnchorIndex = -1
         context.selectedCollisionIndex = -1
 
-        val root = objectMapper.readValue(path.toFile(), Map::class.java)
         val environment = root["environment"] as? Map<String, Any?>
         if (environment != null) {
             readEnvironmentSettings(environment)
@@ -587,7 +667,8 @@ internal class EditorDocument(private val context: EditorContext) {
             context.terrainFlattenHeight = context.terrain.get(gridX, gridY)
         }
         if (context.terrainBrushMode == EditorTerrainBrushMode.PAINT) {
-            applySplatBrush(gridX, gridY, radius, radiusInt, blendStrength, falloff)
+            applySplatBrush(gridX, gridY, radius, radiusInt, blendStrength * SPLAT_BRUSH_MULTIPLIER, falloff)
+            context.terrainPreview?.updateSplatmap()
             return
         }
 
@@ -607,7 +688,12 @@ internal class EditorDocument(private val context: EditorContext) {
 
                 val weight = (1f - distance / radius).coerceIn(0f, 1f).pow(falloff)
                 val amount = heightStrength * weight
-                val blendAmount = (blendStrength * weight * 3.5f).coerceIn(0f, 1f)
+                val blendMultiplier = when (context.terrainBrushMode) {
+                    EditorTerrainBrushMode.SMOOTH -> SMOOTH_BRUSH_MULTIPLIER
+                    EditorTerrainBrushMode.FLATTEN -> FLATTEN_BRUSH_MULTIPLIER
+                    else -> 1f
+                }
+                val blendAmount = (blendStrength * weight * blendMultiplier).coerceIn(0f, 1f)
                 val current = terrain.get(x, y)
                 val next = when (context.terrainBrushMode) {
                     EditorTerrainBrushMode.RAISE -> current + amount * direction
@@ -648,10 +734,7 @@ internal class EditorDocument(private val context: EditorContext) {
 
     fun importTerrainHeightmap(path: String) {
         val file = workspaceResourcePath(path)
-        if (!Files.isRegularFile(file)) {
-            Logger.warn("Terrain heightmap not found: {}", file)
-            return
-        }
+        require(Files.isRegularFile(file)) { "Terrain heightmap not found: $file" }
         context.terrainHeightmapPath.set(file.toString())
         pushUndoSnapshot()
         loadTerrainHeightmap(file.toString())
@@ -659,10 +742,7 @@ internal class EditorDocument(private val context: EditorContext) {
 
     fun importTerrainSplatmap(path: String) {
         val file = workspaceResourcePath(path)
-        if (!Files.isRegularFile(file)) {
-            Logger.warn("Terrain splatmap not found: {}", file)
-            return
-        }
+        require(Files.isRegularFile(file)) { "Terrain splatmap not found: $file" }
         context.terrainSplatmapPath.set(file.toString())
         pushUndoSnapshot()
         loadTerrainSplatmaps(listOf(file.toString()))
@@ -837,6 +917,7 @@ internal class EditorDocument(private val context: EditorContext) {
         )
         context.terrainPreview?.setMapSize(context.terrainMapSize)
         context.terrainPreview?.update()
+        context.terrainPreview?.updateSplatmap()
         context.propertyEditInProgress = false
         context.gizmoEditInProgress = false
     }
@@ -913,10 +994,12 @@ internal class EditorDocument(private val context: EditorContext) {
 
         val resourcePrefix = if (path.startsWith("assets/")) path else "assets/$path"
         try {
-            context.scene.environment.skybox = SkyboxLoader.loadSkyboxResource(resourcePrefix)
+            val prefix = workspaceResourcePath(path)
+            context.scene.environment.skybox = if (Files.isRegularFile(Paths.get("${prefix}_front.png")))
+                SkyboxLoader.loadSkyboxFile(prefix) else SkyboxLoader.loadSkyboxResource(resourcePrefix)
             Logger.info("Editor skybox loaded: {}", resourcePrefix)
         } catch (error: Throwable) {
-            Logger.warn(error, "Editor skybox could not be loaded: {}", resourcePrefix)
+            throw IllegalStateException("Skybox could not be loaded: $path", error)
         }
     }
 
@@ -926,15 +1009,8 @@ internal class EditorDocument(private val context: EditorContext) {
 
     private fun loadTerrainHeightmap(path: String): Boolean {
         val file = workspaceResourcePath(path)
-        if (!Files.isRegularFile(file)) {
-            Logger.warn("Terrain heightmap not found: {}", file)
-            return false
-        }
-
-        val image = ImageIO.read(file.toFile()) ?: run {
-            Logger.warn("Terrain heightmap could not be read: {}", file)
-            return false
-        }
+        require(Files.isRegularFile(file)) { "Terrain heightmap not found: $file" }
+        val image = ImageIO.read(file.toFile()) ?: error("Terrain heightmap could not be read: $file")
         val resolution = min(image.width, image.height).coerceAtLeast(3)
         if (image.width != image.height) {
             Logger.warn("Terrain heightmap is not square: {} ({} x {})", file, image.width, image.height)
@@ -967,16 +1043,8 @@ internal class EditorDocument(private val context: EditorContext) {
 
         for ((mapIndex, path) in paths.withIndex()) {
             val file = workspaceResourcePath(path)
-            if (!Files.isRegularFile(file)) {
-                Logger.warn("Terrain splatmap not found: {}", file)
-                continue
-            }
-
-            val image = ImageIO.read(file.toFile())
-            if (image == null) {
-                Logger.warn("Terrain splatmap could not be read: {}", file)
-                continue
-            }
+            require(Files.isRegularFile(file)) { "Terrain splatmap not found: $file" }
+            val image = ImageIO.read(file.toFile()) ?: error("Terrain splatmap could not be read: $file")
             val data = FloatArray(context.splatmaps.width * context.splatmaps.height * 4)
             for (y in 0 until context.splatmaps.height) {
                 for (x in 0 until context.splatmaps.width) {
@@ -993,6 +1061,7 @@ internal class EditorDocument(private val context: EditorContext) {
             context.splatmaps.setMap(mapIndex, data)
             Logger.info("Terrain splatmap loaded: {}", file)
         }
+        context.terrainPreview?.updateSplatmap()
     }
 
     private fun recommendedHeightmapResolution(mapSizeMeters: Float): Int {
@@ -1057,11 +1126,11 @@ internal class EditorDocument(private val context: EditorContext) {
     }
 
     private fun loadModels(modelPath: String): Map<String, Model> {
-        val directPath = Paths.get(modelPath)
-        if (Files.isRegularFile(directPath)) return EntityLoader.loadModelFromFile(directPath)
-
         val workspacePath = workspaceAssetPath(modelPath)
         if (workspacePath != null && Files.isRegularFile(workspacePath)) return EntityLoader.loadModelFromFile(workspacePath)
+
+        val directPath = Paths.get(modelPath)
+        if (Files.isRegularFile(directPath)) return EntityLoader.loadModelFromFile(directPath)
 
         val resourcePath = when {
             modelPath.startsWith("assets/") -> modelPath
@@ -1084,6 +1153,14 @@ internal class EditorDocument(private val context: EditorContext) {
         val workspaceRoot = workspaceRootPathOrNull()
         val modelRoot = assetRootPathOrNull()
         val absolutePath = rawPath.toAbsolutePath().normalize()
+        if (context.project != null && rawPath.isAbsolute && workspaceRoot != null && !absolutePath.startsWith(workspaceRoot)) {
+            require(Files.isRegularFile(absolutePath)) { "Model not found: $absolutePath" }
+            val relative = "model/imported/${java.util.UUID.randomUUID()}-${absolutePath.fileName}"
+            val destination = workspaceRoot.resolve(relative)
+            Files.createDirectories(destination.parent)
+            Files.copy(absolutePath, destination)
+            return relative
+        }
         return when {
             workspaceRoot != null && absolutePath.startsWith(workspaceRoot) -> {
                 workspaceRoot.relativize(absolutePath).toString().replace('\\', '/')
@@ -1639,7 +1716,10 @@ internal class EditorDocument(private val context: EditorContext) {
         const val AREA_TRIGGER_ID = "area_trigger"
         const val SPAWNPOINT_ID = "spawn_point"
         const val SIGNED_HEIGHT_ZERO_SAMPLE = 32768
-        const val TERRAIN_BRUSH_CM_PER_SECOND = 1200f
+        const val TERRAIN_BRUSH_CM_PER_SECOND = 1500f
+        const val SMOOTH_BRUSH_MULTIPLIER = 12f
+        const val FLATTEN_BRUSH_MULTIPLIER = 5f
+        const val SPLAT_BRUSH_MULTIPLIER = 6f
         const val HEIGHTMAP_CELLS_PER_METER = 2f
         const val HEIGHTMAP_MAX_CELLS = 2048
         const val PLAYER_CAPSULE_RADIUS = 0.22f

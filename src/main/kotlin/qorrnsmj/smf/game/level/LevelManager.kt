@@ -30,13 +30,25 @@ class LevelManager {
         val levelName = entry.id
         val level = entry.create()
         stateRef.set(LevelLoadingState(isLoading = true, targetLevelName = levelName, phase = LevelLoadingPhase.LOADING))
-        prepareLevel(level)
-        level.load()
-        homeLevel = level
-        currentLevel = level
-        activeLevelName = levelName
-        stateRef.set(LevelLoadingState(targetLevelName = levelName, phase = LevelLoadingPhase.COMPLETE))
-        level.start()
+        try {
+            prepareLevel(level)
+            level.load()
+            homeLevel = level
+            currentLevel = level
+            activeLevelName = levelName
+            stateRef.set(LevelLoadingState(targetLevelName = levelName, phase = LevelLoadingPhase.COMPLETE))
+            level.start()
+        } catch (exception: Exception) {
+            Logger.error(exception, "Failed to load initial level: {}", levelName)
+            stateRef.set(
+                LevelLoadingState(
+                    isLoading = false,
+                    targetLevelName = levelName,
+                    phase = LevelLoadingPhase.FAILED,
+                    errorMessage = exception.message ?: exception.javaClass.simpleName,
+                )
+            )
+        }
     }
 
     fun switchLevel(levelName: String) {

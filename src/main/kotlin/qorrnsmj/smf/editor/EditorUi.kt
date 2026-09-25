@@ -28,12 +28,17 @@ internal class EditorUi(
     private val context: EditorContext,
     private val document: EditorDocument,
 ) {
+    private val projectUi = EditorProjectUi(context, document)
+    private val gameLauncher = EditorGameLauncher()
     lateinit var addAssetAtCursor: () -> Unit
     lateinit var viewport: EditorViewport
     lateinit var secondaryViewport: EditorViewport
     lateinit var renderGizmo: () -> Unit
 
     fun render() {
+        gameLauncher.collectFailure()?.let { message ->
+            document.reportError("Game failed", IllegalStateException(message))
+        }
         ImGui.setNextWindowPos(0f, 0f, ImGuiCond.Always)
         ImGui.setNextWindowSize(SMF.window.width.toFloat(), SMF.window.height.toFloat(), ImGuiCond.Always)
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 8f, 8f)
@@ -62,7 +67,7 @@ internal class EditorUi(
             val leftVisible = context.showLeftPanel
             val viewportVisible = context.showViewportPanel
             val rightVisible = context.showRightPanel
-            val bottomVisible = viewportVisible && (context.showAssetsTab || context.showMapsTab)
+            val bottomVisible = viewportVisible && context.showAssetsTab
             val leftWidth = if (leftVisible) context.leftPanelWidth else 0f
             val leftSplitterWidth = if (leftVisible && (viewportVisible || rightVisible || bottomVisible)) SPLITTER_WIDTH else 0f
             val rightAreaWidth = max(1f, contentWidth - leftWidth - leftSplitterWidth)
@@ -96,12 +101,15 @@ internal class EditorUi(
             if (bottomVisible) {
                 ImGui.setCursorPos(rightAreaX, startY + topHeight)
                 renderHorizontalSplitter("WorkAssetsSplitter", bottomWidth) { delta ->
-                    context.assetsTabHeight = (context.assetsTabHeight - delta).coerceIn(MIN_FREE_TAB_HEIGHT, max(MIN_FREE_TAB_HEIGHT, contentHeight - MIN_VIEWPORT_HEIGHT))
+                    context.assetsTabHeight = (context.assetsTabHeight - delta).coerceIn(
+                        MIN_BOTTOM_PANEL_HEIGHT,
+                        max(MIN_BOTTOM_PANEL_HEIGHT, contentHeight - MIN_VIEWPORT_HEIGHT),
+                    )
                 }
                 ImGui.setCursorPos(rightAreaX, startY + topHeight + TAB_SPLITTER_HEIGHT)
                 renderBottomPanel(bottomWidth, bottomHeight)
             }
-            renderErrorPopup()
+            projectUi.render()
             renderCloseConfirmationPopup()
         }
 
@@ -112,6 +120,18 @@ internal class EditorUi(
     private fun renderMainMenuBar() {
         if (ImGui.beginMenuBar()) {
             if (ImGui.beginMenu("File")) {
+                if (ImGui.menuItem("Projects...")) context.projectsOpen = true
+                if (ImGui.menuItem("Save")) runEditorAction("Save failed") { document.saveMap() }
+                if (ImGui.menuItem("Export ZIP...")) runEditorAction("Export failed") { projectUi.export() }
+                ImGui.endMenu()
+            }
+            if (ImGui.beginMenu("Game")) {
+                if (ImGui.menuItem("Run Current Map", "", false, context.project != null && !gameLauncher.isRunning)) {
+                    runEditorAction("Game launch failed") {
+                        document.saveMap()
+                        gameLauncher.launch(checkNotNull(context.project).level)
+                    }
+                }
                 ImGui.endMenu()
             }
             if (ImGui.beginMenu("View")) {
@@ -129,10 +149,6 @@ internal class EditorUi(
                     renderTabVisibilityMenuItem("Objects") { context.showLeftPanel = !context.showLeftPanel }
                     renderTabVisibilityMenuItem("Viewport") { context.showViewportPanel = !context.showViewportPanel }
                     renderTabVisibilityMenuItem("Properties") { context.showRightPanel = !context.showRightPanel }
-                    renderTabVisibilityMenuItem("Level") {
-                        context.showMapsTab = !context.showMapsTab
-                        if (context.showMapsTab) context.bottomPanelTab = EditorBottomPanelTab.LEVEL
-                    }
                     renderTabVisibilityMenuItem("Assets") {
                         context.showAssetsTab = !context.showAssetsTab
                         if (context.showAssetsTab) context.bottomPanelTab = EditorBottomPanelTab.ASSETS
@@ -154,7 +170,7 @@ internal class EditorUi(
     }
 
     private fun renderEditorTitleBar() {
-        val title = context.projectName.get().ifBlank { "Untitled" }
+        val title = context.project?.name ?: "No project"
         val dirty = document.hasUnsavedMapChanges()
         val dotRadius = ImGui.getFontSize() * 0.32f
         val dotAreaWidth = if (dirty) dotRadius * 2f + ImGui.getStyle().itemSpacingX else 0f
@@ -174,10 +190,6 @@ internal class EditorUi(
                 SMF.window.beginMove()
             }
         }
-        if (ImGui.isItemActive() && ImGui.isMouseDragging(ImGuiMouseButton.Left)) {
-            SMF.window.updateMove()
-        }
-
         val centerX = ImGui.getWindowPosX() + (windowWidth - textWidth - dotAreaWidth) * 0.5f
         val drawList = ImGui.getWindowDrawList()
         var textX = centerX
@@ -240,16 +252,24 @@ internal class EditorUi(
     }
 
     private fun renderEditorSettings() {
+        if (ImGui.menuItem("Choose Skybox...")) runEditorAction("Skybox import failed") {
+            EditorFileDialog.choosePngFile()?.let { document.setSkyboxPath(it) }
+        }
         val fontScale = floatArrayOf(context.editorFontScale)
         ImGui.setNextItemWidth(240f)
         if (ImGui.sliderFloat("Font Size", fontScale, 0.75f, 1.6f, "%.2fx")) {
             context.editorFontScale = fontScale[0]
             ImGui.getIO().setFontGlobalScale(context.effectiveFontScale())
         }
+        val cameraSensitivity = floatArrayOf(context.cameraSensitivity)
+        ImGui.setNextItemWidth(240f)
+        if (ImGui.sliderFloat("Camera Sensitivity", cameraSensitivity, 0.01f, 0.30f, "%.2f")) {
+            context.cameraSensitivity = cameraSensitivity[0]
+        }
     }
 
     private fun handleUiDeleteShortcut() {
-        if (!context.closeConfirmationActive && ImGui.isKeyPressed(ImGuiKey.Delete) && !ImGui.isAnyItemActive()) {
+        if (!context.projectDialogActive && !context.closeConfirmationActive && ImGui.isKeyPressed(ImGuiKey.Delete) && !ImGui.isAnyItemActive()) {
             document.deleteSelected()
         }
     }
@@ -315,96 +335,12 @@ internal class EditorUi(
         return ImGui.getFrameHeight() + TAB_VERTICAL_PADDING * 2f + 6f
     }
 
-    private fun renderMapControls() {
-        renderProjectNameRow()
-
-        renderLevelPathRow("Workspace", "workspace_path", context.workspaceRoot, "Browse", "Save", "Load", "Refresh") {
-            if (ImGui.button("Browse##workspace_browse")) {
-                val dir = EditorFileDialog.chooseDirectory()
-                if (dir != null) {
-                    document.openWorkspace(dir, loadLevel = false)
-                }
-            }
-            ImGui.sameLine()
-            if (ImGui.button("Save##workspace_save")) runEditorAction("Save failed") { document.saveMap() }
-            ImGui.sameLine()
-            if (ImGui.button("Load##workspace_load")) runEditorAction("Workspace load failed") { document.openWorkspace(context.workspaceRoot.get(), loadLevel = true) }
-            ImGui.sameLine()
-            if (ImGui.button("Refresh##workspace_refresh")) runEditorAction("Workspace refresh failed") { document.openWorkspace(context.workspaceRoot.get(), loadLevel = false) }
-        }
-
-        renderLevelPathRow("Level", "level_path", context.mapPath, "Browse", "Save", "Load", "Refresh") {
-            if (ImGui.button("Browse##level_browse")) {
-                val path = EditorFileDialog.chooseJsonFile(levelBrowserInitialDirectory())
-                if (path != null) document.setLevelPath(path)
-            }
-            ImGui.sameLine()
-            if (ImGui.button("Save##level_save")) runEditorAction("Save failed") { document.saveMap() }
-            ImGui.sameLine()
-            if (ImGui.button("Load##level_load")) runEditorAction("Level load failed") { document.loadMap() }
-            ImGui.sameLine()
-            if (ImGui.button("Refresh##level_refresh")) runEditorAction("Level refresh failed") { document.openWorkspace(context.workspaceRoot.get(), loadLevel = false) }
-        }
-
-        renderLevelPathRow("Heightmap", "heightmap_path", context.terrainHeightmapPath, "Browse", "Save", "Load", "Refresh") {
-            if (ImGui.button("Browse##heightmap_browse")) {
-                val path = EditorFileDialog.choosePngFile(terrainHeightmapInitialDirectory())
-                if (path != null) context.terrainHeightmapPath.set(path)
-            }
-            ImGui.sameLine()
-            if (ImGui.button("Save##heightmap_save")) runEditorAction("Heightmap save failed") { document.exportTerrainHeightmap() }
-            ImGui.sameLine()
-            if (ImGui.button("Load##heightmap_load")) runEditorAction("Heightmap load failed") { document.importTerrainHeightmap(context.terrainHeightmapPath.get()) }
-            ImGui.sameLine()
-            if (ImGui.button("Refresh##heightmap_refresh")) document.refreshTerrainMapPaths()
-        }
-
-        renderLevelPathRow("Splatmap", "splatmap_path", context.terrainSplatmapPath, "Browse", "Save", "Load", "Refresh") {
-            if (ImGui.button("Browse##splatmap_browse")) {
-                val path = EditorFileDialog.choosePngFile(terrainSplatmapInitialDirectory())
-                if (path != null) context.terrainSplatmapPath.set(path)
-            }
-            ImGui.sameLine()
-            if (ImGui.button("Save##splatmap_save")) runEditorAction("Splatmap save failed") { document.exportTerrainSplatmaps() }
-            ImGui.sameLine()
-            if (ImGui.button("Load##splatmap_load")) runEditorAction("Splatmap load failed") { document.importTerrainSplatmap(context.terrainSplatmapPath.get()) }
-            ImGui.sameLine()
-            if (ImGui.button("Refresh##splatmap_refresh")) document.refreshTerrainMapPaths()
-        }
-
-        renderLevelPathRow("Skybox", "skybox_path", context.skyboxPath, "Browse", "Load") {
-            if (ImGui.button("Browse##skybox_browse")) {
-                val path = EditorFileDialog.choosePngFile(skyboxBrowserInitialDirectory())
-                if (path != null) document.setSkyboxPath(path)
-            }
-            ImGui.sameLine()
-            if (ImGui.button("Load##skybox_load")) runEditorAction("Skybox load failed") { document.setSkyboxPath(context.skyboxPath.get()) }
-        }
-    }
 
     private fun runEditorAction(title: String, action: () -> Unit) {
         try {
             action()
         } catch (error: Throwable) {
             Logger.warn(error, title)
-            context.errorPopupTitle = title
-            context.errorPopupMessage = error.message ?: error::class.simpleName ?: "Unknown error"
-            context.errorPopupOpen = true
-        }
-    }
-
-    private fun renderErrorPopup() {
-        if (context.errorPopupOpen) {
-            ImGui.openPopup(context.errorPopupTitle)
-            context.errorPopupOpen = false
-        }
-        if (ImGui.beginPopupModal(context.errorPopupTitle)) {
-            ImGui.textWrapped(context.errorPopupMessage)
-            addOneLineSpace()
-            if (ImGui.button("OK", 120f, 0f)) {
-                ImGui.closeCurrentPopup()
-            }
-            ImGui.endPopup()
         }
     }
 
@@ -495,6 +431,13 @@ internal class EditorUi(
     }
 
     private fun renderTerrainControls() {
+        if (ImGui.button("Import Heightmap")) runEditorAction("Heightmap import failed") {
+            EditorFileDialog.choosePngFile()?.let { document.importTerrainHeightmap(it) }
+        }
+        ImGui.sameLine()
+        if (ImGui.button("Import Splatmap")) runEditorAction("Splatmap import failed") {
+            EditorFileDialog.choosePngFile()?.let { document.importTerrainSplatmap(it) }
+        }
         for ((index, mode) in EditorTerrainBrushMode.entries.withIndex()) {
             if (index > 0) ImGui.sameLine()
             val selected = context.editMode == EditorEditMode.TERRAIN && context.terrainBrushMode == mode
@@ -546,7 +489,7 @@ internal class EditorUi(
         }
 
         val textureIndex = intArrayOf(context.terrainPaintTextureIndex)
-        if (renderTerrainIntSlider("Texture ID", "terrain_texture_index", textureIndex, 0, 31)) {
+        if (renderTerrainIntSlider("Texture ID", "terrain_texture_index", textureIndex, 0, 2)) {
             context.terrainPaintTextureIndex = textureIndex[0].coerceAtLeast(0)
         }
     }
@@ -589,14 +532,8 @@ internal class EditorUi(
 
     private fun terrainPointerHint(): String {
         return when (context.terrainPointerMode) {
-            EditorTerrainPointerMode.MOUSE -> "LMB raise, RMB lower"
-            EditorTerrainPointerMode.RETICLE -> {
-                val action = when (context.terrainReticleAction) {
-                    EditorTerrainReticleAction.RAISE -> "Raise"
-                    EditorTerrainReticleAction.LOWER -> "Lower"
-                }
-                "LMB apply, E: $action, WASD move, RMB look"
-            }
+            EditorTerrainPointerMode.MOUSE -> "LMB apply, RMB toggle navigation, Q/E change mode"
+            EditorTerrainPointerMode.RETICLE -> "LMB apply, RMB toggle navigation, Q/E change mode"
         }
     }
 
@@ -1075,36 +1012,11 @@ internal class EditorUi(
 
     private fun renderBottomPanel(width: Float, height: Float) {
         ImGui.beginChild("BottomAssetsPanel", width, height, false)
-        normalizeBottomPanelTab()
-        renderBottomTabBar()
-        renderContentPadding {
-            when (context.bottomPanelTab) {
-                EditorBottomPanelTab.ASSETS -> renderAssets()
-                EditorBottomPanelTab.LEVEL -> renderMapControls()
-            }
-        }
+        renderBottomTabButton("Assets", EditorBottomPanelTab.ASSETS)
+        renderContentPadding { renderAssets() }
         ImGui.endChild()
     }
 
-    private fun normalizeBottomPanelTab() {
-        if (context.bottomPanelTab == EditorBottomPanelTab.ASSETS && !context.showAssetsTab && context.showMapsTab) {
-            context.bottomPanelTab = EditorBottomPanelTab.LEVEL
-        }
-        if (context.bottomPanelTab == EditorBottomPanelTab.LEVEL && !context.showMapsTab && context.showAssetsTab) {
-            context.bottomPanelTab = EditorBottomPanelTab.ASSETS
-        }
-    }
-
-    private fun renderBottomTabBar() {
-        if (context.showAssetsTab) {
-            renderBottomTabButton("Assets", EditorBottomPanelTab.ASSETS)
-        }
-        if (context.showAssetsTab && context.showMapsTab) ImGui.sameLine(0f, 4f)
-        if (context.showMapsTab) {
-            renderBottomTabButton("Level", EditorBottomPanelTab.LEVEL)
-        }
-        ImGui.setCursorPosY(ImGui.getCursorPosY() + TAB_VERTICAL_PADDING)
-    }
 
     private fun renderBottomTabButton(label: String, tab: EditorBottomPanelTab) {
         val selected = context.bottomPanelTab == tab
@@ -1202,8 +1114,8 @@ internal class EditorUi(
 
     private fun coerceAssetsHeight(contentHeight: Float) {
         context.assetsTabHeight = context.assetsTabHeight.coerceIn(
-            MIN_FREE_TAB_HEIGHT,
-            max(MIN_FREE_TAB_HEIGHT, contentHeight - MIN_VIEWPORT_HEIGHT - TAB_SPLITTER_HEIGHT),
+            MIN_BOTTOM_PANEL_HEIGHT,
+            max(MIN_BOTTOM_PANEL_HEIGHT, contentHeight - MIN_VIEWPORT_HEIGHT - TAB_SPLITTER_HEIGHT),
         )
     }
 
@@ -2064,8 +1976,10 @@ internal class EditorUi(
 
     private fun chooseGlbFile() {
         val path = EditorFileDialog.chooseGlbFile() ?: return
-        document.registerExternalGlb(path)
-        addAssetAtCursor()
+        runEditorAction("Model import failed") {
+            document.registerExternalGlb(path)
+            addAssetAtCursor()
+        }
     }
 
     private fun collisionOperationButton(label: String, index: Int, operation: Int): Boolean {
@@ -2221,6 +2135,7 @@ internal class EditorUi(
         const val MIN_VIEWPORT_AREA_WIDTH = MIN_VIEWPORT_TAB_WIDTH * 2f + SPLITTER_WIDTH
         const val TAB_SPLITTER_HEIGHT = 6f
         const val MIN_FREE_TAB_HEIGHT = 1f
+        const val MIN_BOTTOM_PANEL_HEIGHT = 32f
         const val COLLISION_OP_BUTTON_WIDTH = 100f
         const val TAB_VERTICAL_PADDING = 3f
         const val CONTENT_PADDING_X = 6f

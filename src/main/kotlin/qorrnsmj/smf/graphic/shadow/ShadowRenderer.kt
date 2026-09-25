@@ -20,7 +20,9 @@ import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.UniformUtils
 
-class ShadowRenderer : SceneRenderer {
+class ShadowRenderer(
+    val settings: ShadowSettings = ShadowSettings(),
+) : SceneRenderer {
     private enum class ShadowCullMode {
         NONE,
         FRONT,
@@ -28,14 +30,8 @@ class ShadowRenderer : SceneRenderer {
     }
 
     private companion object {
-        const val SUN_SHADOW_MAP_SIZE = 2048
         const val LOCAL_SHADOW_MAP_SIZE = 1024
         const val POINT_SHADOW_MAP_SIZE = 512
-        const val SHADOW_HALF_SIZE = 96f
-        const val SHADOW_NEAR = 1f
-        const val SHADOW_FAR = 800f
-        const val SHADOW_LIGHT_DISTANCE = 350f
-        const val SHADOW_TARGET_HEIGHT = 30f
         const val LOCAL_SHADOW_NEAR = 5f
         const val LOCAL_SHADOW_FAR = 4000f
         const val POINT_SHADOW_FOV = 90f
@@ -43,7 +39,7 @@ class ShadowRenderer : SceneRenderer {
         val DISABLED_STATE = ShadowRenderState(false, Matrix4f(), 0)
     }
 
-    private val sunFrameBuffer = ShadowFrameBuffer(SUN_SHADOW_MAP_SIZE, SUN_SHADOW_MAP_SIZE)
+    private val sunFrameBuffer = ShadowFrameBuffer(settings.mapSize, settings.mapSize)
     private val localFrameBuffer = LocalShadowFrameBuffer(LOCAL_SHADOW_MAP_SIZE, LOCAL_SHADOW_MAP_SIZE, MAX_LOCAL_LIGHT_SHADOWS)
     private val pointFrameBuffers = mutableListOf<PointShadowCubeMap>()
     private val program = ShadowShaderProgram()
@@ -78,17 +74,21 @@ class ShadowRenderer : SceneRenderer {
         }
         val sunMatrix = createSunLightSpaceMatrix(sun, target)
         renderDepthPass(
-            size = SUN_SHADOW_MAP_SIZE,
+            size = settings.mapSize,
             lightSpaceMatrix = sunMatrix,
             scene = scene,
             bindTarget = { sunFrameBuffer.bind() },
             cullMode = ShadowCullMode.BACK,
+            polygonOffset = true,
         )
         return ShadowRenderState(
             enabled = true,
             lightSpaceMatrix = sunMatrix,
             depthTextureId = sunFrameBuffer.depthTexture.id,
             strength = sun.shadowStrength,
+            filterRadius = settings.filterRadius,
+            receiverMinBias = settings.receiverMinBias,
+            receiverSlopeBias = settings.receiverSlopeBias,
         )
     }
 
@@ -187,6 +187,7 @@ class ShadowRenderer : SceneRenderer {
         pointLightPosition: Vector3f? = null,
         pointShadowFarPlane: Float = LOCAL_SHADOW_FAR,
         cullMode: ShadowCullMode = ShadowCullMode.BACK,
+        polygonOffset: Boolean = false,
     ) {
         val previousViewport = IntArray(4)
         glGetIntegerv(GL_VIEWPORT, previousViewport)
@@ -196,7 +197,14 @@ class ShadowRenderer : SceneRenderer {
 
         val cullWasEnabled = glIsEnabled(GL_CULL_FACE)
         val previousCullFace = glGetInteger(GL_CULL_FACE_MODE)
+        val polygonOffsetWasEnabled = glIsEnabled(GL_POLYGON_OFFSET_FILL)
+        val previousPolygonOffsetFactor = glGetFloat(GL_POLYGON_OFFSET_FACTOR)
+        val previousPolygonOffsetUnits = glGetFloat(GL_POLYGON_OFFSET_UNITS)
         applyCullMode(cullMode)
+        if (polygonOffset) {
+            glEnable(GL_POLYGON_OFFSET_FILL)
+            glPolygonOffset(settings.polygonOffsetFactor, settings.polygonOffsetUnits)
+        }
 
         program.use()
         UniformUtils.setUniform(locationLightSpaceMatrix, lightSpaceMatrix)
@@ -216,6 +224,12 @@ class ShadowRenderer : SceneRenderer {
             glCullFace(previousCullFace)
         } else {
             glDisable(GL_CULL_FACE)
+        }
+        glPolygonOffset(previousPolygonOffsetFactor, previousPolygonOffsetUnits)
+        if (polygonOffsetWasEnabled) {
+            glEnable(GL_POLYGON_OFFSET_FILL)
+        } else {
+            glDisable(GL_POLYGON_OFFSET_FILL)
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
         glViewport(previousViewport[0], previousViewport[1], previousViewport[2], previousViewport[3])
@@ -237,15 +251,15 @@ class ShadowRenderer : SceneRenderer {
 
     private fun createSunLightSpaceMatrix(sunLight: DirectionalLight, target: Vector3f): Matrix4f {
         val projection = MVP.getOrthographicMatrix(
-            -SHADOW_HALF_SIZE,
-            SHADOW_HALF_SIZE,
-            -SHADOW_HALF_SIZE,
-            SHADOW_HALF_SIZE,
-            SHADOW_NEAR,
-            SHADOW_FAR,
+            -settings.halfSize,
+            settings.halfSize,
+            -settings.halfSize,
+            settings.halfSize,
+            settings.nearPlane,
+            settings.farPlane,
         )
         val lightDirection = sunLight.direction
-        val lightPosition = target.subtract(lightDirection.scale(SHADOW_LIGHT_DISTANCE))
+        val lightPosition = target.subtract(lightDirection.scale(settings.lightDistance))
         val view = MVP.getViewMatrix(lightPosition, target, directionalShadowUp(lightDirection))
         return projection.multiply(view)
     }
@@ -316,12 +330,20 @@ class ShadowRenderer : SceneRenderer {
 
     private fun createShadowTarget(scene: Scene): Vector3f {
         val camera = scene.world.camera.position
-        val texelSize = SHADOW_HALF_SIZE * 2f / SUN_SHADOW_MAP_SIZE
-        val snappedX = kotlin.math.round(camera.x / texelSize) * texelSize
-        val snappedZ = kotlin.math.round(camera.z / texelSize) * texelSize
+        val lightDirection = scene.environment.celestialLight?.direction?.normalize() ?: Vector3f(0f, -1f, 0f)
+        val lightForward = lightDirection
+        val lightRight = lightForward.cross(directionalShadowUp(lightDirection)).normalize()
+        val lightUp = lightRight.cross(lightForward)
+        val texelSize = settings.halfSize * 2f / settings.mapSize
         val groundY = scene.world.terrain?.getHeight(camera.x, camera.z) ?: camera.y
-        return Vector3f(snappedX, groundY + SHADOW_TARGET_HEIGHT, snappedZ)
+        val target = Vector3f(camera.x, groundY + settings.targetHeight, camera.z)
+        val rightOffset = snapToShadowTexel(target.dot(lightRight), texelSize) - target.dot(lightRight)
+        val upOffset = snapToShadowTexel(target.dot(lightUp), texelSize) - target.dot(lightUp)
+        return target.add(lightRight.scale(rightOffset)).add(lightUp.scale(upOffset))
     }
+
+    private fun snapToShadowTexel(value: Float, texelSize: Float): Float =
+        kotlin.math.round(value / texelSize) * texelSize
 
     private fun renderTerrain(terrain: Terrain) {
         UniformUtils.setUniform(locationModel, MVP.getModelMatrix(terrain.position, Quaternion.identity(), Vector3f(1f, 1f, 1f)))

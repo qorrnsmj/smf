@@ -17,6 +17,9 @@ uniform vec4 grayColor;
 uniform bool useSingleTexture;
 uniform bool shadowEnabled;
 uniform float shadowStrength;
+uniform float shadowFilterRadius;
+uniform float shadowMinBias;
+uniform float shadowSlopeBias;
 uniform sampler2DArray localShadowMap;
 uniform int localShadowCount;
 uniform mat4 localShadowMatrices[MAX_LOCAL_LIGHTS];
@@ -78,17 +81,6 @@ float calculateShadowVisibility(vec4 lightSpacePos, float bias) {
     vec3 projected = lightSpacePos.xyz / lightSpacePos.w;
     projected = projected * 0.5 + 0.5;
 
-    // Compare each PCF tap with the receiver plane at that texel, not its centre depth.
-    vec3 dx = dFdx(projected);
-    vec3 dy = dFdy(projected);
-    float determinant = dx.x * dy.y - dx.y * dy.x;
-    vec2 depthGradient = vec2(0.0);
-    float derivativeScale = dot(dx.xy, dx.xy) * dot(dy.xy, dy.xy);
-    if (derivativeScale > 1e-30) {
-        // Regularize nearly parallel derivatives continuously at grazing angles.
-        float inverseDeterminant = determinant / (determinant * determinant + derivativeScale * 1e-6);
-        depthGradient = vec2(dy.y * dx.z - dx.y * dy.z, dx.x * dy.z - dy.x * dx.z) * inverseDeterminant;
-    }
     if (projected.z < 0.0 || projected.z > 1.0 || projected.x < 0.0 || projected.x > 1.0 || projected.y < 0.0 || projected.y > 1.0) {
         return 1.0;
     }
@@ -103,10 +95,9 @@ float calculateShadowVisibility(vec4 lightSpacePos, float bias) {
             vec2 offset = vec2(x, y);
             vec2 axisWeight = max(vec2(0.0), vec2(2.0) - abs(offset - fraction));
             float weight = axisWeight.x * axisWeight.y;
-            vec2 sampleUV = (baseTexel + offset + 0.5) * texelSize;
+            vec2 sampleUV = projected.xy + (offset - fraction) * texelSize * shadowFilterRadius;
             float closestDepth = texture(shadowMap, sampleUV).r;
-            float receiverDepth = projected.z + dot(depthGradient, sampleUV - projected.xy);
-            shadow += weight * (receiverDepth - bias > closestDepth ? 1.0 : 0.0);
+            shadow += weight * (projected.z - bias > closestDepth ? 1.0 : 0.0);
             totalWeight += weight;
         }
     }
@@ -204,7 +195,7 @@ void main() {
 
     vec3 N = normalize(worldNormal);
     vec3 sunL = normalize(-sunLight.direction);
-    float sunBias = 0.00002;
+    float sunBias = max(shadowMinBias, shadowSlopeBias * (1.0 - max(dot(N, sunL), 0.0)));
     float sunVisibility = shadowEnabled ? calculateShadowVisibility(lightSpacePosition, sunBias) : 1.0;
     float sunNdotL = max(dot(N, sunL), 0.0);
     float ambientShadow = mix(0.48, 1.0, sunVisibility);

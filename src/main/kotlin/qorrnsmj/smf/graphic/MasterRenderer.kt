@@ -8,14 +8,17 @@ import qorrnsmj.smf.graphic.billboard.BillboardRenderer
 import qorrnsmj.smf.graphic.entity.ModelRenderer
 import qorrnsmj.smf.graphic.scene.Scene
 import qorrnsmj.smf.graphic.shadow.ShadowRenderer
+import qorrnsmj.smf.graphic.shadow.ShadowSettings
 import qorrnsmj.smf.graphic.skydome.SkydomeRenderer
 import qorrnsmj.smf.graphic.skybox.SkyboxRenderer
 import qorrnsmj.smf.graphic.terrain.TerrainRenderer
 import qorrnsmj.smf.graphic.text.TextRenderer
 import qorrnsmj.smf.util.Resizable
 
-class MasterRenderer : SceneRenderer, Resizable {
-    val shadowRenderer = ShadowRenderer()
+class MasterRenderer(
+    shadowSettings: ShadowSettings = ShadowSettings(),
+) : SceneRenderer, Resizable {
+    val shadowRenderer = ShadowRenderer(shadowSettings)
     val skyboxRenderer = SkyboxRenderer()
     val skydomeRenderer = SkydomeRenderer()
     val terrainRenderer = TerrainRenderer(shadowRenderer)

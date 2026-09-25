@@ -2,11 +2,22 @@ package qorrnsmj.smf.editor
 
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.GL_ARRAY_BUFFER
+import org.lwjgl.opengl.GL33C.GL_CLAMP_TO_EDGE
 import org.lwjgl.opengl.GL33C.GL_DYNAMIC_DRAW
 import org.lwjgl.opengl.GL33C.GL_ELEMENT_ARRAY_BUFFER
 import org.lwjgl.opengl.GL33C.GL_FLOAT
+import org.lwjgl.opengl.GL33C.GL_LINEAR
+import org.lwjgl.opengl.GL33C.GL_RGBA
+import org.lwjgl.opengl.GL33C.GL_RGBA8
 import org.lwjgl.opengl.GL33C.GL_STATIC_DRAW
+import org.lwjgl.opengl.GL33C.GL_TEXTURE_2D
+import org.lwjgl.opengl.GL33C.GL_TEXTURE_MAG_FILTER
+import org.lwjgl.opengl.GL33C.GL_TEXTURE_MIN_FILTER
+import org.lwjgl.opengl.GL33C.GL_TEXTURE_WRAP_S
+import org.lwjgl.opengl.GL33C.GL_TEXTURE_WRAP_T
+import org.lwjgl.opengl.GL33C.GL_UNSIGNED_BYTE
 import org.lwjgl.opengl.GL33C.glBindBuffer
+import org.lwjgl.opengl.GL33C.glBindTexture
 import org.lwjgl.opengl.GL33C.glBindVertexArray
 import org.lwjgl.opengl.GL33C.glBufferData
 import org.lwjgl.opengl.GL33C.glBufferSubData
@@ -15,9 +26,12 @@ import org.lwjgl.opengl.GL33C.glDeleteVertexArrays
 import org.lwjgl.opengl.GL33C.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL33C.glGenBuffers
 import org.lwjgl.opengl.GL33C.glGenVertexArrays
+import org.lwjgl.opengl.GL33C.glTexImage2D
+import org.lwjgl.opengl.GL33C.glTexParameteri
 import org.lwjgl.opengl.GL33C.glVertexAttribPointer
+import qorrnsmj.smf.graphic.resource.buffer.TextureBufferObject
 import qorrnsmj.smf.graphic.terrain.Terrain
-import qorrnsmj.smf.graphic.terrain.component.SingleTexture
+import qorrnsmj.smf.graphic.terrain.component.BlendedTexture
 import qorrnsmj.smf.graphic.terrain.component.TerrainMaterial
 import qorrnsmj.smf.graphic.terrain.component.TerrainMesh
 import qorrnsmj.smf.graphic.terrain.component.TerrainModel
@@ -29,6 +43,7 @@ import qorrnsmj.smf.math.Vector4f
 
 internal class EditorTerrainPreview(
     private val source: EditorTerrainData,
+    private val splatmaps: EditorSplatmapData,
     initialMapSize: Float,
 ) {
     private val resolution = 257
@@ -44,6 +59,7 @@ internal class EditorTerrainPreview(
     private val texCoordVbo = glGenBuffers()
     private val normalVbo = glGenBuffers()
     private val ebo = glGenBuffers()
+    private val blendMap = TextureBufferObject()
     private var wireframeCache = emptyList<DebugLine>()
     private var wireframeDirty = true
 
@@ -51,6 +67,8 @@ internal class EditorTerrainPreview(
 
     init {
         buildStaticBuffers()
+        configureBlendMap()
+        updateSplatmap()
         terrain = Terrain(
             model = TerrainModel(
                 mesh = TerrainMesh(
@@ -60,7 +78,15 @@ internal class EditorTerrainPreview(
                     gridResolution = resolution,
                     heights = previewHeights,
                 ),
-                material = TerrainMaterial(SingleTexture(Textures.TERRAIN_GRASS)),
+                material = TerrainMaterial(
+                    BlendedTexture(
+                        blendMap = blendMap,
+                        baseTexture = Textures.TERRAIN_GRASS,
+                        rTexture = Textures.TERRAIN_DIRT,
+                        gTexture = Textures.TERRAIN_FLOWER,
+                        bTexture = Textures.TERRAIN_PATH,
+                    ),
+                ),
             ),
             position = Vector3f(-terrainSize * 0.5f, 0f, -terrainSize * 0.5f),
         )
@@ -74,6 +100,7 @@ internal class EditorTerrainPreview(
         terrain.position.x = -terrainSize * 0.5f
         terrain.position.z = -terrainSize * 0.5f
         update()
+        updateSplatmap()
     }
 
     fun update() {
@@ -87,12 +114,37 @@ internal class EditorTerrainPreview(
         wireframeDirty = true
     }
 
+    fun updateSplatmap() {
+        val sourceMap = splatmaps.map(0)
+        val pixels = BufferUtils.createByteBuffer(splatmaps.width * splatmaps.height * 4)
+        for (index in 0 until splatmaps.width * splatmaps.height * 4) {
+            val value = sourceMap?.get(index) ?: 0f
+            pixels.put((value.coerceIn(0f, 1f) * 255f).toInt().toByte())
+        }
+        pixels.flip()
+
+        glBindTexture(GL_TEXTURE_2D, blendMap.id)
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA8,
+            splatmaps.width,
+            splatmaps.height,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            pixels,
+        )
+        glBindTexture(GL_TEXTURE_2D, 0)
+    }
+
     fun dispose() {
         glDeleteBuffers(positionVbo)
         glDeleteBuffers(texCoordVbo)
         glDeleteBuffers(normalVbo)
         glDeleteBuffers(ebo)
         glDeleteVertexArrays(vao)
+        blendMap.delete()
     }
 
     fun wireframeLines(): List<DebugLine> {
@@ -146,6 +198,15 @@ internal class EditorTerrainPreview(
         glBindVertexArray(0)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+    }
+
+    private fun configureBlendMap() {
+        glBindTexture(GL_TEXTURE_2D, blendMap.id)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+        glBindTexture(GL_TEXTURE_2D, 0)
     }
 
     private fun fillTexCoords() {

@@ -60,6 +60,9 @@ class ModelRenderer(
     val locationShadowMap = glGetUniformLocation(program.id, "shadowMap")
     val locationShadowEnabled = glGetUniformLocation(program.id, "shadowEnabled")
     val locationShadowStrength = glGetUniformLocation(program.id, "shadowStrength")
+    val locationShadowFilterRadius = glGetUniformLocation(program.id, "shadowFilterRadius")
+    val locationShadowMinBias = glGetUniformLocation(program.id, "shadowMinBias")
+    val locationShadowSlopeBias = glGetUniformLocation(program.id, "shadowSlopeBias")
     val locationLocalShadowMap = glGetUniformLocation(program.id, "localShadowMap")
     val locationLocalShadowCount = glGetUniformLocation(program.id, "localShadowCount")
     val locationLocalShadowMatrices = glGetUniformLocation(program.id, "localShadowMatrices[0]")
@@ -332,6 +335,9 @@ class ModelRenderer(
         setUniform(locationLightSpaceMatrix, shadowState.lightSpaceMatrix)
         setUniform(locationShadowEnabled, if (shadowState.enabled) 1 else 0)
         setUniform(locationShadowStrength, shadowState.strength)
+        setUniform(locationShadowFilterRadius, shadowState.filterRadius)
+        setUniform(locationShadowMinBias, shadowState.receiverMinBias)
+        setUniform(locationShadowSlopeBias, shadowState.receiverSlopeBias)
         if (shadowState.enabled) {
             setUniform(locationShadowMap, shadowState.depthTextureId, SHADOW_TEXTURE_UNIT)
         }

@@ -11,14 +11,17 @@ internal object EditorConfig {
     private val configPath: Path by lazy {
         val appData = System.getenv("APPDATA")?.takeIf { it.isNotBlank() }
             ?: Paths.get(System.getProperty("user.home"), "AppData", "Roaming").toString()
-        Paths.get(appData).resolve("SMF").resolve("editor").resolve("editor_config.json")
+        Paths.get(appData).resolve("SMF").resolve("EditorSettings.json")
     }
 
     fun load(context: EditorContext) {
-        if (!Files.isRegularFile(configPath)) return
+        val source = if (Files.isRegularFile(configPath)) configPath else
+            configPath.parent.resolve("editor/editor_config.json")
+        if (!Files.isRegularFile(source)) return
 
         try {
-            val config = objectMapper.readValue(configPath.toFile(), Map::class.java)
+            val config = objectMapper.readValue(source.toFile(), Map::class.java)
+            context.lastProjectId = config.string("lastProjectId")
             config.string("workspaceRoot")?.let { context.workspaceRoot.set(it) }
             config.string("projectName")?.let { context.projectName.set(it) }
             config.string("mapPath")?.let { context.mapPath.set(it) }
@@ -28,6 +31,7 @@ internal object EditorConfig {
             config.string("assetModelRoot")?.let { context.assetModelRoot.set(it) }
             config.string("assetBrowserPath")?.let { context.assetBrowserPath.set(it) }
             config.float("editorFontScale")?.let { context.editorFontScale = it }
+            config.float("cameraSensitivity")?.let { context.cameraSensitivity = it.coerceIn(0.01f, 0.30f) }
             config.float("leftPanelWidth")?.let { context.leftPanelWidth = it }
             config.float("rightPanelWidth")?.let { context.rightPanelWidth = it }
             config.float("viewportSplitRatio")?.let { context.viewportSplitRatio = it.coerceIn(0.1f, 0.9f) }
@@ -81,6 +85,7 @@ internal object EditorConfig {
             assetModelRoot = context.assetModelRoot.get(),
             assetBrowserPath = context.assetBrowserPath.get(),
             editorFontScale = context.editorFontScale,
+            cameraSensitivity = context.cameraSensitivity,
             leftPanelWidth = context.leftPanelWidth,
             rightPanelWidth = context.rightPanelWidth,
             viewportSplitRatio = context.viewportSplitRatio,
@@ -110,7 +115,11 @@ internal object EditorConfig {
 
         try {
             Files.createDirectories(configPath.parent)
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(configPath.toFile(), config)
+            val settings = objectMapper.valueToTree<com.fasterxml.jackson.databind.node.ObjectNode>(config)
+            settings.remove(listOf("workspaceRoot", "projectName", "mapPath", "skyboxPath", "terrainHeightmapPath",
+                "terrainSplatmapPath", "assetModelRoot", "assetBrowserPath", "editMode", "bottomPanelTab"))
+            settings.put("lastProjectId", context.project?.id)
+            EditorProjectStore.writeJson(configPath, settings)
             Logger.info("Editor config saved: {}", configPath)
         } catch (error: Throwable) {
             Logger.warn(error, "Editor config could not be saved: {}", configPath)
@@ -134,6 +143,7 @@ internal data class EditorConfigData(
     val assetModelRoot: String? = null,
     val assetBrowserPath: String? = null,
     val editorFontScale: Float? = null,
+    val cameraSensitivity: Float? = null,
     val leftPanelWidth: Float? = null,
     val rightPanelWidth: Float? = null,
     val viewportSplitRatio: Float? = null,

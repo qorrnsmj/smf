@@ -13,7 +13,9 @@ internal class EditorFileDrop(
         callback = GLFWDropCallback.create { _, count, names ->
             for (index in 0 until count) {
                 val path = GLFWDropCallback.getName(names, index)
-                handleDrop(path)
+                if (!context.projectDialogActive) {
+                    runCatching { handleDrop(path) }.onFailure { document.reportError("Model import failed", it) }
+                }
             }
         }.set(windowId)
     }
@@ -32,6 +34,6 @@ internal class EditorFileDrop(
         val ray = EditorPicking.currentMouseRay(context)
         val position = EditorPicking.intersectGround(ray)
             ?: context.activeCamera().position.add(context.activeCamera().getFront().scale(12f))
-        document.addAsset(normalized, position)
+        document.addSelectedAsset(position)
     }
 }

@@ -30,6 +30,8 @@ object SMF : FixedTimestepGame() {
     private val screenshots = ScreenshotCapture()
     private var debugControl: GameDebugControl? = null
     private var debugControlEnabled = false
+    var initialLevelId: String = "test"
+        private set
     val isEditorMode: Boolean
         get() = editorApp != null
 
@@ -87,11 +89,12 @@ object SMF : FixedTimestepGame() {
 
         loadGameResources()
         editorApp = EditorApp()
+        if (debugControlEnabled) debugControl = GameDebugControl({ null }, screenshots)
 
-        window.setDecorated(false)
-        window.show()
         window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_NORMAL)
         editorApp!!.initialize()
+        window.enableNativeBorderlessFrame()
+        window.show()
 
         Logger.info("SMF editor started!")
         gameloop()
@@ -152,6 +155,7 @@ object SMF : FixedTimestepGame() {
     @JvmStatic
     fun main(args: Array<String>) {
         debugControlEnabled = "--debug-control" in args
+        initialLevelId = parseInitialLevelId(args)
         try {
             if ("--editor" in args) {
                 startEditor()
@@ -162,5 +166,25 @@ object SMF : FixedTimestepGame() {
             debugControl?.close()
             screenshots.close()
         }
+    }
+
+    private fun parseInitialLevelId(args: Array<String>): String {
+        val propertyLevel = System.getProperty("smf.level")?.takeIf { it.isNotBlank() }
+        if (propertyLevel != null) return propertyLevel
+
+        val argumentLevel = args.firstOrNull { it.startsWith("--level=") || it.startsWith("--map=") }
+            ?.substringAfter('=')
+            ?.takeIf { it.isNotBlank() }
+        if (argumentLevel != null) return argumentLevel
+
+        val indexedLevel = args.indices.firstNotNullOfOrNull { index ->
+            val option = args[index]
+            if ((option == "--level" || option == "--map") && index + 1 < args.size) {
+                args[index + 1].takeIf { it.isNotBlank() }
+            } else {
+                null
+            }
+        }
+        return indexedLevel ?: "test"
     }
 }

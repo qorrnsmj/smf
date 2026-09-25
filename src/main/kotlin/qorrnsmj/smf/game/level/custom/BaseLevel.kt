@@ -58,7 +58,7 @@ open class BaseLevel(
                 constant = 1f
                 linear = 0.006f
                 quadratic = 0.00002f
-                castsShadow = true
+                castsShadow = false
                 shadowStrength = 0.5f
             }
         )
