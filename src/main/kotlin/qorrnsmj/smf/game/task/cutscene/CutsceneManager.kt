@@ -1,5 +1,7 @@
 package qorrnsmj.smf.game.task.cutscene
 
+import qorrnsmj.smf.game.task.base.Cutscene
+
 import org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
 import org.lwjgl.glfw.GLFW.GLFW_KEY_F8
 import org.lwjgl.glfw.GLFW.GLFW_KEY_F9

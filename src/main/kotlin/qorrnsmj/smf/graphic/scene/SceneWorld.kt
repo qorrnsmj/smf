@@ -1,7 +1,7 @@
 package qorrnsmj.smf.graphic.scene
 
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.entity.custom.Entity
+import qorrnsmj.smf.game.entity.base.Entity
 import qorrnsmj.smf.graphic.light.Light
 import qorrnsmj.smf.graphic.text.TextBoxElement
 import qorrnsmj.smf.graphic.terrain.HeightProvider

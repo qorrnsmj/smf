@@ -6,7 +6,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.level.custom.Level
+import qorrnsmj.smf.game.level.base.Level
 import java.util.concurrent.atomic.AtomicReference
 
 // TODO: シンプルに

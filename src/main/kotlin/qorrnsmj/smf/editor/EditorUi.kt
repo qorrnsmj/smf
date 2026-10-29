@@ -17,7 +17,7 @@ import imgui.type.ImInt
 import imgui.type.ImString
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
-import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.game.entity.base.Transform
 import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
 import qorrnsmj.smf.math.Vector3f
 import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose

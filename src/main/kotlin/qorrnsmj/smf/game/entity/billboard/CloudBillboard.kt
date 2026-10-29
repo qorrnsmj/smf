@@ -1,6 +1,6 @@
 package qorrnsmj.smf.game.entity.billboard
 
-import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.game.entity.base.Transform
 import qorrnsmj.smf.graphic.billboard.Billboard
 import qorrnsmj.smf.graphic.billboard.BillboardAlphaSource
 import qorrnsmj.smf.graphic.billboard.BillboardFacing

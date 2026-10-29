@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.level.custom
+package qorrnsmj.smf.game.level.base
 
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
@@ -8,7 +8,7 @@ import qorrnsmj.smf.game.event.EditorMapEventLoader
 import qorrnsmj.smf.game.event.EventAreaDefinition
 import qorrnsmj.smf.game.level.LevelDefinition
 import qorrnsmj.smf.game.level.LevelDefinitionLoader
-import qorrnsmj.smf.game.task.Task
+import qorrnsmj.smf.game.task.base.Task
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.light.DirectionalLight
 import qorrnsmj.smf.graphic.scene.RenderProfiles

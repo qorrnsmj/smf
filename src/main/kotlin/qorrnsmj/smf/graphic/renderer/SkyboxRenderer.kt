@@ -1,4 +1,6 @@
-package qorrnsmj.smf.graphic.skybox
+package qorrnsmj.smf.graphic.renderer
+
+import qorrnsmj.smf.graphic.skybox.*
 
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
@@ -6,7 +8,6 @@ import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.graphic.scene.Scene
 import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
-import qorrnsmj.smf.graphic.SceneRenderer
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.UniformUtils
 import qorrnsmj.smf.util.Resizable

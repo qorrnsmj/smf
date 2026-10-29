@@ -1,6 +1,5 @@
-package qorrnsmj.smf.game.task.trigger
+package qorrnsmj.smf.game.task.base
 
-import qorrnsmj.smf.game.task.Task
 
 abstract class Trigger : Task() {
     protected abstract fun check(): Boolean

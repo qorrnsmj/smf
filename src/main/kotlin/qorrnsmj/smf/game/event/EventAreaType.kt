@@ -1,7 +1,7 @@
 package qorrnsmj.smf.game.event
 
 import qorrnsmj.smf.game.entity.player.Player
-import qorrnsmj.smf.game.task.Task
+import qorrnsmj.smf.game.task.base.Task
 import qorrnsmj.smf.graphic.scene.Scene
 
 interface EventAreaType {

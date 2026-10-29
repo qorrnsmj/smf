@@ -1,7 +1,7 @@
 package qorrnsmj.smf.game.entity.billboard
 
-import qorrnsmj.smf.game.entity.custom.Entity
-import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.game.entity.base.Entity
+import qorrnsmj.smf.game.entity.base.Transform
 import qorrnsmj.smf.graphic.billboard.Billboard
 import qorrnsmj.smf.physics.component.IPhysicsComponent
 import qorrnsmj.smf.physics.component.StaticPhysics

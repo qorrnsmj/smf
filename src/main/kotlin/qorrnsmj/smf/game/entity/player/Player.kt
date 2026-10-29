@@ -3,10 +3,10 @@ package qorrnsmj.smf.game.entity.player
 import org.lwjgl.glfw.GLFW
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.entity.custom.CollisionConfig
-import qorrnsmj.smf.game.entity.custom.CollisionShape
-import qorrnsmj.smf.game.entity.custom.LivingEntity
-import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.game.entity.base.CollisionConfig
+import qorrnsmj.smf.game.entity.base.CollisionShape
+import qorrnsmj.smf.game.entity.base.LivingEntity
+import qorrnsmj.smf.game.entity.base.Transform
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
 import qorrnsmj.smf.physics.component.DynamicPhysics

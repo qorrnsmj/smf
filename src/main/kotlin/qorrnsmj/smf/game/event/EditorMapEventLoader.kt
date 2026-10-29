@@ -3,7 +3,7 @@ package qorrnsmj.smf.game.event
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.entity.player.Player
-import qorrnsmj.smf.game.task.Task
+import qorrnsmj.smf.game.task.base.Task
 import qorrnsmj.smf.graphic.scene.Scene
 import qorrnsmj.smf.math.Vector3f
 import java.nio.file.Files

@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.entity.EntityLoader
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.entity.custom.ObjectEntity
-import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.game.entity.base.ObjectEntity
+import qorrnsmj.smf.game.entity.base.Transform
 import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.graphic.skybox.SkyboxLoader
 import qorrnsmj.smf.math.Quaternion

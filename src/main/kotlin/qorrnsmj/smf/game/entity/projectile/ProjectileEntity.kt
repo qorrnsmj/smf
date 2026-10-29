@@ -1,8 +1,8 @@
 package qorrnsmj.smf.game.entity.projectile
 
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.entity.custom.ObjectEntity
-import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.game.entity.base.ObjectEntity
+import qorrnsmj.smf.game.entity.base.Transform
 import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.physics.component.DynamicPhysics
 import qorrnsmj.smf.physics.component.IPhysicsComponent

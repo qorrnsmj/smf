@@ -1,9 +1,11 @@
-package qorrnsmj.smf.graphic.shadow
+package qorrnsmj.smf.graphic.renderer
+
+import qorrnsmj.smf.graphic.shadow.*
 
 import de.javagl.jgltf.model.v2.MaterialModelV2.AlphaMode
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.entity.custom.Entity
+import qorrnsmj.smf.game.entity.base.Entity
 import qorrnsmj.smf.graphic.scene.Scene
 import qorrnsmj.smf.graphic.resource.shadow.LocalShadowFrameBuffer
 import qorrnsmj.smf.graphic.resource.model.Model
@@ -12,7 +14,6 @@ import qorrnsmj.smf.graphic.resource.shadow.ShadowFrameBuffer
 import qorrnsmj.smf.graphic.light.DirectionalLight
 import qorrnsmj.smf.graphic.light.PointLight
 import qorrnsmj.smf.graphic.light.SpotLight
-import qorrnsmj.smf.graphic.SceneRenderer
 import qorrnsmj.smf.graphic.terrain.Terrain
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Quaternion

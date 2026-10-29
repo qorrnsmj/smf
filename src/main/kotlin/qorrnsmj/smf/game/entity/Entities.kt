@@ -1,9 +1,9 @@
 package qorrnsmj.smf.game.entity
 
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.entity.custom.Entity
+import qorrnsmj.smf.game.entity.base.Entity
 import qorrnsmj.smf.game.entity.custom.StallEntity
-import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.game.entity.base.Transform
 
 object Entities {
     private val factories: MutableMap<String, (Transform, Map<String, String>) -> Entity> = mutableMapOf()

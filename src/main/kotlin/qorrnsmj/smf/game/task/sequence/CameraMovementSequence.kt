@@ -1,5 +1,7 @@
 package qorrnsmj.smf.game.task.sequence
 
+import qorrnsmj.smf.game.task.base.Sequence
+
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.math.Vector3f
 

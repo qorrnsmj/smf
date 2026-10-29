@@ -2,7 +2,7 @@ package qorrnsmj.smf.debug
 
 import com.sun.net.httpserver.HttpServer
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.level.custom.Level
+import qorrnsmj.smf.game.level.base.Level
 import qorrnsmj.smf.graphic.capture.ScreenshotCapture
 import qorrnsmj.smf.math.Vector3f
 import java.net.InetAddress

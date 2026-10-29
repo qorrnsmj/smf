@@ -1,6 +1,5 @@
-package qorrnsmj.smf.game.task.sequence
+package qorrnsmj.smf.game.task.base
 
-import qorrnsmj.smf.game.task.Task
 
 abstract class Sequence : Task() {
     protected var elapsedTime: Float = 0f

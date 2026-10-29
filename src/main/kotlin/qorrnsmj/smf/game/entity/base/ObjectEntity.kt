@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.entity.custom
+package qorrnsmj.smf.game.entity.base
 
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.graphic.resource.model.Model

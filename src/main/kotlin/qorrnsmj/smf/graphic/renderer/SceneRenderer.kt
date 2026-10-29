@@ -1,4 +1,4 @@
-package qorrnsmj.smf.graphic
+package qorrnsmj.smf.graphic.renderer
 
 import qorrnsmj.smf.graphic.scene.Scene
 

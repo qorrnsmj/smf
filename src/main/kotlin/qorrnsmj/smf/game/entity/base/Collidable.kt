@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.entity.custom
+package qorrnsmj.smf.game.entity.base
 
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.collision.data.AABB

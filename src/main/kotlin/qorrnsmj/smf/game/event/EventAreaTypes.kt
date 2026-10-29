@@ -1,7 +1,7 @@
 package qorrnsmj.smf.game.event
 
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.task.Task
+import qorrnsmj.smf.game.task.base.Task
 import qorrnsmj.smf.game.task.trigger.AreaEnterTrigger
 import qorrnsmj.smf.math.Vector3f
 import kotlin.math.cos

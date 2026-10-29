@@ -8,8 +8,8 @@ import org.lwjgl.glfw.GLFW.GLFW_CURSOR_NORMAL
 import org.lwjgl.glfw.GLFW.glfwSetInputMode
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.entity.custom.ObjectEntity
-import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.game.entity.base.ObjectEntity
+import qorrnsmj.smf.game.entity.base.Transform
 import qorrnsmj.smf.graphic.scene.Scene
 import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
 import qorrnsmj.smf.graphic.resource.model.Model

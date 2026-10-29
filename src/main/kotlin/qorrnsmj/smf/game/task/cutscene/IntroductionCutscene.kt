@@ -1,5 +1,7 @@
 package qorrnsmj.smf.game.task.cutscene
 
+import qorrnsmj.smf.game.task.base.Cutscene
+
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.math.Vector3f
 

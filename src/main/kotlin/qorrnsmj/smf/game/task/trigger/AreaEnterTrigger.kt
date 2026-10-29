@@ -1,5 +1,7 @@
 package qorrnsmj.smf.game.task.trigger
 
+import qorrnsmj.smf.game.task.base.Trigger
+
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.collision.data.AABB
 

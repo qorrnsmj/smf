@@ -1,5 +1,7 @@
 package qorrnsmj.smf.game.entity.custom
 
+import qorrnsmj.smf.game.entity.base.*
+
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.EntityModels.STALL
 import qorrnsmj.smf.math.Vector3f

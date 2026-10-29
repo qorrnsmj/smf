@@ -1,13 +1,14 @@
-package qorrnsmj.smf.graphic.debug
+package qorrnsmj.smf.graphic.renderer
+
+import qorrnsmj.smf.graphic.debug.*
 
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL15C
 import org.lwjgl.opengl.GL20C
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.system.MemoryStack
-import qorrnsmj.smf.game.entity.custom.Entity
+import qorrnsmj.smf.game.entity.base.Entity
 import qorrnsmj.smf.graphic.scene.Scene
-import qorrnsmj.smf.graphic.SceneRenderer
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f

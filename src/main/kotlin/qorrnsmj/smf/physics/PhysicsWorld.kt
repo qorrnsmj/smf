@@ -1,9 +1,9 @@
 package qorrnsmj.smf.physics
 
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.entity.custom.Collidable
-import qorrnsmj.smf.game.entity.custom.CollisionShape
-import qorrnsmj.smf.game.entity.custom.Entity
+import qorrnsmj.smf.game.entity.base.Collidable
+import qorrnsmj.smf.game.entity.base.CollisionShape
+import qorrnsmj.smf.game.entity.base.Entity
 import qorrnsmj.smf.graphic.terrain.HeightProvider
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.component.DynamicPhysics

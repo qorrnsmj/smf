@@ -1,9 +1,10 @@
-package qorrnsmj.smf.game.task.cutscene
+package qorrnsmj.smf.game.task.base
+
+import qorrnsmj.smf.game.task.cutscene.*
 
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.audio.AudioBuffer
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.task.Task
 import qorrnsmj.smf.math.Vector3f
 
 abstract class Cutscene(

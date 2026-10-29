@@ -2,8 +2,8 @@ package qorrnsmj.smf.game.entity.mob
 
 import qorrnsmj.smf.game.entity.EntityModels
 import qorrnsmj.smf.game.entity.EntityModels.STALL
-import qorrnsmj.smf.game.entity.custom.CollisionConfig
-import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.game.entity.base.CollisionConfig
+import qorrnsmj.smf.game.entity.base.Transform
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.collision.shape.BoxCollider
 import qorrnsmj.smf.physics.component.DynamicPhysics

@@ -7,9 +7,9 @@ import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.entity.custom.Entity
-import qorrnsmj.smf.game.entity.custom.Transform
-import qorrnsmj.smf.graphic.entity.ModelRenderer
+import qorrnsmj.smf.game.entity.base.Entity
+import qorrnsmj.smf.game.entity.base.Transform
+import qorrnsmj.smf.graphic.renderer.ModelRenderer
 import qorrnsmj.smf.graphic.light.DirectionalLight
 import qorrnsmj.smf.graphic.resource.buffer.TextureBufferObject
 import qorrnsmj.smf.graphic.resource.model.Material

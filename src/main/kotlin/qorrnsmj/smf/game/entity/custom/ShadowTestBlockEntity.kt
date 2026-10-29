@@ -1,5 +1,7 @@
 package qorrnsmj.smf.game.entity.custom
 
+import qorrnsmj.smf.game.entity.base.*
+
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.GL_ARRAY_BUFFER
 import org.lwjgl.opengl.GL33C.GL_ELEMENT_ARRAY_BUFFER

@@ -1,7 +1,7 @@
 package qorrnsmj.smf.game.level
 
-import qorrnsmj.smf.game.level.custom.BaseLevel
-import qorrnsmj.smf.game.level.custom.Level
+import qorrnsmj.smf.game.level.base.BaseLevel
+import qorrnsmj.smf.game.level.base.Level
 import qorrnsmj.smf.game.level.custom.TestLevel
 
 object Levels {

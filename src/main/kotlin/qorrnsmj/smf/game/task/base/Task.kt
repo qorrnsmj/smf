@@ -1,4 +1,4 @@
-package qorrnsmj.smf.game.task
+package qorrnsmj.smf.game.task.base
 
 abstract class Task {
     protected var finished: Boolean = false

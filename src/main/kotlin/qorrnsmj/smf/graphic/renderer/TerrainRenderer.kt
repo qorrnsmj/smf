@@ -1,4 +1,6 @@
-package qorrnsmj.smf.graphic.terrain
+package qorrnsmj.smf.graphic.renderer
+
+import qorrnsmj.smf.graphic.terrain.*
 
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.camera.Camera
@@ -9,11 +11,9 @@ import qorrnsmj.smf.graphic.light.DirectionalLight
 import qorrnsmj.smf.graphic.light.Light
 import qorrnsmj.smf.graphic.light.SpotLight
 import qorrnsmj.smf.graphic.light.SunLight
-import qorrnsmj.smf.graphic.SceneRenderer
 import qorrnsmj.smf.graphic.shadow.MAX_LOCAL_LIGHT_SHADOWS
 import qorrnsmj.smf.graphic.shadow.MAX_POINT_LIGHT_SHADOWS
 import qorrnsmj.smf.graphic.shadow.ShadowRenderState
-import qorrnsmj.smf.graphic.shadow.ShadowRenderer
 import qorrnsmj.smf.graphic.terrain.component.BlendedTexture
 import qorrnsmj.smf.graphic.terrain.component.SingleTexture
 import qorrnsmj.smf.graphic.terrain.component.TerrainTextureMode

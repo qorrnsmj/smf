@@ -1,12 +1,14 @@
 package qorrnsmj.smf.game.level.custom
 
+import qorrnsmj.smf.game.level.base.BaseLevel
+
 import org.lwjgl.glfw.GLFW.glfwSetWindowTitle
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.core.FixedTimestepGame
 import qorrnsmj.smf.game.entity.billboard.CloudBillboard
-import qorrnsmj.smf.game.entity.custom.ObjectEntity
+import qorrnsmj.smf.game.entity.base.ObjectEntity
 import qorrnsmj.smf.game.entity.custom.ShadowTestBlockEntity
-import qorrnsmj.smf.game.entity.custom.Transform
+import qorrnsmj.smf.game.entity.base.Transform
 import qorrnsmj.smf.game.weather.WeatherCycle
 import qorrnsmj.smf.game.weather.WeatherPresets
 import qorrnsmj.smf.graphic.debug.DebugBox

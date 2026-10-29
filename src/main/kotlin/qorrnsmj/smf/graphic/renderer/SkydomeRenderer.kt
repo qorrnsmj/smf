@@ -1,9 +1,10 @@
-package qorrnsmj.smf.graphic.skydome
+package qorrnsmj.smf.graphic.renderer
+
+import qorrnsmj.smf.graphic.skydome.*
 
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.graphic.SceneRenderer
 import qorrnsmj.smf.graphic.scene.Scene
 import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
 import qorrnsmj.smf.math.Matrix4f

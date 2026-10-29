@@ -1,6 +1,6 @@
 package qorrnsmj.smf.physics.collision.data
 
-import qorrnsmj.smf.game.entity.custom.Entity
+import qorrnsmj.smf.game.entity.base.Entity
 
 /**
  * Represents a collision between two entities.
