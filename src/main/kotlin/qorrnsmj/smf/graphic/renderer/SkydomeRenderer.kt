@@ -1,12 +1,13 @@
 package qorrnsmj.smf.graphic.renderer
 
-import qorrnsmj.smf.graphic.skydome.*
-
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.graphic.scene.Scene
-import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
+import qorrnsmj.smf.graphic.render.RenderSettings
+import qorrnsmj.smf.graphic.scene.sky.Skydome
+import qorrnsmj.smf.graphic.resource.shader.ShaderProgram
+import qorrnsmj.smf.graphic.render.ShadingMode
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.MVP
@@ -16,8 +17,10 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-class SkydomeRenderer : SceneRenderer, Resizable {
-    private val program = SkydomeShaderProgram()
+class SkydomeRenderer(
+    private val renderSettings: RenderSettings = RenderSettings(),
+) : SceneRenderer, Resizable {
+    private val program = ShaderProgram("skydome.vert", "skydome.frag")
     private val locationModel = glGetUniformLocation(program.id, "model")
     private val locationView = glGetUniformLocation(program.id, "view")
     private val locationProjection = glGetUniformLocation(program.id, "projection")
@@ -44,7 +47,7 @@ class SkydomeRenderer : SceneRenderer, Resizable {
     private val mesh = createDomeMesh()
 
     override fun render(scene: Scene) {
-        val skydome = scene.environment.skydome ?: return
+        val skydome = scene.environment.sky.skydome ?: return
         val visible = skydome.enabled && shouldRenderSky(scene)
         val clearColor = if (visible) skydome.horizonColor else EDITOR_SKY_HIDDEN_COLOR
         glClearColor(clearColor.x, clearColor.y, clearColor.z, 1f)
@@ -59,8 +62,8 @@ class SkydomeRenderer : SceneRenderer, Resizable {
     }
 
     private fun shouldRenderSky(scene: Scene): Boolean =
-        scene.renderSettings.viewportShadingMode == ViewportShadingSettings.RENDERED &&
-            scene.environment.skyVisible
+        renderSettings.shadingMode == ShadingMode.RENDERED &&
+            scene.environment.sky.visible
 
     private fun start() {
         program.use()

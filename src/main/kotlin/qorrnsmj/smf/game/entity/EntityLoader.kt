@@ -11,9 +11,9 @@ import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.graphic.resource.model.Mesh
 import qorrnsmj.smf.graphic.resource.model.Material
 import qorrnsmj.smf.graphic.resource.model.Model
-import qorrnsmj.smf.graphic.texture.Textures
-import qorrnsmj.smf.graphic.texture.TextureLoader.loadTexture
-import qorrnsmj.smf.graphic.texture.TexturePresets
+import qorrnsmj.smf.graphic.resource.texture.Textures
+import qorrnsmj.smf.graphic.resource.texture.TextureLoader.loadTexture
+import qorrnsmj.smf.graphic.resource.texture.TexturePresets
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
 import java.io.InputStream

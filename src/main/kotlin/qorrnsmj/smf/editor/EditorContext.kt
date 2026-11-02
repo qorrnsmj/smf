@@ -1,4 +1,5 @@
 package qorrnsmj.smf.editor
+import qorrnsmj.smf.graphic.scene.terrain.Terrain
 
 import imgui.extension.imguizmo.flag.Operation
 import imgui.type.ImString
@@ -8,10 +9,10 @@ import org.lwjgl.glfw.GLFW.GLFW_CURSOR_NORMAL
 import org.lwjgl.glfw.GLFW.glfwSetInputMode
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.game.entity.base.ObjectEntity
-import qorrnsmj.smf.game.entity.base.Transform
+import qorrnsmj.smf.game.entity.custom.ObjectEntity
+import qorrnsmj.smf.game.entity.custom.Transform
 import qorrnsmj.smf.graphic.scene.Scene
-import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
+import qorrnsmj.smf.graphic.render.ShadingMode
 import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
@@ -69,8 +70,8 @@ internal class EditorContext {
     var terrainBrushEnabled = false
     var terrainMeshViewEnabled = false
     var terrainGrayViewEnabled = true
-    var viewportShadingMode = ViewportShadingSettings.SOLID
-    var secondaryViewportShadingMode = ViewportShadingSettings.RENDERED
+    var viewportShadingMode = ShadingMode.SOLID
+    var secondaryViewportShadingMode = ShadingMode.RENDERED
     var cullingEnabled = true
     var skyVisible = true
     var nightMode = false
@@ -162,11 +163,11 @@ internal class EditorContext {
 
     fun viewportCamera(index: Int): Camera = if (index == 1) secondaryCamera else scene.world.camera
 
-    fun viewportShadingMode(index: Int): ViewportShadingSettings = if (index == 1) secondaryViewportShadingMode else viewportShadingMode
+    fun viewportShadingMode(index: Int): ShadingMode = if (index == 1) secondaryViewportShadingMode else viewportShadingMode
 
     fun viewportTimeOfDay(index: Int): EditorTimeOfDay = if (index == 1) secondaryTimeOfDay else timeOfDay
 
-    fun setViewportShadingMode(index: Int, mode: ViewportShadingSettings) {
+    fun setViewportShadingMode(index: Int, mode: ShadingMode) {
         if (index == 1) {
             secondaryViewportShadingMode = mode
         } else {

@@ -1,10 +1,11 @@
 package qorrnsmj.smf.physics
+import qorrnsmj.smf.graphic.scene.terrain.Terrain
 
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.entity.base.Collidable
-import qorrnsmj.smf.game.entity.base.CollisionShape
-import qorrnsmj.smf.game.entity.base.Entity
-import qorrnsmj.smf.graphic.terrain.HeightProvider
+import qorrnsmj.smf.game.entity.custom.Collidable
+import qorrnsmj.smf.game.entity.custom.CollisionShape
+import qorrnsmj.smf.game.entity.custom.Entity
+import qorrnsmj.smf.graphic.scene.terrain.HeightProvider
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.component.DynamicPhysics
 import qorrnsmj.smf.physics.component.KinematicPhysics
@@ -91,7 +92,9 @@ object PhysicsWorld {
             if (physics !is DynamicPhysics) continue
 
             // Apply gravity
-            physics.applyForce(GRAVITY_VECTOR.scale(physics.mass * GRAVITY_EFFECT_SCALE))
+            if (physics.affectedByGravity) {
+                physics.applyForce(GRAVITY_VECTOR.scale(physics.mass * GRAVITY_EFFECT_SCALE))
+            }
             
             // Drag is disabled in simple physics mode.
             // if (physics.drag > 0f && physics.velocity.length() > 0f) {

@@ -1,13 +1,16 @@
 package qorrnsmj.smf.editor
+import qorrnsmj.smf.graphic.scene.sky.Skybox
+import qorrnsmj.smf.graphic.scene.sky.Skyboxes
+import qorrnsmj.smf.graphic.scene.terrain.Terrain
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.entity.EntityLoader
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.entity.base.ObjectEntity
-import qorrnsmj.smf.game.entity.base.Transform
+import qorrnsmj.smf.game.entity.custom.ObjectEntity
+import qorrnsmj.smf.game.entity.custom.Transform
 import qorrnsmj.smf.graphic.resource.model.Model
-import qorrnsmj.smf.graphic.skybox.SkyboxLoader
+import qorrnsmj.smf.graphic.scene.sky.SkyboxLoader
 import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
 import java.awt.image.BufferedImage
@@ -46,7 +49,7 @@ internal class EditorDocument(private val context: EditorContext) {
         val snapshot = captureSnapshot()
         val oldPaths = listOf(context.workspaceRoot.get(), context.mapPath.get(), context.projectName.get(),
             context.terrainHeightmapPath.get(), context.terrainSplatmapPath.get(), context.skyboxPath.get())
-        val oldSkybox = context.scene.environment.skybox
+        val oldSkybox = context.scene.environment.sky.skybox
         val oldTime = context.timeOfDay
         try {
             context.project = project
@@ -55,7 +58,7 @@ internal class EditorDocument(private val context: EditorContext) {
             context.projectName.set("map")
             context.workspaceRoot.set(project.root.toString())
             context.skyboxPath.set("")
-            context.scene.environment.skybox = qorrnsmj.smf.graphic.skybox.Skyboxes.SKY1
+            context.scene.environment.sky.skybox = qorrnsmj.smf.graphic.scene.sky.Skyboxes.SKY1
             context.terrain.replace(513, 513, FloatArray(513 * 513))
             context.splatmaps.replace(513, 513, 0, emptyMap())
             context.terrainMapSize = 256f
@@ -72,7 +75,7 @@ internal class EditorDocument(private val context: EditorContext) {
             context.terrainHeightmapPath.set(oldPaths[3])
             context.terrainSplatmapPath.set(oldPaths[4])
             context.skyboxPath.set(oldPaths[5])
-            context.scene.environment.skybox = oldSkybox
+            context.scene.environment.sky.skybox = oldSkybox
             setTimeOfDay(oldTime)
             context.assetModelRoot.set(Paths.get(oldPaths[0]).resolve("model").toString())
             context.assetBrowserPath.set(context.assetModelRoot.get())
@@ -995,7 +998,7 @@ internal class EditorDocument(private val context: EditorContext) {
         val resourcePrefix = if (path.startsWith("assets/")) path else "assets/$path"
         try {
             val prefix = workspaceResourcePath(path)
-            context.scene.environment.skybox = if (Files.isRegularFile(Paths.get("${prefix}_front.png")))
+            context.scene.environment.sky.skybox = if (Files.isRegularFile(Paths.get("${prefix}_front.png")))
                 SkyboxLoader.loadSkyboxFile(prefix) else SkyboxLoader.loadSkyboxResource(resourcePrefix)
             Logger.info("Editor skybox loaded: {}", resourcePrefix)
         } catch (error: Throwable) {
@@ -1004,7 +1007,7 @@ internal class EditorDocument(private val context: EditorContext) {
     }
 
     private fun applyTimeOfDay() {
-        context.scene.environment.skyColor = context.timeOfDay.skyColor
+        context.scene.environment.sky.color = context.timeOfDay.skyColor
     }
 
     private fun loadTerrainHeightmap(path: String): Boolean {

@@ -3,10 +3,10 @@ package qorrnsmj.smf.game.entity.player
 import org.lwjgl.glfw.GLFW
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.entity.base.CollisionConfig
-import qorrnsmj.smf.game.entity.base.CollisionShape
-import qorrnsmj.smf.game.entity.base.LivingEntity
-import qorrnsmj.smf.game.entity.base.Transform
+import qorrnsmj.smf.game.entity.custom.CollisionConfig
+import qorrnsmj.smf.game.entity.custom.CollisionShape
+import qorrnsmj.smf.game.entity.custom.LivingEntity
+import qorrnsmj.smf.game.entity.custom.Transform
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.collision.shape.CapsuleCollider
 import qorrnsmj.smf.physics.component.DynamicPhysics
@@ -14,7 +14,8 @@ import qorrnsmj.smf.window.Window
 
 class Player(
     private val eyeHeight: Float = 1.7f,
-    private val moveSpeed: Float = 0.04f,
+    private val moveSpeed: Float = 0.07f,
+    private val flySpeed: Float = 0.18f,
     private val jumpSpeed: Float = 0.08f,
     collisionHalfWidth: Float = 0.22f,
     collisionHeight: Float = eyeHeight,
@@ -33,7 +34,10 @@ class Player(
     )
 ) {
     var camera = Camera()
+    var isFlying: Boolean = false
+        private set
     private var jumpKeyWasDown = false
+    private var flyKeyWasDown = false
 
     init {
         syncCameraWithEntity()
@@ -53,8 +57,13 @@ class Player(
 
     fun handleInput(window: Window, delta: Float) {
         camera.processMouseMovement(window)
-        moveHorizontal(window, delta)
-        handleJump(window)
+        handleFlyingToggle(window)
+        if (isFlying) {
+            moveFlying(window, delta)
+        } else {
+            moveHorizontal(window, delta)
+            handleJump(window)
+        }
     }
 
     override fun update(deltaTime: Float) {
@@ -83,6 +92,38 @@ class Player(
             Vector3f()
         }
         physics.velocity = Vector3f(horizontalVelocity.x, physics.velocity.y, horizontalVelocity.z)
+    }
+
+    private fun moveFlying(window: Window, delta: Float) {
+        val front = camera.getFront().normalize()
+        val up = Vector3f(0f, 1f, 0f)
+        val right = front.cross(up).normalize()
+        var moveDirection = Vector3f()
+        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS) moveDirection = moveDirection.add(front)
+        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_S) == GLFW.GLFW_PRESS) moveDirection = moveDirection.add(front.negate())
+        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_A) == GLFW.GLFW_PRESS) moveDirection = moveDirection.add(right.negate())
+        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_D) == GLFW.GLFW_PRESS) moveDirection = moveDirection.add(right)
+        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_SPACE) == GLFW.GLFW_PRESS) moveDirection = moveDirection.add(up)
+        if (GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS) moveDirection = moveDirection.add(up.negate())
+
+        physicsComponent.velocity = if (moveDirection.lengthSquared() > 0f) {
+            moveDirection.normalize().scale(flySpeed * delta)
+        } else {
+            Vector3f()
+        }
+    }
+
+    private fun handleFlyingToggle(window: Window) {
+        val flyKeyDown = GLFW.glfwGetKey(window.id, GLFW.GLFW_KEY_F) == GLFW.GLFW_PRESS
+        if (flyKeyDown && !flyKeyWasDown) {
+            isFlying = !isFlying
+            val physics = physicsComponent as DynamicPhysics
+            physics.affectedByGravity = !isFlying
+            physics.velocity = Vector3f()
+            physics.acceleration = Vector3f()
+            physics.isGrounded = false
+        }
+        flyKeyWasDown = flyKeyDown
     }
 
     private fun handleJump(window: Window) {

@@ -1,7 +1,7 @@
 package qorrnsmj.smf.physics.collision
 
-import qorrnsmj.smf.game.entity.base.Entity
-import qorrnsmj.smf.game.entity.base.Collidable
+import qorrnsmj.smf.game.entity.custom.Entity
+import qorrnsmj.smf.game.entity.custom.Collidable
 import qorrnsmj.smf.physics.collision.data.CollisionPair
 import qorrnsmj.smf.physics.component.IPhysicsComponent
 import qorrnsmj.smf.physics.component.StaticPhysics

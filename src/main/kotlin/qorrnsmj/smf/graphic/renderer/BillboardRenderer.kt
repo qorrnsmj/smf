@@ -1,21 +1,24 @@
 package qorrnsmj.smf.graphic.renderer
 
-import qorrnsmj.smf.graphic.billboard.*
-
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.game.entity.billboard.BillboardEntity
-import qorrnsmj.smf.game.entity.base.Entity
+import qorrnsmj.smf.game.entity.custom.Entity
+import qorrnsmj.smf.game.entity.billboard.BillboardFacing
 import qorrnsmj.smf.graphic.scene.Scene
-import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
+import qorrnsmj.smf.graphic.resource.shader.ShaderProgram
+import qorrnsmj.smf.graphic.render.RenderSettings
+import qorrnsmj.smf.graphic.render.ShadingMode
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.Resizable
 import qorrnsmj.smf.util.UniformUtils.setUniform
 
-class BillboardRenderer : SceneRenderer, Resizable {
-    private val program = BillboardShaderProgram()
+class BillboardRenderer(
+    private val renderSettings: RenderSettings = RenderSettings(),
+) : SceneRenderer, Resizable {
+    private val program = ShaderProgram("billboard.vert", "billboard.frag")
     private val locationView = glGetUniformLocation(program.id, "view")
     private val locationProjection = glGetUniformLocation(program.id, "projection")
     private val locationCenter = glGetUniformLocation(program.id, "center")
@@ -29,7 +32,7 @@ class BillboardRenderer : SceneRenderer, Resizable {
     private val vao = createQuad()
 
     override fun render(scene: Scene) {
-        if (scene.renderSettings.viewportShadingMode != ViewportShadingSettings.RENDERED) return
+        if (renderSettings.shadingMode != ShadingMode.RENDERED) return
 
         val billboards = mutableListOf<BillboardEntity>()
         scene.world.entities.forEach { collectBillboards(it, billboards) }

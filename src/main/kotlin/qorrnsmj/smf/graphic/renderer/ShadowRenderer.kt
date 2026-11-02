@@ -1,28 +1,34 @@
 package qorrnsmj.smf.graphic.renderer
 
-import qorrnsmj.smf.graphic.shadow.*
-
 import de.javagl.jgltf.model.v2.MaterialModelV2.AlphaMode
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.entity.base.Entity
+import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.graphic.scene.Scene
+import qorrnsmj.smf.graphic.render.RenderSettings
+import qorrnsmj.smf.graphic.scene.shadow.*
 import qorrnsmj.smf.graphic.resource.shadow.LocalShadowFrameBuffer
 import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.graphic.resource.shadow.PointShadowCubeMap
 import qorrnsmj.smf.graphic.resource.shadow.ShadowFrameBuffer
-import qorrnsmj.smf.graphic.light.DirectionalLight
-import qorrnsmj.smf.graphic.light.PointLight
-import qorrnsmj.smf.graphic.light.SpotLight
-import qorrnsmj.smf.graphic.terrain.Terrain
+import qorrnsmj.smf.graphic.resource.shader.ShaderProgram
+import qorrnsmj.smf.graphic.scene.light.DirectionalLight
+import qorrnsmj.smf.graphic.scene.light.PointLight
+import qorrnsmj.smf.graphic.scene.light.SpotLight
+import qorrnsmj.smf.graphic.scene.terrain.Terrain
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.util.MVP
 import qorrnsmj.smf.util.UniformUtils
+import kotlin.collections.iterator
+import kotlin.math.abs
+import kotlin.math.round
+import kotlin.math.sqrt
 
 class ShadowRenderer(
     val settings: ShadowSettings = ShadowSettings(),
+    private val renderSettings: RenderSettings = RenderSettings(),
 ) : SceneRenderer {
     private enum class ShadowCullMode {
         NONE,
@@ -43,7 +49,7 @@ class ShadowRenderer(
     private val sunFrameBuffer = ShadowFrameBuffer(settings.mapSize, settings.mapSize)
     private val localFrameBuffer = LocalShadowFrameBuffer(LOCAL_SHADOW_MAP_SIZE, LOCAL_SHADOW_MAP_SIZE, MAX_LOCAL_LIGHT_SHADOWS)
     private val pointFrameBuffers = mutableListOf<PointShadowCubeMap>()
-    private val program = ShadowShaderProgram()
+    private val program = ShaderProgram("shadow.vert", "shadow.frag")
     private val locationModel = glGetUniformLocation(program.id, "model")
     private val locationLightSpaceMatrix = glGetUniformLocation(program.id, "lightSpaceMatrix")
     private val locationPointShadowPass = glGetUniformLocation(program.id, "pointShadowPass")
@@ -53,7 +59,7 @@ class ShadowRenderer(
         private set
 
     override fun render(scene: Scene) {
-        currentState = if (scene.renderSettings.renderProfile.shadowsEnabled) {
+        currentState = if (renderSettings.profile.shadowsEnabled) {
             createShadowState(scene)
         } else {
             DISABLED_STATE
@@ -98,7 +104,7 @@ class ShadowRenderer(
         val matrices = mutableListOf<Matrix4f>()
         val strengths = mutableListOf<Float>()
 
-        scene.world.lights.forEachIndexed { lightIndex, light ->
+        scene.world.activeLights.forEachIndexed { lightIndex, light ->
             if (matrices.size >= MAX_LOCAL_LIGHT_SHADOWS) return@forEachIndexed
             if (light !is SpotLight || !light.castsShadow || light.intensity <= 0f) return@forEachIndexed
 
@@ -130,7 +136,7 @@ class ShadowRenderer(
     }
 
     private fun renderPointShadows(scene: Scene): PointShadowRenderState {
-        val pointLights = scene.world.lights.withIndex()
+        val pointLights = scene.world.activeLights.withIndex()
             .filter { (_, light) -> light is PointLight && light.castsShadow && light.intensity > 0f }
             .take(MAX_POINT_LIGHT_SHADOWS)
 
@@ -307,7 +313,7 @@ class ShadowRenderer(
         val distance = when {
             a > 0.000001f -> {
                 val discriminant = b * b - 4f * a * c
-                if (discriminant <= 0f) 600f else (-b + kotlin.math.sqrt(discriminant)) / (2f * a)
+                if (discriminant <= 0f) 600f else (-b + sqrt(discriminant)) / (2f * a)
             }
             b > 0.000001f -> -c / b
             else -> 600f
@@ -319,11 +325,11 @@ class ShadowRenderer(
     private fun stableUp(direction: Vector3f): Vector3f {
         val normalized = direction.normalize()
         val worldUp = Vector3f(0f, 1f, 0f)
-        return if (kotlin.math.abs(normalized.dot(worldUp)) > 0.95f) Vector3f(0f, 0f, 1f) else worldUp
+        return if (abs(normalized.dot(worldUp)) > 0.95f) Vector3f(0f, 0f, 1f) else worldUp
     }
 
     private fun directionalShadowUp(direction: Vector3f): Vector3f =
-        if (kotlin.math.abs(direction.normalize().z) > 0.95f) {
+        if (abs(direction.normalize().z) > 0.95f) {
             Vector3f(0f, 1f, 0f)
         } else {
             Vector3f(0f, 0f, 1f)
@@ -344,7 +350,7 @@ class ShadowRenderer(
     }
 
     private fun snapToShadowTexel(value: Float, texelSize: Float): Float =
-        kotlin.math.round(value / texelSize) * texelSize
+        round(value / texelSize) * texelSize
 
     private fun renderTerrain(terrain: Terrain) {
         UniformUtils.setUniform(locationModel, MVP.getModelMatrix(terrain.position, Quaternion.identity(), Vector3f(1f, 1f, 1f)))

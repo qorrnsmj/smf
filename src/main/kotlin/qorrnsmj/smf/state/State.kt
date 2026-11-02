@@ -10,6 +10,12 @@ abstract class State {
 
     fun activeLevel() = levelManager.getCurrentLevel()
 
+    fun switchLevel(levelId: String): Boolean {
+        if (levelManager.getCurrentLevel() == null) return false
+        levelManager.switchLevel(levelId)
+        return true
+    }
+
     open fun start() {
         SMF.window.setInputMode(GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
     }
@@ -26,6 +32,15 @@ abstract class State {
 
     open fun render(alpha: Float) {
         levelManager.getCurrentLevel()?.let { level ->
+            SMF.applyGameRenderSettings()
+            SMF.renderer.debugHud.update(
+                level = level,
+                stageName = levelManager.getCurrentLevelName() ?: "unknown",
+                fps = SMF.timer.getFPS(),
+                ups = SMF.timer.getUPS(),
+                wireframeEnabled = SMF.wireframeEnabled,
+                colliderDebugEnabled = SMF.renderer.debugRenderer.isEnabled(qorrnsmj.smf.debug.DebugVisual.COLLIDERS),
+            )
             SMF.renderer.render(level.scene)
         }
     }

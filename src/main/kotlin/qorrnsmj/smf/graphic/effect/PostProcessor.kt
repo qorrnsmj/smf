@@ -1,7 +1,7 @@
 package qorrnsmj.smf.graphic.effect
 
 import org.lwjgl.opengl.GL33C.*
-import qorrnsmj.smf.graphic.effect.custom.Effect
+import qorrnsmj.smf.graphic.effect.Effect
 import qorrnsmj.smf.graphic.resource.buffer.FrameBufferObject
 import qorrnsmj.smf.graphic.resource.buffer.VertexArrayObject
 import qorrnsmj.smf.graphic.resource.buffer.VertexBufferObject

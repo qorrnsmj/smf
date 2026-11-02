@@ -1,6 +1,6 @@
 package qorrnsmj.smf.graphic.text
 
-import qorrnsmj.smf.game.entity.base.Entity
+import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
 

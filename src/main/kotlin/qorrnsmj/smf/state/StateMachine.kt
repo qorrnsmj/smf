@@ -7,6 +7,8 @@ class StateMachine {
 
     fun activeLevel() = currentState.activeLevel()
 
+    fun switchLevel(levelId: String): Boolean = currentState.switchLevel(levelId)
+
     fun changeState(newState: State) {
         Logger.info("Changing state: \"$currentState\" to \"$newState\"")
 

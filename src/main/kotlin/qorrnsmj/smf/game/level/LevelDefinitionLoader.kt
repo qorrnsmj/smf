@@ -1,21 +1,23 @@
 package qorrnsmj.smf.game.level
+import qorrnsmj.smf.graphic.scene.sky.Skybox
+import qorrnsmj.smf.graphic.scene.terrain.Terrain
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.game.entity.EntityLoader
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.game.entity.base.ObjectEntity
-import qorrnsmj.smf.game.entity.base.Transform
+import qorrnsmj.smf.game.entity.custom.ObjectEntity
+import qorrnsmj.smf.game.entity.custom.Transform
 import qorrnsmj.smf.graphic.resource.buffer.TextureBufferObject
 import qorrnsmj.smf.graphic.resource.model.Model
 import qorrnsmj.smf.graphic.scene.Scene
-import qorrnsmj.smf.graphic.skybox.SkyboxLoader
-import qorrnsmj.smf.graphic.skybox.Skyboxes
-import qorrnsmj.smf.graphic.terrain.TerrainLoader
-import qorrnsmj.smf.graphic.terrain.component.BlendedTexture
-import qorrnsmj.smf.graphic.texture.TextureLoader
-import qorrnsmj.smf.graphic.texture.TexturePresets
-import qorrnsmj.smf.graphic.texture.Textures
+import qorrnsmj.smf.graphic.scene.sky.SkyboxLoader
+import qorrnsmj.smf.graphic.scene.sky.Skyboxes
+import qorrnsmj.smf.graphic.scene.terrain.TerrainLoader
+import qorrnsmj.smf.graphic.scene.terrain.component.BlendedTexture
+import qorrnsmj.smf.graphic.resource.texture.TextureLoader
+import qorrnsmj.smf.graphic.resource.texture.TexturePresets
+import qorrnsmj.smf.graphic.resource.texture.Textures
 import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.physics.collision.shape.BoxCollider
@@ -112,16 +114,16 @@ object LevelDefinitionLoader {
         if (!skyboxPath.isNullOrBlank()) {
             try {
                 val face = resolver.resolveFile("${skyboxPath}_front.png")
-                scene.environment.skybox = if (face != null) SkyboxLoader.loadSkyboxFile(Path.of(face.toString().removeSuffix("_front.png")))
+                scene.environment.sky.skybox = if (face != null) SkyboxLoader.loadSkyboxFile(Path.of(face.toString().removeSuffix("_front.png")))
                     else SkyboxLoader.loadSkyboxResource(toAssetPath(skyboxPath))
                 Logger.info("Level skybox loaded: {}", skyboxPath)
             } catch (error: Throwable) {
                 Logger.warn(error, "Level skybox could not be loaded: {}", skyboxPath)
-                scene.environment.skybox = Skyboxes.SKY1
+                scene.environment.sky.skybox = Skyboxes.SKY1
             }
         }
 
-        scene.environment.skyColor = when ((environment["time_of_day"] as? String)?.lowercase()) {
+        scene.environment.sky.color = when ((environment["time_of_day"] as? String)?.lowercase()) {
             "morning" -> Vector3f(0.72f, 0.62f, 0.48f)
             "evening" -> Vector3f(0.56f, 0.32f, 0.24f)
             "night" -> Vector3f(0.05f, 0.08f, 0.14f)

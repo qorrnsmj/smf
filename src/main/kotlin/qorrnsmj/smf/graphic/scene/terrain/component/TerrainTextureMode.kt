@@ -1,0 +1,17 @@
+package qorrnsmj.smf.graphic.scene.terrain.component
+
+import qorrnsmj.smf.graphic.resource.buffer.TextureBufferObject
+
+sealed interface TerrainTextureMode
+
+data class SingleTexture(
+    val baseTexture: TextureBufferObject
+) : TerrainTextureMode
+
+data class BlendedTexture(
+    val blendMap: TextureBufferObject,
+    val baseTexture: TextureBufferObject,
+    val rTexture: TextureBufferObject,
+    val gTexture: TextureBufferObject,
+    val bTexture: TextureBufferObject
+) : TerrainTextureMode

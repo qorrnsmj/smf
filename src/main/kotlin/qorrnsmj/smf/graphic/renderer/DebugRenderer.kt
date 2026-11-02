@@ -1,14 +1,16 @@
 package qorrnsmj.smf.graphic.renderer
 
-import qorrnsmj.smf.graphic.debug.*
+import qorrnsmj.smf.debug.*
 
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL15C
 import org.lwjgl.opengl.GL20C
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.system.MemoryStack
-import qorrnsmj.smf.game.entity.base.Entity
+import qorrnsmj.smf.game.entity.custom.Entity
 import qorrnsmj.smf.graphic.scene.Scene
+import qorrnsmj.smf.graphic.renderer.SceneRenderer
+import qorrnsmj.smf.graphic.resource.shader.ShaderProgram
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
@@ -26,7 +28,8 @@ import kotlin.math.sin
 
 /** Renders optional scene diagnostics and caller-provided wireframe primitives. */
 class DebugRenderer : SceneRenderer, Resizable {
-    private lateinit var shaderProgram: LineShaderProgram
+    private lateinit var shaderProgram: ShaderProgram
+    private var mvpMatrixLocation: Int = 0
     private var vao: Int = 0
     private var vbo: Int = 0
     private var projectionMatrix: Matrix4f = MVP.getPerspectiveMatrix(16f / 9f)
@@ -53,7 +56,8 @@ class DebugRenderer : SceneRenderer, Resizable {
     }
 
     private fun initializeRenderer() {
-        shaderProgram = LineShaderProgram()
+        shaderProgram = ShaderProgram("line.vert", "line.frag")
+        mvpMatrixLocation = GL20C.glGetUniformLocation(shaderProgram.id, "u_mvpMatrix")
 
         // Create VAO and VBO for line rendering
         vao = GL30C.glGenVertexArrays()
@@ -111,7 +115,7 @@ class DebugRenderer : SceneRenderer, Resizable {
         MemoryStack.stackPush().use { stack ->
             val mvpBuffer = stack.mallocFloat(16)
             mvpMatrix.toBuffer(mvpBuffer)
-            shaderProgram.loadMvpMatrix(mvpBuffer)
+            GL20C.glUniformMatrix4fv(mvpMatrixLocation, false, mvpBuffer)
         }
 
         // Generate vertices for all enabled debug features

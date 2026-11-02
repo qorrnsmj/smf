@@ -1,5 +1,6 @@
 package qorrnsmj.smf.game.task.cutscene
 
+import qorrnsmj.smf.game.task.base.Cutscene
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

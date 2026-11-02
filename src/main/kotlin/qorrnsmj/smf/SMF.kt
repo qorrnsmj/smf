@@ -13,9 +13,9 @@ import qorrnsmj.smf.core.Timer
 import qorrnsmj.smf.editor.EditorApp
 import qorrnsmj.smf.game.entity.Entities
 import qorrnsmj.smf.game.entity.EntityModels
-import qorrnsmj.smf.graphic.skybox.Skyboxes
-import qorrnsmj.smf.graphic.terrain.Terrains
-import qorrnsmj.smf.graphic.texture.Textures
+import qorrnsmj.smf.graphic.scene.sky.Skyboxes
+import qorrnsmj.smf.graphic.scene.terrain.Terrains
+import qorrnsmj.smf.graphic.resource.texture.Textures
 import qorrnsmj.smf.graphic.renderer.MasterRenderer
 import qorrnsmj.smf.state.StateMachine
 import qorrnsmj.smf.state.States
@@ -23,7 +23,8 @@ import qorrnsmj.smf.window.SMFKeyCallback
 import qorrnsmj.smf.window.Window
 import qorrnsmj.smf.debug.DebugJson
 import qorrnsmj.smf.debug.GameDebugControl
-import qorrnsmj.smf.graphic.capture.ScreenshotCapture
+import qorrnsmj.smf.graphic.ScreenshotCapture
+import qorrnsmj.smf.graphic.render.ShadingMode
 
 object SMF : FixedTimestepGame() {
     private var editorApp: EditorApp? = null
@@ -31,6 +32,8 @@ object SMF : FixedTimestepGame() {
     private var debugControl: GameDebugControl? = null
     private var debugControlEnabled = false
     var initialLevelId: String = "test"
+        private set
+    var wireframeEnabled: Boolean = false
         private set
     val isEditorMode: Boolean
         get() = editorApp != null
@@ -152,6 +155,19 @@ object SMF : FixedTimestepGame() {
         }
     }
 
+    fun toggleWireframe(): Boolean {
+        wireframeEnabled = !wireframeEnabled
+        return wireframeEnabled
+    }
+
+    fun applyGameRenderSettings() {
+        renderer.settings.shadingMode = if (wireframeEnabled) {
+            ShadingMode.WIRE
+        } else {
+            ShadingMode.RENDERED
+        }
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
         debugControlEnabled = "--debug-control" in args
@@ -163,6 +179,8 @@ object SMF : FixedTimestepGame() {
                 start()
             }
         } finally {
+            stateMachine.stop()
+            audioManager.close()
             debugControl?.close()
             screenshots.close()
         }

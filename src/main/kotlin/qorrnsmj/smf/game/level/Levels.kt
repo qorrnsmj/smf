@@ -1,30 +1,22 @@
 package qorrnsmj.smf.game.level
 
-import qorrnsmj.smf.game.level.base.BaseLevel
-import qorrnsmj.smf.game.level.base.Level
-import qorrnsmj.smf.game.level.custom.TestLevel
+import qorrnsmj.smf.game.level.custom.BaseLevel
+import qorrnsmj.smf.game.level.custom.Level
+import qorrnsmj.smf.game.level.custom.test.TestLevel
+import qorrnsmj.smf.game.level.custom.meadow.MoonveilMeadowLevel
+import qorrnsmj.smf.game.level.custom.meadow.SunwashMeadowLevel
 
 object Levels {
-    private val levels: MutableMap<String, LevelEntry> = mutableMapOf()
-
-    val TEST_LEVEL = defineLevel("test", ::TestLevel)
-
-    fun entry(levelId: String): LevelEntry {
-        return levels[levelId] ?: LevelEntry(levelId) { BaseLevel(levelId) }
-    }
+    const val TEST_LEVEL = "test"
+    const val SUNWASH_MEADOW = "sunwash-meadow"
+    const val MOONVEIL_MEADOW = "moonveil-meadow"
 
     fun create(levelId: String): Level {
-        return levels[levelId]?.create() ?: BaseLevel(levelId)
+        return when (levelId) {
+            TEST_LEVEL -> TestLevel()
+            SUNWASH_MEADOW -> SunwashMeadowLevel()
+            MOONVEIL_MEADOW -> MoonveilMeadowLevel()
+            else -> BaseLevel(levelId)
+        }
     }
-
-    private fun defineLevel(levelId: String, create: () -> Level): LevelEntry {
-        val entry = LevelEntry(levelId, create)
-        levels[levelId] = entry
-        return entry
-    }
-
-    data class LevelEntry(
-        val id: String,
-        val create: () -> Level,
-    )
 }

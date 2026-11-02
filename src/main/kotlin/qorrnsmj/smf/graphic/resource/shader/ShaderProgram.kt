@@ -3,10 +3,15 @@ package qorrnsmj.smf.graphic.resource.shader
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
 
-abstract class ShaderProgram(
+class ShaderProgram(
     private val vertexShader: Shader,
     private val fragmentShader: Shader
 ) {
+    constructor(vertexShaderFile: String, fragmentShaderFile: String) : this(
+        Shader(GL_VERTEX_SHADER, vertexShaderFile),
+        Shader(GL_FRAGMENT_SHADER, fragmentShaderFile),
+    )
+
     val id = glCreateProgram()
 
     init {

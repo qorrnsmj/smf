@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL33C.*
-import qorrnsmj.smf.graphic.capture.ScreenshotCapture
+import qorrnsmj.smf.graphic.ScreenshotCapture
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 import javax.imageio.ImageIO

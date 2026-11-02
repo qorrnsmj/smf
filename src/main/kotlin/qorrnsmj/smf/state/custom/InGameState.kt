@@ -3,14 +3,13 @@ package qorrnsmj.smf.state.custom
 import org.lwjgl.glfw.GLFW.glfwSetWindowTitle
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.level.LevelManager
-import qorrnsmj.smf.game.level.Levels
 import qorrnsmj.smf.state.State
 
 class InGameState : State() {
     override fun start() {
         super.start()
 
-        levelManager.loadLevel(Levels.entry(SMF.initialLevelId))
+        levelManager.loadLevel(SMF.initialLevelId)
         val loadingState = levelManager.loadingState
         if (loadingState.phase == LevelManager.LevelLoadingPhase.FAILED) {
             glfwSetWindowTitle(

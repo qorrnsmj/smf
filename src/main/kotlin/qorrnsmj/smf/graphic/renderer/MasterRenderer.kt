@@ -2,23 +2,29 @@ package qorrnsmj.smf.graphic.renderer
 
 import org.lwjgl.opengl.GL33C.*
 import org.tinylog.kotlin.Logger
+import qorrnsmj.smf.graphic.renderer.DebugRenderer
 import qorrnsmj.smf.graphic.effect.PostProcessor
+import qorrnsmj.smf.graphic.render.RenderSettings
 import qorrnsmj.smf.graphic.scene.Scene
-import qorrnsmj.smf.graphic.shadow.ShadowSettings
+import qorrnsmj.smf.graphic.scene.shadow.ShadowSettings
+import qorrnsmj.smf.graphic.text.GameDebugHud
 import qorrnsmj.smf.util.Resizable
 
 class MasterRenderer(
     shadowSettings: ShadowSettings = ShadowSettings(),
+    val settings: RenderSettings = RenderSettings(),
 ) : SceneRenderer, Resizable {
-    val shadowRenderer = ShadowRenderer(shadowSettings)
-    val skyboxRenderer = SkyboxRenderer()
-    val skydomeRenderer = SkydomeRenderer()
-    val terrainRenderer = TerrainRenderer(shadowRenderer)
-    val modelRenderer = ModelRenderer(shadowRenderer)
-    val billboardRenderer = BillboardRenderer()
+    val shadowRenderer = ShadowRenderer(shadowSettings, settings)
+    val skyboxRenderer = SkyboxRenderer(settings)
+    val skydomeRenderer = SkydomeRenderer(settings)
+    val terrainRenderer = TerrainRenderer(shadowRenderer, settings)
+    val modelRenderer = ModelRenderer(shadowRenderer, settings)
+    val grassRenderer = GrassRenderer(shadowRenderer, settings)
+    val billboardRenderer = BillboardRenderer(settings)
     val postProcessor = PostProcessor()
     val debugRenderer = DebugRenderer()
     val textRenderer = TextRenderer()
+    val debugHud = GameDebugHud()
 
     init {
         Logger.info("MasterRenderer initializing...")
@@ -44,13 +50,15 @@ class MasterRenderer(
             postProcessor.bindFrameBuffer()
         }
 
-        if (scene.environment.skydome?.enabled == true) {
+        if (scene.environment.sky.skydome?.enabled == true) {
             skydomeRenderer.render(scene)
         } else {
             skyboxRenderer.render(scene)
         }
+
         terrainRenderer.render(scene)
         modelRenderer.render(scene)
+        grassRenderer.render(scene)
         billboardRenderer.render(scene)
 
         if (scene.sceneEffects.isNotEmpty()) {
@@ -68,6 +76,7 @@ class MasterRenderer(
         glViewport(0, 0, safeWidth, safeHeight)
 
         modelRenderer.resize(safeWidth, safeHeight)
+        grassRenderer.resize(safeWidth, safeHeight)
         billboardRenderer.resize(safeWidth, safeHeight)
         terrainRenderer.resize(safeWidth, safeHeight)
         skyboxRenderer.resize(safeWidth, safeHeight)

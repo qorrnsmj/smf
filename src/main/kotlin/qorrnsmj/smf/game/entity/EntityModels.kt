@@ -3,7 +3,7 @@ package qorrnsmj.smf.game.entity
 import qorrnsmj.smf.graphic.resource.model.Mesh
 import qorrnsmj.smf.graphic.resource.model.Material
 import qorrnsmj.smf.graphic.resource.model.Model
-import qorrnsmj.smf.graphic.texture.Textures
+import qorrnsmj.smf.graphic.resource.texture.Textures
 
 // TODO: Entities
 object EntityModels {

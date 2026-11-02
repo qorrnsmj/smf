@@ -12,7 +12,7 @@ import org.tinylog.kotlin.Logger
 /**
  * Main audio management class that coordinates all audio operations
  */
-class AudioManager {
+class AudioManager : AutoCloseable {
     // OpenAL device/context (moved from AudioContext)
     private var device: Long = NULL
     private var context: Long = NULL
@@ -26,7 +26,7 @@ class AudioManager {
     private var sfxVolume = 1.0f
 
     // Special sources for BGM
-    private var bgmSource: AudioSource? = null
+    private val bgmSource: AudioSource
     private var currentBGMBuffer: AudioBuffer? = null
     private var currentBGMVolume = 1f
 
@@ -163,7 +163,7 @@ class AudioManager {
      * @param loop Whether to loop the music (default: true)
      */
     fun playBGM(buffer: AudioBuffer, volume: Float = 1.0f, loop: Boolean = true) {
-        val source = bgmSource ?: return
+        val source = bgmSource
 
         try {
             // Stop current BGM if playing
@@ -189,7 +189,7 @@ class AudioManager {
      * Stop background music
      */
     fun stopBGM() {
-        bgmSource?.stop()
+        bgmSource.stop()
         currentBGMBuffer = null
         currentBGMVolume = 1f
     }
@@ -198,24 +198,22 @@ class AudioManager {
      * Pause background music
      */
     fun pauseBGM() {
-        bgmSource?.pause()
+        bgmSource.pause()
     }
 
     /**
      * Resume background music
      */
     fun resumeBGM() {
-        bgmSource?.let { source ->
-            if (source.isPaused()) {
-                source.play()
-            }
+        if (bgmSource.isPaused()) {
+            bgmSource.play()
         }
     }
 
     /**
      * Check if BGM is currently playing
      */
-    fun isBGMPlaying(): Boolean = bgmSource?.isPlaying() ?: false
+    fun isBGMPlaying(): Boolean = bgmSource.isPlaying()
 
     /**
      * Stop all currently playing sounds
@@ -235,7 +233,7 @@ class AudioManager {
         alListenerf(AL_GAIN, masterVolume)
         
         // Update BGM volume
-        bgmSource?.setVolume(currentBGMVolume * bgmVolume * masterVolume)
+        bgmSource.setVolume(currentBGMVolume * bgmVolume * masterVolume)
     }
 
     /**
@@ -243,12 +241,12 @@ class AudioManager {
      */
     fun setBGMVolume(volume: Float) {
         bgmVolume = volume.coerceIn(0f, 1f)
-        bgmSource?.setVolume(currentBGMVolume * bgmVolume * masterVolume)
+        bgmSource.setVolume(currentBGMVolume * bgmVolume * masterVolume)
     }
 
     fun setCurrentBGMVolume(volume: Float) {
         currentBGMVolume = volume.coerceIn(0f, 1f)
-        bgmSource?.setVolume(currentBGMVolume * bgmVolume * masterVolume)
+        bgmSource.setVolume(currentBGMVolume * bgmVolume * masterVolume)
     }
 
     /**
@@ -327,4 +325,12 @@ class AudioManager {
         val bgmVolume: Float,
         val sfxVolume: Float
     )
+
+    override fun close() {
+        bgmSource.dispose()
+        audioSources.forEach(AudioSource::dispose)
+        alcMakeContextCurrent(NULL)
+        alcDestroyContext(context)
+        alcCloseDevice(device)
+    }
 }

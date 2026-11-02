@@ -1,4 +1,5 @@
 package qorrnsmj.smf.editor
+import qorrnsmj.smf.graphic.scene.terrain.Terrain
 
 import imgui.ImGui
 import imgui.extension.imguizmo.ImGuizmo
@@ -8,7 +9,7 @@ import imgui.glfw.ImGuiImplGlfw
 import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.tinylog.kotlin.Logger
 import qorrnsmj.smf.SMF
-import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
+import qorrnsmj.smf.graphic.render.ShadingMode
 
 class EditorApp {
     private val imGuiGlfw = ImGuiImplGlfw()
@@ -31,10 +32,10 @@ class EditorApp {
         Logger.info("EditorApp initializing...")
 
         EditorConfig.load(context)
-        context.terrainGrayViewEnabled = context.viewportShadingMode == ViewportShadingSettings.SOLID ||
-            context.viewportShadingMode == ViewportShadingSettings.WIRE
-        context.terrainMeshViewEnabled = context.viewportShadingMode == ViewportShadingSettings.WIRE
-        context.skyVisible = context.viewportShadingMode == ViewportShadingSettings.RENDERED
+        context.terrainGrayViewEnabled = context.viewportShadingMode == ShadingMode.SOLID ||
+            context.viewportShadingMode == ShadingMode.WIRE
+        context.terrainMeshViewEnabled = context.viewportShadingMode == ShadingMode.WIRE
+        context.skyVisible = context.viewportShadingMode == ShadingMode.RENDERED
         ui.addAssetAtCursor = input::addSelectedAssetAtCursor
         ui.viewport = viewport
         ui.secondaryViewport = secondaryViewport
@@ -44,12 +45,10 @@ class EditorApp {
         context.secondaryCamera.position = qorrnsmj.smf.math.Vector3f(18f, 10f, 18f)
         context.secondaryCamera.setFront(qorrnsmj.smf.math.Vector3f(-1f, -0.35f, -1f))
         context.secondaryCameraController.syncFromCamera()
-        context.scene.renderSettings.terrainGrayView = context.terrainGrayViewEnabled
-        context.scene.renderSettings.terrainWireframeView = context.terrainMeshViewEnabled
-        context.scene.renderSettings.viewportShadingMode = context.viewportShadingMode
-        context.scene.renderSettings.cullingEnabled = context.cullingEnabled
-        context.scene.environment.skyVisible = context.skyVisible
-        context.scene.environment.skyColor = context.timeOfDay.skyColor
+        SMF.renderer.settings.shadingMode = context.viewportShadingMode
+        SMF.renderer.settings.cullingEnabled = context.cullingEnabled
+        context.scene.environment.sky.visible = context.skyVisible
+        context.scene.environment.sky.color = context.timeOfDay.skyColor
         context.terrainPreview = EditorTerrainPreview(context.terrain, context.splatmaps, context.terrainMapSize)
         context.scene.world.terrain = context.terrainPreview?.terrain
         context.scene.world.terrainHeightProvider = context.terrainPreview?.terrain

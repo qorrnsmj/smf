@@ -1,22 +1,23 @@
 package qorrnsmj.smf.graphic.renderer
 
-import qorrnsmj.smf.graphic.terrain.*
-
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.game.camera.Camera
 import qorrnsmj.smf.graphic.scene.Scene
-import qorrnsmj.smf.graphic.scene.settings.FogSettings
-import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
-import qorrnsmj.smf.graphic.light.DirectionalLight
-import qorrnsmj.smf.graphic.light.Light
-import qorrnsmj.smf.graphic.light.SpotLight
-import qorrnsmj.smf.graphic.light.SunLight
-import qorrnsmj.smf.graphic.shadow.MAX_LOCAL_LIGHT_SHADOWS
-import qorrnsmj.smf.graphic.shadow.MAX_POINT_LIGHT_SHADOWS
-import qorrnsmj.smf.graphic.shadow.ShadowRenderState
-import qorrnsmj.smf.graphic.terrain.component.BlendedTexture
-import qorrnsmj.smf.graphic.terrain.component.SingleTexture
-import qorrnsmj.smf.graphic.terrain.component.TerrainTextureMode
+import qorrnsmj.smf.graphic.render.RenderSettings
+import qorrnsmj.smf.graphic.resource.shader.ShaderProgram
+import qorrnsmj.smf.graphic.scene.terrain.*
+import qorrnsmj.smf.graphic.scene.FogSettings
+import qorrnsmj.smf.graphic.render.ShadingMode
+import qorrnsmj.smf.graphic.scene.light.DirectionalLight
+import qorrnsmj.smf.graphic.scene.light.Light
+import qorrnsmj.smf.graphic.scene.light.SpotLight
+import qorrnsmj.smf.graphic.scene.light.SunLight
+import qorrnsmj.smf.graphic.scene.shadow.MAX_LOCAL_LIGHT_SHADOWS
+import qorrnsmj.smf.graphic.scene.shadow.MAX_POINT_LIGHT_SHADOWS
+import qorrnsmj.smf.graphic.scene.shadow.ShadowRenderState
+import qorrnsmj.smf.graphic.scene.terrain.component.TerrainTextureMode
+import qorrnsmj.smf.graphic.scene.terrain.component.BlendedTexture
+import qorrnsmj.smf.graphic.scene.terrain.component.SingleTexture
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Quaternion
 import qorrnsmj.smf.math.Vector3f
@@ -27,6 +28,7 @@ import qorrnsmj.smf.util.UniformUtils
 
 class TerrainRenderer(
     private val shadowRenderer: ShadowRenderer,
+    private val renderSettings: RenderSettings = RenderSettings(),
 ) : SceneRenderer, Resizable {
     private companion object {
         const val MAX_LOCAL_LIGHTS = 30
@@ -36,7 +38,7 @@ class TerrainRenderer(
         val SOLID_VIEW_COLOR = Vector4f(0.52f, 0.54f, 0.56f, 1f)
     }
 
-    val program = TerrainShaderProgram()
+    val program = ShaderProgram("terrain.vert", "terrain.frag")
     val locationModel = glGetUniformLocation(program.id, "model")
     val locationView = glGetUniformLocation(program.id, "view")
     val locationProjection = glGetUniformLocation(program.id, "projection")
@@ -116,24 +118,24 @@ class TerrainRenderer(
         start(scene)
         loadCamera(scene.world.camera)
         loadSunLight(scene.environment.celestialLight)
-        loadLights(scene.world.lights)
-        loadSkyColor(scene.environment.skyColor)
+        loadLights(scene.world.activeLights)
+        loadSkyColor(scene.environment.sky.color)
         loadFog(scene.environment.fog)
         loadShadow(shadowState)
-        loadViewportShading(scene.renderSettings.viewportShadingMode)
+        loadViewportShading(renderSettings.shadingMode)
         renderTerrains(terrain)
         stop()
     }
 
     private fun start(scene: Scene) {
         program.use()
-        if (scene.renderSettings.cullingEnabled) {
+        if (renderSettings.cullingEnabled) {
             glEnable(GL_CULL_FACE)
             glCullFace(GL_BACK)
         } else {
             glDisable(GL_CULL_FACE)
         }
-        if (scene.renderSettings.viewportShadingMode == ViewportShadingSettings.WIRE) {
+        if (renderSettings.shadingMode == ShadingMode.WIRE) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
             glLineWidth(1.0f)
         }
@@ -209,8 +211,8 @@ class TerrainRenderer(
         UniformUtils.setUniform(locationSkyColor, skyColor)
     }
 
-    private fun loadViewportShading(mode: ViewportShadingSettings) {
-        val grayView = mode == ViewportShadingSettings.SOLID || mode == ViewportShadingSettings.WIRE
+    private fun loadViewportShading(mode: ShadingMode) {
+        val grayView = mode == ShadingMode.SOLID || mode == ShadingMode.WIRE
         UniformUtils.setUniform(locationGrayView, if (grayView) 1 else 0)
         UniformUtils.setUniform(locationGrayColor, SOLID_VIEW_COLOR)
     }

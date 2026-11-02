@@ -6,7 +6,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import org.tinylog.kotlin.Logger
-import qorrnsmj.smf.game.level.base.Level
+import qorrnsmj.smf.game.level.custom.Level
 import java.util.concurrent.atomic.AtomicReference
 
 // TODO: シンプルに
@@ -14,7 +14,6 @@ class LevelManager {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(job + Dispatchers.Default)
     private var currentLevel: Level? = null
-    private var homeLevel: Level? = null
     private var activeLevelName: String? = null
     @Volatile
     private var pendingLoadedLevel: PendingLoadedLevel? = null
@@ -24,16 +23,14 @@ class LevelManager {
     val loadingState: LevelLoadingState
         get() = stateRef.get()
 
-    fun loadLevel(entry: Levels.LevelEntry) {
-        if (homeLevel != null || isTransitioning) return
+    fun loadLevel(levelName: String) {
+        if (currentLevel != null || isTransitioning) return
 
-        val levelName = entry.id
-        val level = entry.create()
+        val level = Levels.create(levelName)
         stateRef.set(LevelLoadingState(isLoading = true, targetLevelName = levelName, phase = LevelLoadingPhase.LOADING))
         try {
             prepareLevel(level)
             level.load()
-            homeLevel = level
             currentLevel = level
             activeLevelName = levelName
             stateRef.set(LevelLoadingState(targetLevelName = levelName, phase = LevelLoadingPhase.COMPLETE))
@@ -52,24 +49,19 @@ class LevelManager {
     }
 
     fun switchLevel(levelName: String) {
-        if (isTransitioning) return
-
-        if (levelName == HOME_LEVEL_NAME && homeLevel != null) {
-            switchToHome()
-            return
-        }
+        if (isTransitioning || levelName == activeLevelName) return
 
         isTransitioning = true
         stateRef.set(LevelLoadingState(isLoading = true, targetLevelName = levelName, phase = LevelLoadingPhase.UNLOADING))
 
-        currentLevel?.takeUnless { it === homeLevel }?.unload()
+        currentLevel?.unload()
         currentLevel = null
         activeLevelName = null
 
         scope.launch {
             try {
                 stateRef.set(LevelLoadingState(isLoading = true, targetLevelName = levelName, phase = LevelLoadingPhase.LOADING))
-                val level = createLevel(levelName)
+                val level = Levels.create(levelName)
                 pendingLoadedLevel = PendingLoadedLevel(levelName, level)
             } catch (exception: Exception) {
                 Logger.error(exception, "Failed to load level: {}", levelName)
@@ -95,32 +87,25 @@ class LevelManager {
     }
 
     fun update(delta: Float) {
-        currentLevel?.update(delta)
+        currentLevel?.updateLevel(delta)
     }
 
     fun getCurrentLevel(): Level? = currentLevel
 
+    fun getCurrentLevelName(): String? = activeLevelName
+
     fun isTransitioning(): Boolean = isTransitioning
 
     fun stop() {
-        currentLevel?.takeUnless { it === homeLevel }?.unload()
-        homeLevel?.unload()
+        currentLevel?.unload()
+        currentLevel = null
+        activeLevelName = null
+        pendingLoadedLevel = null
+        isTransitioning = false
         job.cancelChildren()
     }
 
-    private fun switchToHome() {
-        isTransitioning = true
-        stateRef.set(LevelLoadingState(isLoading = true, targetLevelName = HOME_LEVEL_NAME, phase = LevelLoadingPhase.UNLOADING))
-        currentLevel?.takeUnless { it === homeLevel }?.unload()
-        currentLevel = homeLevel
-        activeLevelName = HOME_LEVEL_NAME
-        stateRef.set(LevelLoadingState(targetLevelName = HOME_LEVEL_NAME, phase = LevelLoadingPhase.COMPLETE))
-        currentLevel?.start()
-        isTransitioning = false
-    }
-
     private fun switchToLevel(level: Level, levelName: String) {
-        currentLevel?.takeUnless { it === homeLevel }?.unload()
         prepareLevel(level)
         currentLevel = level
         activeLevelName = levelName
@@ -136,18 +121,10 @@ class LevelManager {
         level.attachLevelSwitcher(::switchLevel)
     }
 
-    private fun createLevel(levelName: String): Level {
-        return Levels.create(levelName)
-    }
-
     private data class PendingLoadedLevel(
         val name: String,
         val level: Level,
     )
-
-    companion object {
-        const val HOME_LEVEL_NAME = "test"
-    }
 
     data class LevelLoadingState(
         val isLoading: Boolean = false,

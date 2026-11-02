@@ -1,0 +1,99 @@
+package qorrnsmj.smf.graphic.scene.sky
+
+import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.system.MemoryUtil
+import org.tinylog.kotlin.Logger
+import qorrnsmj.smf.graphic.resource.model.Material
+import qorrnsmj.smf.graphic.resource.model.Mesh
+import qorrnsmj.smf.graphic.resource.buffer.TextureBufferObject
+import qorrnsmj.smf.graphic.resource.model.Model
+import qorrnsmj.smf.graphic.resource.texture.TextureLoader
+import qorrnsmj.smf.graphic.resource.texture.TexturePresets
+
+object SkyboxLoader  {
+    private val vaos = mutableListOf<Int>()
+    private val vbos = mutableListOf<Int>()
+    private val ebos = mutableListOf<Int>()
+    private val textures = mutableListOf<TextureBufferObject>()
+
+    private val SKYBOX_VERTICES = floatArrayOf(
+        -1f,  1f, -1f,
+        -1f, -1f, -1f,
+         1f, -1f, -1f,
+         1f,  1f, -1f,
+        -1f,  1f,  1f,
+        -1f, -1f,  1f,
+         1f, -1f,  1f,
+         1f,  1f,  1f
+    )
+    private val SKYBOX_INDICES = intArrayOf(
+        0, 1, 3, 3, 1, 2,
+        4, 5, 7, 7, 5, 6,
+        0, 1, 4, 4, 1, 5,
+        3, 2, 7, 7, 2, 6,
+        0, 3, 4, 4, 3, 7,
+        1, 2, 5, 5, 2, 6
+    )
+
+    fun loadSkybox(id: String): Skybox {
+        val model = loadModel("assets/texture/skybox/$id")
+        return Skybox(model)
+    }
+
+    fun loadSkyboxResource(resourcePrefix: String): Skybox {
+        val model = loadModel(resourcePrefix)
+        return Skybox(model)
+    }
+
+    fun loadSkyboxFile(prefix: java.nio.file.Path): Skybox = Skybox(loadModel(prefix.toString(), true))
+
+    private fun loadModel(resourcePrefix: String, fromFile: Boolean = false): Model {
+        val mesh = loadMesh()
+        val texture = TextureLoader.loadCubemapTexture(
+            resourcePrefix,
+            TexturePresets.SKYBOX,
+            fromFile,
+        )
+        val material = Material(
+            baseColorTexture = texture,
+            metallicRoughnessTexture = texture,
+            normalTexture = texture,
+            occlusionTexture = texture,
+            emissiveTexture = texture,
+        )
+
+        val faceCount = mesh.vertexCount.div(3)
+        Logger.info("\"${resourcePrefix}\" loaded ($faceCount faces)")
+
+        return Model(mesh, material)
+    }
+
+    private fun loadMesh(): Mesh {
+        val vao = glGenVertexArrays()
+        val vbo = glGenBuffers()
+        val ebo = glGenBuffers()
+        vaos.add(vao); vbos.add(vbo); ebos.add(ebo)
+        glBindVertexArray(vao)
+
+        val vb = MemoryUtil.memAllocFloat(SKYBOX_VERTICES.size).apply {
+            this.put(SKYBOX_VERTICES).flip()
+            glBindBuffer(GL_ARRAY_BUFFER, vbo)
+            glBufferData(GL_ARRAY_BUFFER, this, GL_STATIC_DRAW)
+        }
+
+        val ib = MemoryUtil.memAllocInt(SKYBOX_INDICES.size).apply {
+            this.put(SKYBOX_INDICES).flip()
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, this, GL_STATIC_DRAW)
+        }
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.SIZE_BYTES, 0)
+        glEnableVertexAttribArray(0)
+        glBindVertexArray(0)
+
+        MemoryUtil.memFree(vb)
+        MemoryUtil.memFree(ib)
+
+        return Mesh(vao, SKYBOX_INDICES.size)
+    }
+}

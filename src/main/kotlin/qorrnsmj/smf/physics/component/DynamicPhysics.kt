@@ -24,6 +24,8 @@ class DynamicPhysics(
 
     override var collider: Collider? = null
 ) : IPhysicsComponent {
+    var affectedByGravity: Boolean = true
+
     override fun applyForce(force: Vector3f) {
         forces.add(force)
     }

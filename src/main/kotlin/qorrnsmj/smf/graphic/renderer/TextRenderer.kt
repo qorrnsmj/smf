@@ -1,9 +1,9 @@
 package qorrnsmj.smf.graphic.renderer
 
-import qorrnsmj.smf.graphic.text.*
-
 import org.lwjgl.opengl.GL33C.*
 import qorrnsmj.smf.graphic.scene.Scene
+import qorrnsmj.smf.graphic.resource.shader.ShaderProgram
+import qorrnsmj.smf.graphic.text.*
 import qorrnsmj.smf.math.Matrix4f
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
@@ -16,7 +16,7 @@ import kotlin.text.iterator
  * Handles 2D screen-space text rendering with orthographic projection.
  */
 class TextRenderer : SceneRenderer, Resizable {
-    private lateinit var shaderProgram: TextShaderProgram
+    private lateinit var shaderProgram: ShaderProgram
     private var vao: Int = 0
     private var vbo: Int = 0
     private var rectProgram: Int = 0
@@ -40,7 +40,7 @@ class TextRenderer : SceneRenderer, Resizable {
     }
 
     private fun initializeRenderer() {
-        shaderProgram = TextShaderProgram()
+        shaderProgram = ShaderProgram("text.vert", "text.frag")
 
         vao = glGenVertexArrays()
         vbo = glGenBuffers()
@@ -80,7 +80,7 @@ class TextRenderer : SceneRenderer, Resizable {
     }
 
     override fun render(scene: Scene) {
-        val textElements = scene.world.textElements + listOfNotNull(
+        val textElements = scene.world.textElements + scene.world.debugTextElements + listOfNotNull(
             scene.sceneEffects.cinematicOverlay.subtitle,
             scene.sceneEffects.cinematicOverlay.debugStatus,
         )
@@ -194,11 +194,11 @@ class TextRenderer : SceneRenderer, Resizable {
     }
 
     private fun renderSingleTextPass(text: String, font: Font, x: Float, y: Float, color: Vector3f) {
-        UniformUtils.setUniform(shaderProgram.getUniformLocation("u_textColor"), color)
+        UniformUtils.setUniform(glGetUniformLocation(shaderProgram.id, "u_textColor"), color)
 
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, font.glyphAtlas.getTextureId())
-        glUniform1i(shaderProgram.getUniformLocation("u_glyphTexture"), 0)
+        glUniform1i(glGetUniformLocation(shaderProgram.id, "u_glyphTexture"), 0)
 
         val vertices = generateTextVertices(text, font, x, y)
 
@@ -384,7 +384,7 @@ class TextRenderer : SceneRenderer, Resizable {
         screenHeight = height
         shaderProgram.use()
         val projection = createOrthographicProjection()
-        UniformUtils.setUniform(shaderProgram.getUniformLocation("u_projection"), projection)
+        UniformUtils.setUniform(glGetUniformLocation(shaderProgram.id, "u_projection"), projection)
         glUseProgram(rectProgram)
         UniformUtils.setUniform(rectProjectionLocation, projection)
         shaderProgram.use()

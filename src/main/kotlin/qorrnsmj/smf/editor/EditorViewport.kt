@@ -6,54 +6,47 @@ import org.lwjgl.opengl.GL33C.glBindFramebuffer
 import org.lwjgl.opengl.GL33C.glViewport
 import qorrnsmj.smf.SMF
 import qorrnsmj.smf.game.camera.Camera
-import qorrnsmj.smf.graphic.scene.settings.ViewportShadingSettings
-import qorrnsmj.smf.graphic.debug.DebugBox
-import qorrnsmj.smf.graphic.debug.DebugCapsule
-import qorrnsmj.smf.graphic.debug.DebugLine
-import qorrnsmj.smf.graphic.debug.DebugPrimitive
-import qorrnsmj.smf.graphic.debug.DebugSphere
+import qorrnsmj.smf.graphic.render.ShadingMode
+import qorrnsmj.smf.debug.DebugBox
+import qorrnsmj.smf.debug.DebugCapsule
+import qorrnsmj.smf.debug.DebugLine
+import qorrnsmj.smf.debug.DebugPrimitive
+import qorrnsmj.smf.debug.DebugSphere
 import qorrnsmj.smf.graphic.resource.buffer.FrameBufferObject
 import qorrnsmj.smf.math.Vector3f
 import qorrnsmj.smf.math.Vector4f
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
-import kotlin.math.sqrt
 
 internal class EditorViewport(private val context: EditorContext) {
     private var fbo: FrameBufferObject? = null
     private var width = 1
     private var height = 1
 
-    fun renderSceneToTexture(width: Int, height: Int, camera: Camera, shadingMode: ViewportShadingSettings, timeOfDay: EditorTimeOfDay): Int {
+    fun renderSceneToTexture(width: Int, height: Int, camera: Camera, shadingMode: ShadingMode, timeOfDay: EditorTimeOfDay): Int {
         resize(width, height)
 
         val target = fbo ?: return 0
         resizeRendererForEditorViewport(this.width, this.height)
         val previousCamera = context.scene.world.camera
-        val previousMode = context.scene.renderSettings.viewportShadingMode
-        val previousGray = context.scene.renderSettings.terrainGrayView
-        val previousWire = context.scene.renderSettings.terrainWireframeView
-        val previousSky = context.scene.environment.skyVisible
-        val previousSkyColor = context.scene.environment.skyColor
+        val previousMode = SMF.renderer.settings.shadingMode
+        val previousSky = context.scene.environment.sky.visible
+        val previousSkyColor = context.scene.environment.sky.color
 
         try {
             target.bind()
             updateDebugPrimitives()
             context.scene.world.camera = camera
-            context.scene.renderSettings.viewportShadingMode = shadingMode
-            context.scene.renderSettings.terrainGrayView = shadingMode == ViewportShadingSettings.SOLID || shadingMode == ViewportShadingSettings.WIRE
-            context.scene.renderSettings.terrainWireframeView = shadingMode == ViewportShadingSettings.WIRE
-            context.scene.environment.skyVisible = shadingMode == ViewportShadingSettings.RENDERED
-            context.scene.environment.skyColor = timeOfDay.skyColor
+            SMF.renderer.settings.shadingMode = shadingMode
+            context.scene.environment.sky.visible = shadingMode == ShadingMode.RENDERED
+            context.scene.environment.sky.color = timeOfDay.skyColor
             SMF.renderer.render(context.scene)
         } finally {
             context.scene.world.camera = previousCamera
-            context.scene.renderSettings.viewportShadingMode = previousMode
-            context.scene.renderSettings.terrainGrayView = previousGray
-            context.scene.renderSettings.terrainWireframeView = previousWire
-            context.scene.environment.skyVisible = previousSky
-            context.scene.environment.skyColor = previousSkyColor
+            SMF.renderer.settings.shadingMode = previousMode
+            context.scene.environment.sky.visible = previousSky
+            context.scene.environment.sky.color = previousSkyColor
             glBindFramebuffer(GL_FRAMEBUFFER, 0)
             resizeRendererForEditorViewport(SMF.window.width, SMF.window.height)
         }
@@ -91,7 +84,7 @@ internal class EditorViewport(private val context: EditorContext) {
         width: Float,
         height: Float,
         camera: Camera,
-        shadingMode: ViewportShadingSettings,
+        shadingMode: ShadingMode,
         timeOfDay: EditorTimeOfDay,
     ) {
         val textureWidth = width.toInt()

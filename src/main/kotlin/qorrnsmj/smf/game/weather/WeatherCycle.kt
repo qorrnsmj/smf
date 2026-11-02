@@ -1,6 +1,6 @@
 package qorrnsmj.smf.game.weather
 
-import qorrnsmj.smf.graphic.light.DirectionalLight
+import qorrnsmj.smf.graphic.scene.light.DirectionalLight
 import qorrnsmj.smf.graphic.scene.SceneEnvironment
 import qorrnsmj.smf.math.Vector3f
 import kotlin.math.PI
@@ -37,9 +37,9 @@ class WeatherCycle(
 
     private fun applyWeather(from: WeatherPreset, to: WeatherPreset, progress: Float) {
         val horizonColor = from.horizonColor.lerp(to.horizonColor, progress)
-        environment.skyColor = horizonColor
+        environment.sky.color = horizonColor
 
-        environment.skydome?.apply {
+        environment.sky.skydome?.apply {
             this.horizonColor = horizonColor
             zenithColor = from.zenithColor.lerp(to.zenithColor, progress)
             cloudColor = from.cloudColor.lerp(to.cloudColor, progress)
@@ -61,7 +61,7 @@ class WeatherCycle(
         )
         light.ambientColor = from.ambientColor.lerp(to.ambientColor, progress)
         light.ambientIntensity = lerp(from.ambientIntensity, to.ambientIntensity, progress)
-        environment.skydome?.sunColor = from.sunGlowColor.lerp(to.sunGlowColor, progress)
+        environment.sky.skydome?.sunColor = from.sunGlowColor.lerp(to.sunGlowColor, progress)
 
         environment.fog.enabled = true
         environment.fog.color = from.fogColor.lerp(to.fogColor, progress)
@@ -88,7 +88,7 @@ class WeatherCycle(
         light.direction = directionToActiveLight.negate()
         light.intensity = directionalLightIntensity * horizonVisibility
         light.shadowStrength = directionalShadowStrength * shadowVisibility
-        environment.skydome?.sunDirection = directionToSun
+        environment.sky.skydome?.sunDirection = directionToSun
     }
 
     private fun smoothstep(edge0: Float, edge1: Float, value: Float): Float {
